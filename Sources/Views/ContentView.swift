@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Main app view with navigation
-struct ContentView: View {
+public struct ContentView: View {
     @StateObject private var authViewModel = AuthenticationViewModel(authService: AuthenticationService())
     @State private var viewModel = RoomListViewModel(
         roomService: RoomService(),
@@ -9,7 +9,9 @@ struct ContentView: View {
     )
     @State private var showingCreateRoom = false
     
-    var body: some View {
+    public init() {}
+    
+    public var body: some View {
         Group {
             if authViewModel.isAuthenticated, let currentUser = authViewModel.currentUser {
                 mainAppView(currentUser: currentUser)

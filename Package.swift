@@ -21,7 +21,8 @@ let package = Package(
             name: "LayoverKit",
             dependencies: [],
             path: "Sources",
-            exclude: ["LayoverApp.swift"]
+            exclude: ["LayoverApp.swift"],
+            resources: [.process("../Resources")]
         ),
         .testTarget(
             name: "LayoverTests",

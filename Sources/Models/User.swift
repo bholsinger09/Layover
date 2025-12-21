@@ -1,16 +1,16 @@
 import Foundation
 
 /// Represents a user in the Layover app
-struct User: LayoverModel {
-    let id: UUID
-    var appleUserID: String?
-    var username: String
-    var email: String?
-    var avatarURL: URL?
-    var isHost: Bool
-    var isSubHost: Bool
+public struct User: LayoverModel {
+    public let id: UUID
+    public var appleUserID: String?
+    public var username: String
+    public var email: String?
+    public var avatarURL: URL?
+    public var isHost: Bool
+    public var isSubHost: Bool
     
-    init(
+    public init(
         id: UUID = UUID(),
         appleUserID: String? = nil,
         username: String,

@@ -2,16 +2,16 @@ import Foundation
 
 /// ViewModel for authentication operations
 @MainActor
-final class AuthenticationViewModel: ObservableObject {
+public final class AuthenticationViewModel: ObservableObject {
     
-    @Published private(set) var currentUser: User?
-    @Published private(set) var isAuthenticated = false
-    @Published private(set) var isLoading = false
-    @Published private(set) var errorMessage: String?
+    @Published public private(set) var currentUser: User?
+    @Published public private(set) var isAuthenticated = false
+    @Published public private(set) var isLoading = false
+    @Published public private(set) var errorMessage: String?
     
     private let authService: AuthenticationServiceProtocol
     
-    nonisolated init(authService: AuthenticationServiceProtocol) {
+    public nonisolated init(authService: AuthenticationServiceProtocol) {
         self.authService = authService
         Task { @MainActor in
             self.currentUser = await authService.currentUser
@@ -20,7 +20,7 @@ final class AuthenticationViewModel: ObservableObject {
     }
     
     /// Sign in with Apple
-    func signInWithApple() async {
+    public func signInWithApple() async {
         isLoading = true
         errorMessage = nil
         
@@ -36,7 +36,7 @@ final class AuthenticationViewModel: ObservableObject {
     }
     
     /// Sign out the current user
-    func signOut() async {
+    public func signOut() async {
         isLoading = true
         errorMessage = nil
         
@@ -52,7 +52,7 @@ final class AuthenticationViewModel: ObservableObject {
     }
     
     /// Check if credentials are still valid
-    func checkCredentialState() async {
+    public func checkCredentialState() async {
         guard let userID = currentUser?.appleUserID else { return }
         
         if let authService = authService as? AuthenticationService {

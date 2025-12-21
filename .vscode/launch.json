@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Layover}",
+            "name": "Debug LayoverApp",
+            "target": "LayoverApp",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug LayoverApp"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Layover}",
+            "name": "Release LayoverApp",
+            "target": "LayoverApp",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release LayoverApp"
+        }
+    ]
+}

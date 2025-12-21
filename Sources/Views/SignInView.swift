@@ -2,15 +2,15 @@ import SwiftUI
 import AuthenticationServices
 
 /// View for Sign in with Apple
-struct SignInView: View {
+public struct SignInView: View {
     @StateObject private var viewModel: AuthenticationViewModel
     @Environment(\.colorScheme) private var colorScheme
     
-    init(viewModel: AuthenticationViewModel) {
+    public init(viewModel: AuthenticationViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 30) {
             Spacer()
             

@@ -3,7 +3,7 @@ import AuthenticationServices
 import Combine
 
 /// Protocol for authentication operations
-protocol AuthenticationServiceProtocol: Sendable {
+public protocol AuthenticationServiceProtocol: Sendable {
     var currentUser: User? { get async }
     var isAuthenticated: Bool { get async }
     
@@ -13,11 +13,11 @@ protocol AuthenticationServiceProtocol: Sendable {
 
 /// Service for handling Apple Sign In authentication
 @MainActor
-final class AuthenticationService: NSObject, AuthenticationServiceProtocol, ObservableObject {
+public final class AuthenticationService: NSObject, AuthenticationServiceProtocol, ObservableObject {
     
-    @Published private(set) var currentUser: User?
+    @Published public private(set) var currentUser: User?
     
-    var isAuthenticated: Bool {
+    public var isAuthenticated: Bool {
         get async {
             currentUser != nil
         }
@@ -25,13 +25,13 @@ final class AuthenticationService: NSObject, AuthenticationServiceProtocol, Obse
     
     private let userDefaultsKey = "layover.currentUser"
     
-    override init() {
+    public override init() {
         super.init()
         loadStoredUser()
     }
     
     /// Sign in with Apple using ASAuthorization
-    func signInWithApple() async throws -> User {
+    public func signInWithApple() async throws -> User {
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
         request.requestedScopes = [.fullName, .email]
@@ -50,7 +50,7 @@ final class AuthenticationService: NSObject, AuthenticationServiceProtocol, Obse
     }
     
     /// Sign out the current user
-    func signOut() async throws {
+    public func signOut() async throws {
         currentUser = nil
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
     }
