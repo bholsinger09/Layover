@@ -12,5 +12,9 @@
 	<true/>
 	<key>com.apple.developer.music-kit</key>
 	<true/>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

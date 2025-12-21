@@ -4,6 +4,7 @@ A multi-platform MVVM SwiftUI app for shared group experiences using Apple's Sha
 
 ## Features
 
+- **Sign in with Apple**: Secure authentication with privacy-first approach
 - **Multi-Platform Support**: iOS, macOS, tvOS, and visionOS
 - **SharePlay Integration**: Synchronized group experiences using AVPlaybackCoordinator
 - **Room Management**: Host and sub-host capabilities with multiple concurrent rooms

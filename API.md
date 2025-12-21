@@ -1,5 +1,50 @@
 # Layover API Reference
 
+## Authentication
+
+### AuthenticationService
+Handles Sign in with Apple authentication.
+
+```swift
+protocol AuthenticationServiceProtocol: Sendable {
+    var currentUser: User? { get async }
+    var isAuthenticated: Bool { get async }
+    
+    func signInWithApple() async throws -> User
+    func signOut() async throws
+}
+```
+
+**Methods:**
+- `signInWithApple()`: Initiates Sign in with Apple flow
+- `signOut()`: Signs out the current user
+- `checkCredentialState(for:)`: Validates user credentials
+
+**Errors:**
+- `AuthenticationError.invalidCredential`: Invalid credential from Apple
+- `AuthenticationError.userCanceled`: User canceled sign in
+- `AuthenticationError.authorizationFailed`: Authorization failed
+- `AuthenticationError.invalidResponse`: Invalid response from Apple
+
+### AuthenticationViewModel
+ViewModel for authentication UI.
+
+```swift
+@MainActor
+class AuthenticationViewModel: ObservableObject {
+    @Published private(set) var currentUser: User?
+    @Published private(set) var isAuthenticated: Bool
+    @Published private(set) var isLoading: Bool
+    @Published private(set) var errorMessage: String?
+    
+    func signInWithApple() async
+    func signOut() async
+    func checkCredentialState() async
+}
+```
+
+---
+
 ## Models
 
 ### User
@@ -8,7 +53,9 @@ Represents a user in the Layover app.
 ```swift
 struct User: LayoverModel {
     let id: UUID
+    var appleUserID: String?
     var username: String
+    var email: String?
     var avatarURL: URL?
     var isHost: Bool
     var isSubHost: Bool
@@ -17,7 +64,9 @@ struct User: LayoverModel {
 
 **Properties:**
 - `id`: Unique identifier
+- `appleUserID`: Apple user identifier from Sign in with Apple
 - `username`: Display name
+- `email`: Optional email address
 - `avatarURL`: Optional avatar image URL
 - `isHost`: Whether user is a room host
 - `isSubHost`: Whether user is a sub-host

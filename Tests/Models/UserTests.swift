@@ -14,19 +14,25 @@ struct UserTests {
         #expect(user.isHost == false)
         #expect(user.isSubHost == false)
         #expect(user.avatarURL == nil)
+        #expect(user.appleUserID == nil)
+        #expect(user.email == nil)
     }
     
     @Test("User initialization with custom values")
     func testUserInitializationWithCustomValues() {
         let url = URL(string: "https://example.com/avatar.png")
         let user = User(
+            appleUserID: "test.apple.id",
             username: "HostUser",
+            email: "host@example.com",
             avatarURL: url,
             isHost: true,
             isSubHost: false
         )
         
         #expect(user.username == "HostUser")
+        #expect(user.email == "host@example.com")
+        #expect(user.appleUserID == "test.apple.id")
         #expect(user.isHost == true)
         #expect(user.isSubHost == false)
         #expect(user.avatarURL == url)

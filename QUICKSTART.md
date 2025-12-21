@@ -11,19 +11,26 @@ Built with SharePlay API and AVPlaybackCoordinator for seamless synchronization.
 
 ## Quick Start
 
-### 1. Open in Xcode
+### 1. Sign In with Apple
+When you launch the app:
+- Tap the **Sign in with Apple** button
+- Authenticate with Face ID, Touch ID, or password
+- Review and confirm the information being shared
+- Your session will be securely stored
+
+### 2. Open in Xcode
 ```bash
 cd /Users/benh/Documents/Layover
 open Package.swift
 ```
 
-### 2. Select Your Platform
+### 3. Select Your Platform
 - iOS 17.0+
 - macOS 14.0+
 - tvOS 17.0+
 - visionOS 1.0+
 
-### 3. Run Tests
+### 4. Run Tests
 Press `⌘U` or run:
 ```bash
 swift test
