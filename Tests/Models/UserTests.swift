@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Layover
+@testable import LayoverKit
 
 /// Tests for User model
 @Suite("User Model Tests")

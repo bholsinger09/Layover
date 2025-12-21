@@ -11,20 +11,21 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "Layover",
-            targets: ["Layover"]
+            name: "LayoverKit",
+            targets: ["LayoverKit"]
         ),
     ],
     dependencies: [],
     targets: [
         .target(
-            name: "Layover",
+            name: "LayoverKit",
             dependencies: [],
-            path: "Sources"
+            path: "Sources",
+            exclude: ["LayoverApp.swift"]
         ),
         .testTarget(
             name: "LayoverTests",
-            dependencies: ["Layover"],
+            dependencies: ["LayoverKit"],
             path: "Tests"
         ),
     ]

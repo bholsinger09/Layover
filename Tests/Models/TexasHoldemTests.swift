@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Layover
+@testable import LayoverKit
 
 /// Tests for Texas Hold'em game models
 @Suite("Texas Hold'em Model Tests")

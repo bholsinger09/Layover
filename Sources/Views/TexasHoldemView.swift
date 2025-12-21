@@ -17,7 +17,9 @@ struct TexasHoldemView: View {
             }
         }
         .navigationTitle(room.name)
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil

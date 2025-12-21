@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Layover
+@testable import LayoverKit
 
 /// Tests for RoomService
 @Suite("Room Service Tests")

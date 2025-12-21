@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Layover
+@testable import LayoverKit
 
 /// Tests for RoomListViewModel
 @Suite("Room List ViewModel Tests")
@@ -9,7 +9,10 @@ struct RoomListViewModelTests {
     
     @Test("Initialize view model")
     func testInitialization() {
-        let viewModel = RoomListViewModel()
+        let viewModel = RoomListViewModel(
+            roomService: RoomService(),
+            sharePlayService: SharePlayService()
+        )
         
         #expect(viewModel.rooms.isEmpty)
         #expect(viewModel.isLoading == false)
@@ -18,7 +21,10 @@ struct RoomListViewModelTests {
     
     @Test("Create room")
     func testCreateRoom() async {
-        let viewModel = RoomListViewModel()
+        let viewModel = RoomListViewModel(
+            roomService: RoomService(),
+            sharePlayService: SharePlayService()
+        )
         let hostID = UUID()
         
         await viewModel.createRoom(
@@ -34,7 +40,10 @@ struct RoomListViewModelTests {
     @Test("Load rooms")
     func testLoadRooms() async {
         let roomService = RoomService()
-        let viewModel = RoomListViewModel(roomService: roomService)
+        let viewModel = RoomListViewModel(
+            roomService: roomService,
+            sharePlayService: SharePlayService()
+        )
         let hostID = UUID()
         
         _ = try? await roomService.createRoom(
@@ -52,7 +61,10 @@ struct RoomListViewModelTests {
     @Test("Join room")
     func testJoinRoom() async {
         let roomService = RoomService()
-        let viewModel = RoomListViewModel(roomService: roomService)
+        let viewModel = RoomListViewModel(
+            roomService: roomService,
+            sharePlayService: SharePlayService()
+        )
         let hostID = UUID()
         let userID = UUID()
         
@@ -72,7 +84,10 @@ struct RoomListViewModelTests {
     @Test("Leave room")
     func testLeaveRoom() async {
         let roomService = RoomService()
-        let viewModel = RoomListViewModel(roomService: roomService)
+        let viewModel = RoomListViewModel(
+            roomService: roomService,
+            sharePlayService: SharePlayService()
+        )
         let hostID = UUID()
         let userID = UUID()
         
@@ -93,7 +108,10 @@ struct RoomListViewModelTests {
     @Test("Delete room")
     func testDeleteRoom() async {
         let roomService = RoomService()
-        let viewModel = RoomListViewModel(roomService: roomService)
+        let viewModel = RoomListViewModel(
+            roomService: roomService,
+            sharePlayService: SharePlayService()
+        )
         let hostID = UUID()
         
         let room = try! await roomService.createRoom(

@@ -13,10 +13,10 @@ final class AppleMusicViewModel: LayoverViewModel {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
     
-    nonisolated init(musicService: AppleMusicServiceProtocol) {
+    nonisolated init(musicService: AppleMusicService) {
         self.musicService = musicService
-        Task {
-            isAuthorized = await musicService.isAuthorized
+        Task { @MainActor in
+            self.isAuthorized = await musicService.isAuthorized
         }
     }
     

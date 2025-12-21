@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Layover
+@testable import LayoverKit
 
 /// Tests for TexasHoldemViewModel
 @Suite("Texas Hold'em ViewModel Tests")
@@ -9,7 +9,7 @@ struct TexasHoldemViewModelTests {
     
     @Test("Initialize view model")
     func testInitialization() {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         
         #expect(viewModel.currentGame == nil)
         #expect(viewModel.isLoading == false)
@@ -20,7 +20,7 @@ struct TexasHoldemViewModelTests {
     
     @Test("Start game")
     func testStartGame() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let players = [UUID(), UUID()]
         
@@ -28,12 +28,12 @@ struct TexasHoldemViewModelTests {
         
         #expect(viewModel.currentGame != nil)
         #expect(viewModel.currentGame?.players.count == 2)
-        #expect(viewModel.currentPhase == .preFlop)
+        #expect(viewModel.currentPhase == TexasHoldemGame.GamePhase.preFlop)
     }
     
     @Test("Bet action")
     func testBet() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let playerID = UUID()
         let players = [playerID, UUID()]
@@ -49,7 +49,7 @@ struct TexasHoldemViewModelTests {
     
     @Test("Fold action")
     func testFold() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let playerID = UUID()
         let players = [playerID, UUID()]
@@ -63,7 +63,7 @@ struct TexasHoldemViewModelTests {
     
     @Test("Call action")
     func testCall() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let player1ID = UUID()
         let player2ID = UUID()
@@ -80,7 +80,7 @@ struct TexasHoldemViewModelTests {
     
     @Test("Raise action")
     func testRaise() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let player1ID = UUID()
         let player2ID = UUID()
@@ -96,24 +96,24 @@ struct TexasHoldemViewModelTests {
     
     @Test("Next phase progression")
     func testNextPhase() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let players = [UUID(), UUID()]
         
         await viewModel.startGame(roomID: roomID, players: players)
         
         await viewModel.nextPhase()
-        #expect(viewModel.currentPhase == .flop)
+        #expect(viewModel.currentPhase == TexasHoldemGame.GamePhase.flop)
         #expect(viewModel.communityCards.count == 3)
         
         await viewModel.nextPhase()
-        #expect(viewModel.currentPhase == .turn)
+        #expect(viewModel.currentPhase == TexasHoldemGame.GamePhase.turn)
         #expect(viewModel.communityCards.count == 4)
     }
     
     @Test("End game")
     func testEndGame() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let players = [UUID(), UUID()]
         
@@ -125,7 +125,7 @@ struct TexasHoldemViewModelTests {
     
     @Test("Get player")
     func testGetPlayer() async {
-        let viewModel = TexasHoldemViewModel()
+        let viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
         let roomID = UUID()
         let playerID = UUID()
         let players = [playerID, UUID()]

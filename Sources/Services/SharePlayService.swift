@@ -81,9 +81,7 @@ final class SharePlayService: SharePlayServiceProtocol {
             throw SharePlayError.noActiveSession
         }
         
-        guard let coordinator = player.playbackCoordinator as? AVPlayerPlaybackCoordinator else {
-            throw SharePlayError.unknown
-        }
+        let coordinator = player.playbackCoordinator
         coordinator.coordinateWithSession(session)
         self.playbackCoordinator = coordinator
     }
