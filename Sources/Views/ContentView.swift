@@ -256,7 +256,8 @@ public struct ContentView: View {
     @ViewBuilder
     private func roomDetailView(for room: Room) -> some View {
         let currentUser = User(id: UUID(), username: currentUsername)
-
+        let _ = print("🏠 Navigating to room: \(room.name), type: \(room.activityType)")
+        
         switch room.activityType {
         case .appleTVPlus:
             AppleTVView(room: room, currentUser: currentUser)

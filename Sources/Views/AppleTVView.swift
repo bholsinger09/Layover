@@ -36,7 +36,9 @@ struct AppleTVView: View {
                     }
 
                     Button {
+                        print("🔵 Button tapped!")
                         Task {
+                            print("🔵 Starting task...")
                             await startSharePlay()
                         }
                     } label: {
@@ -74,8 +76,12 @@ struct AppleTVView: View {
         }
         .navigationTitle(room.name)
         #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.inline)
         #endif
+        .onAppear {
+            print("🎬 AppleTVView appeared for room: \(room.name)")
+            print("🎬 SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
