@@ -51,6 +51,7 @@ public struct RegistrationView: View {
                             .padding()
                             .background(Color(red: 0.95, green: 0.95, blue: 0.95))
                             .cornerRadius(10)
+                            .colorScheme(.light)
                     }
 
                     // Email Field
@@ -68,6 +69,7 @@ public struct RegistrationView: View {
                             .padding()
                             .background(Color(red: 0.95, green: 0.95, blue: 0.95))
                             .cornerRadius(10)
+                            .colorScheme(.light)
                     }
 
                     // Password Field
@@ -81,6 +83,7 @@ public struct RegistrationView: View {
                             .padding()
                             .background(Color(red: 0.95, green: 0.95, blue: 0.95))
                             .cornerRadius(10)
+                            .colorScheme(.light)
 
                         Text("Must be at least 6 characters")
                             .font(.caption)
@@ -98,6 +101,7 @@ public struct RegistrationView: View {
                             .padding()
                             .background(Color(red: 0.95, green: 0.95, blue: 0.95))
                             .cornerRadius(10)
+                            .colorScheme(.light)
                     }
 
                     // Error Message

@@ -10,6 +10,8 @@ public struct ContentView: View {
     @State private var showingCreateRoom = false
     @State private var currentUsername = "User"
     @State private var editingRoom: Room?
+    @State private var navigationPath = NavigationPath()
+    @State private var sharePlayReceivedRoom: Room?
 
     public init() {}
 
@@ -27,7 +29,7 @@ public struct ContentView: View {
     }
 
     private var mainAppView: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
                 // SharePlay status banner
                 if viewModel.isSharePlayActive {
@@ -148,6 +150,18 @@ public struct ContentView: View {
             .task {
                 await viewModel.loadRooms()
             }
+            .onChange(of: viewModel.rooms) { oldValue, newValue in
+                // Auto-navigate to SharePlay received rooms
+                if let lastRoom = newValue.last,
+                   !oldValue.contains(where: { $0.id == lastRoom.id }) {
+                    print("🚀 Auto-navigating to SharePlay room: \(lastRoom.name)")
+                    sharePlayReceivedRoom = lastRoom
+                    navigationPath.append(lastRoom)
+                }
+            }
+            .navigationDestination(for: Room.self) { room in
+                roomDetailView(for: room)
+            }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.errorMessage = nil
@@ -170,7 +184,7 @@ public struct ContentView: View {
                 )
             } else {
                 ForEach(viewModel.rooms) { room in
-                    NavigationLink(destination: roomDetailView(for: room)) {
+                    NavigationLink(value: room) {
                         RoomRowView(room: room)
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {

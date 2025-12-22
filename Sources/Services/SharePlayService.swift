@@ -51,12 +51,13 @@ final class SharePlayService: SharePlayServiceProtocol {
     }
 
     private func handleSession(_ session: GroupSession<LayoverActivity>) async {
-        print("🔗 SharePlay: Session started!")
+        print("🔗 SharePlay: Session received!")
         currentSession = session
         messenger = GroupSessionMessenger(session: session)
 
+        // Automatically join the session
         session.join()
-        print("✅ SharePlay: Joined session")
+        print("✅ SharePlay: Joined session automatically")
 
         // Setup message listener
         setupMessageListener()

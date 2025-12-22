@@ -155,6 +155,10 @@ struct AppleTVView: View {
             sharePlayStarted = true
             sharePlayError = nil
             print("✅ SharePlay started successfully")
+            
+            // Share the room data with other participants
+            print("📤 Sending room data to SharePlay participants...")
+            await viewModel.sharePlayService.shareRoom(room)
         } catch let error as SharePlayError {
             print("❌ Failed to start SharePlay: \(error.localizedDescription)")
             sharePlayError = error.localizedDescription
