@@ -7,8 +7,8 @@
 //  This file imports ContentView from LayoverKit
 //
 
-import SwiftUI
 import LayoverKit
+import SwiftUI
 
 // ContentView is provided by LayoverKit
 // No need to redefine it here

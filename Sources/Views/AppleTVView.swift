@@ -1,18 +1,19 @@
-import SwiftUI
 import AVKit
+import SwiftUI
 
 /// View for Apple TV+ watching rooms
 struct AppleTVView: View {
     let room: Room
     let currentUser: User
-    
+
     @State private var viewModel = AppleTVViewModel(
         tvService: AppleTVService(),
         sharePlayService: SharePlayService()
     )
     @State private var showingContentPicker = false
     @State private var sharePlayStarted = false
-    
+    @State private var sharePlayError: String?
+
     var body: some View {
         VStack(spacing: 0) {
             // SharePlay prompt banner
@@ -22,18 +23,18 @@ struct AppleTVView: View {
                         Image(systemName: "shareplay")
                             .font(.largeTitle)
                             .foregroundStyle(.blue)
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Start SharePlay Session")
                                 .font(.headline)
-                            Text("Watch together with FaceTime participants")
+                            Text("Make sure you're in a FaceTime call first")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
-                        
+
                         Spacer()
                     }
-                    
+
                     Button {
                         Task {
                             await startSharePlay()
@@ -46,11 +47,18 @@ struct AppleTVView: View {
                             .foregroundStyle(.white)
                             .cornerRadius(10)
                     }
+
+                    if let error = sharePlayError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                    }
                 }
                 .padding()
                 .background(Color.blue.opacity(0.1))
             }
-            
+
             if let player = viewModel.player {
                 VideoPlayer(player: player)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -61,12 +69,12 @@ struct AppleTVView: View {
                     description: Text("Select content to watch together")
                 )
             }
-            
+
             controlBar
         }
         .navigationTitle(room.name)
         #if !os(macOS)
-        .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -86,7 +94,7 @@ struct AppleTVView: View {
             })
         }
     }
-    
+
     private var controlBar: some View {
         HStack(spacing: 20) {
             Button {
@@ -98,49 +106,58 @@ struct AppleTVView: View {
                     .font(.system(size: 44))
             }
             .disabled(viewModel.player == nil)
-            
+
             if let content = viewModel.currentContent {
                 VStack(alignment: .leading) {
                     Text(content.title)
                         .font(.headline)
-                    
+
                     Text(formatDuration(content.duration))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
-            
+
             Spacer()
         }
         .padding()
         .background(.ultraThinMaterial)
     }
-    
+
     private func formatDuration(_ duration: TimeInterval) -> String {
         let hours = Int(duration) / 3600
         let minutes = Int(duration) / 60 % 60
-        
+
         if hours > 0 {
             return "\(hours)h \(minutes)m"
         } else {
             return "\(minutes)m"
         }
     }
-    
+
     private func startSharePlay() async {
+        sharePlayError = nil
         print("🎬 Starting SharePlay for Apple TV room: \(room.name)")
         let activity = LayoverActivity(
             roomID: room.id,
             activityType: .appleTVPlus,
             customMetadata: ["roomName": room.name]
         )
-        
+
         do {
             try await viewModel.sharePlayService.startActivity(activity)
             sharePlayStarted = true
+            sharePlayError = nil
             print("✅ SharePlay started successfully")
+        } catch let error as SharePlayError {
+            print("❌ Failed to start SharePlay: \(error.localizedDescription)")
+            sharePlayError = error.localizedDescription
+            if let suggestion = error.recoverySuggestion {
+                sharePlayError = "\(error.localizedDescription)\n\(suggestion)"
+            }
         } catch {
             print("❌ Failed to start SharePlay: \(error)")
+            sharePlayError = "Failed to start SharePlay: \(error.localizedDescription)"
         }
     }
 }
@@ -149,7 +166,7 @@ struct AppleTVView: View {
 struct ContentPickerView: View {
     let onSelect: (MediaContent) -> Void
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -159,20 +176,20 @@ struct ContentPickerView: View {
                         contentID: "umc.cmc.vtoh0mn0xn7t3c643xqonfzy",
                         type: .tvShow
                     )
-                    
+
                     appleTVButton(
                         title: "Foundation",
                         contentID: "umc.cmc.5983fipzqbicvrve6jdfep4x3",
                         type: .tvShow
                     )
-                    
+
                     appleTVButton(
                         title: "Severance",
                         contentID: "umc.cmc.1srk2goyh2q2zdxcx605w8vtx",
                         type: .tvShow
                     )
                 }
-                
+
                 Section("Open in Apple TV App") {
                     Button {
                         // Open TV app directly
@@ -192,15 +209,18 @@ struct ContentPickerView: View {
             }
         }
     }
-    
-    private func appleTVButton(title: String, contentID: String, type: MediaContent.ContentType) -> some View {
+
+    private func appleTVButton(title: String, contentID: String, type: MediaContent.ContentType)
+        -> some View
+    {
         Button {
-            onSelect(MediaContent(
-                title: title,
-                contentID: contentID,
-                duration: type == .movie ? 7200 : 3600,
-                contentType: type
-            ))
+            onSelect(
+                MediaContent(
+                    title: title,
+                    contentID: contentID,
+                    duration: type == .movie ? 7200 : 3600,
+                    contentType: type
+                ))
         } label: {
             HStack {
                 Image(systemName: type == .movie ? "film" : "tv")
@@ -211,12 +231,12 @@ struct ContentPickerView: View {
             }
         }
     }
-    
+
     private func openTVApp() {
         #if canImport(UIKit)
-        if let url = URL(string: "videos://") {
-            UIApplication.shared.open(url)
-        }
+            if let url = URL(string: "videos://") {
+                UIApplication.shared.open(url)
+            }
         #endif
         dismiss()
     }

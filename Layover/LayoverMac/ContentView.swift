@@ -5,8 +5,8 @@
 //  Created by Ben H on 12/21/25.
 //
 
-import SwiftUI
 import LayoverKit
+import SwiftUI
 
 // Using ContentView from LayoverKit
 // The ContentView is already defined in the LayoverKit package

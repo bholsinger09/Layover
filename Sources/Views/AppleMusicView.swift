@@ -4,12 +4,12 @@ import SwiftUI
 struct AppleMusicView: View {
     let room: Room
     let currentUser: User
-    
+
     @State private var viewModel = AppleMusicViewModel(musicService: AppleMusicService())
     @State private var showingContentPicker = false
     @State private var sharePlayService = SharePlayService()
     @State private var sharePlayStarted = false
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // SharePlay prompt banner
@@ -31,9 +31,9 @@ struct AppleMusicView: View {
                 .padding()
                 .background(Color.pink.opacity(0.1))
             }
-            
+
             Spacer()
-            
+
             if let content = viewModel.currentContent {
                 currentContentView(content)
             } else {
@@ -43,14 +43,14 @@ struct AppleMusicView: View {
                     description: Text("Select music to listen together")
                 )
             }
-            
+
             Spacer()
-            
+
             controlBar
         }
         .navigationTitle(room.name)
         #if !os(macOS)
-        .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -75,7 +75,7 @@ struct AppleMusicView: View {
             }
         }
     }
-    
+
     private func currentContentView(_ content: MediaContent) -> some View {
         VStack(spacing: 16) {
             if let artworkURL = content.artworkURL {
@@ -96,13 +96,13 @@ struct AppleMusicView: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 300, height: 300)
             }
-            
+
             Text(content.title)
                 .font(.title2)
                 .fontWeight(.bold)
         }
     }
-    
+
     private var controlBar: some View {
         HStack(spacing: 30) {
             Button {
@@ -111,7 +111,7 @@ struct AppleMusicView: View {
                 Image(systemName: "backward.fill")
                     .font(.title)
             }
-            
+
             Button {
                 Task {
                     await viewModel.togglePlayPause()
@@ -121,7 +121,7 @@ struct AppleMusicView: View {
                     .font(.system(size: 60))
             }
             .disabled(viewModel.currentContent == nil)
-            
+
             Button {
                 // Next track
             } label: {
@@ -132,7 +132,7 @@ struct AppleMusicView: View {
         .padding()
         .background(.ultraThinMaterial)
     }
-    
+
     private func startSharePlay() async {
         print("🎵 Starting SharePlay for Apple Music room: \(room.name)")
         let activity = LayoverActivity(
@@ -140,7 +140,7 @@ struct AppleMusicView: View {
             activityType: .appleMusic,
             customMetadata: ["roomName": room.name]
         )
-        
+
         do {
             try await sharePlayService.startActivity(activity)
             sharePlayStarted = true
@@ -154,26 +154,28 @@ struct AppleMusicView: View {
 /// Music picker placeholder
 struct MusicPickerView: View {
     let onSelect: (MediaContent) -> Void
-    
+
     var body: some View {
         NavigationStack {
             List {
                 Button("Sample Song") {
-                    onSelect(MediaContent(
-                        title: "Sample Song",
-                        contentID: "sample-song",
-                        duration: 240,
-                        contentType: .song
-                    ))
+                    onSelect(
+                        MediaContent(
+                            title: "Sample Song",
+                            contentID: "sample-song",
+                            duration: 240,
+                            contentType: .song
+                        ))
                 }
-                
+
                 Button("Sample Album") {
-                    onSelect(MediaContent(
-                        title: "Sample Album",
-                        contentID: "sample-album",
-                        duration: 3600,
-                        contentType: .album
-                    ))
+                    onSelect(
+                        MediaContent(
+                            title: "Sample Album",
+                            contentID: "sample-album",
+                            duration: 3600,
+                            contentType: .album
+                        ))
                 }
             }
             .navigationTitle("Select Music")

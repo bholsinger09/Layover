@@ -3,7 +3,7 @@ import GroupActivities
 
 /// SharePlay activity for synchronized group experiences
 struct LayoverActivity: GroupActivity {
-    static let activityIdentifier = "com.layover.activity"
+    static let activityIdentifier = "com.bholsinger.LayoverLounge.activity"
     
     let roomID: UUID
     let activityType: RoomActivityType
@@ -21,8 +21,18 @@ struct LayoverActivity: GroupActivity {
             meta.subtitle = activityTypeName
         }
         
-        meta.type = .generic
-        meta.supportsContinuationOnTV = true
+        // Set the type based on activity
+        switch activityType {
+        case .appleTVPlus:
+            meta.type = .watchTogether
+        case .appleMusic:
+            meta.type = .listenTogether
+        case .texasHoldem, .chess:
+            meta.type = .generic
+        }
+        
+        meta.supportsContinuationOnTV = activityType == .appleTVPlus
+        
         return meta
     }
     
@@ -39,3 +49,4 @@ struct LayoverActivity: GroupActivity {
         }
     }
 }
+

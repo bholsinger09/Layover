@@ -7,22 +7,22 @@ import Observation
 final class RoomListViewModel: LayoverViewModel {
     private let roomService: RoomServiceProtocol
     let sharePlayService: SharePlayServiceProtocol
-    
+
     private(set) var rooms: [Room] = []
     private(set) var isLoading = false
     var errorMessage: String?
-    
+
     var isSharePlayActive: Bool {
         sharePlayService.isSessionActive
     }
-    
+
     nonisolated init(
         roomService: RoomServiceProtocol,
         sharePlayService: SharePlayServiceProtocol
     ) {
         self.roomService = roomService
         self.sharePlayService = sharePlayService
-        
+
         Task { @MainActor in
             // Setup SharePlay callbacks
             self.sharePlayService.onRoomReceived = { [weak self] room in
@@ -36,7 +36,7 @@ final class RoomListViewModel: LayoverViewModel {
                     print("⚠️ Room already exists in list")
                 }
             }
-            
+
             self.sharePlayService.onParticipantJoined = { [weak self] user, roomID in
                 guard let self = self else { return }
                 print("👤 SharePlay: User '\(user.username)' joined room")
@@ -55,24 +55,24 @@ final class RoomListViewModel: LayoverViewModel {
             }
         }
     }
-    
+
     func loadRooms() async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             rooms = try await roomService.fetchRooms()
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
+
     func createRoom(name: String, host: User, activityType: RoomActivityType) async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             let room = try await roomService.createRoom(
                 name: name,
@@ -80,21 +80,21 @@ final class RoomListViewModel: LayoverViewModel {
                 activityType: activityType
             )
             rooms.append(room)
-            
+
             print("📤 SharePlay: Sharing room '\(name)' with participants")
             // Share room with SharePlay participants
             await sharePlayService.shareRoom(room)
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
+
     func updateRoom(_ room: Room, name: String, isPrivate: Bool, maxParticipants: Int) async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             try await roomService.updateRoom(
                 roomID: room.id,
@@ -106,32 +106,32 @@ final class RoomListViewModel: LayoverViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
+
     func joinRoom(_ room: Room, user: User) async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             try await roomService.joinRoom(roomID: room.id, user: user)
-            
+
             // Share user joined with SharePlay participants
             await sharePlayService.shareUserJoined(user, roomID: room.id)
-            
+
             await loadRooms()
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
+
     func leaveRoom(_ room: Room, userID: UUID) async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             try await roomService.leaveRoom(roomID: room.id, userID: userID)
             await sharePlayService.leaveSession()
@@ -139,24 +139,24 @@ final class RoomListViewModel: LayoverViewModel {
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
+
     func deleteRoom(_ room: Room) async {
         isLoading = true
         errorMessage = nil
-        
+
         do {
             try await roomService.deleteRoom(roomID: room.id)
             rooms.removeAll { $0.id == room.id }
         } catch {
             errorMessage = error.localizedDescription
         }
-        
+
         isLoading = false
     }
-    
+
     func startSharePlayForRoom(_ room: Room) async {
         do {
             print("🎬 SharePlay: Starting activity for room '\(room.name)'")

@@ -9,7 +9,7 @@ public struct User: LayoverModel {
     public var avatarURL: URL?
     public var isHost: Bool
     public var isSubHost: Bool
-    
+
     public init(
         id: UUID = UUID(),
         appleUserID: String? = nil,

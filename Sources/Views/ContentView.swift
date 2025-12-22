@@ -10,9 +10,9 @@ public struct ContentView: View {
     @State private var showingCreateRoom = false
     @State private var currentUsername = "User"
     @State private var editingRoom: Room?
-    
+
     public init() {}
-    
+
     public var body: some View {
         Group {
             if isAuthenticated {
@@ -25,7 +25,7 @@ public struct ContentView: View {
             }
         }
     }
-    
+
     private var mainAppView: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -43,7 +43,7 @@ public struct ContentView: View {
                     .padding(.vertical, 8)
                     .background(Color.green.opacity(0.1))
                 }
-                
+
                 Group {
                     if viewModel.isLoading {
                         ProgressView("Loading rooms...")
@@ -61,7 +61,7 @@ public struct ContentView: View {
                         Label("Create Room", systemImage: "plus")
                     }
                 }
-                
+
                 ToolbarItem(placement: .automatic) {
                     if viewModel.isSharePlayActive {
                         Label("SharePlay Active", systemImage: "shareplay")
@@ -69,7 +69,7 @@ public struct ContentView: View {
                             .font(.caption)
                     }
                 }
-                
+
                 ToolbarItem(placement: .automatic) {
                     Button {
                         Task {
@@ -79,13 +79,13 @@ public struct ContentView: View {
                         Label("Refresh", systemImage: "arrow.clockwise")
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigation) {
                     Menu {
                         Label(currentUsername, systemImage: "person.circle.fill")
-                        
+
                         Divider()
-                        
+
                         Button("Clear All Rooms", systemImage: "trash.fill", role: .destructive) {
                             Task {
                                 for room in viewModel.rooms {
@@ -93,16 +93,18 @@ public struct ContentView: View {
                                 }
                             }
                         }
-                        
+
                         Button("SharePlay Debug", systemImage: "info.circle") {
                             print("SharePlay Active: \(viewModel.isSharePlayActive)")
-                            print("Current Session: \(viewModel.sharePlayService.currentSession != nil)")
+                            print(
+                                "Current Session: \(viewModel.sharePlayService.currentSession != nil)"
+                            )
                             print("Rooms count: \(viewModel.rooms.count)")
                             print("Current username: \(currentUsername)")
                         }
-                        
+
                         Divider()
-                        
+
                         Button(role: .destructive) {
                             isAuthenticated = false
                         } label: {
@@ -157,7 +159,7 @@ public struct ContentView: View {
             }
         }
     }
-    
+
     private var roomsList: some View {
         List {
             if viewModel.rooms.isEmpty {
@@ -179,14 +181,14 @@ public struct ContentView: View {
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
-                        
+
                         Button {
                             editingRoom = room
                         } label: {
                             Label("Edit", systemImage: "pencil")
                         }
                         .tint(.blue)
-                        
+
                         Button {
                             Task {
                                 let currentUser = User(id: UUID(), username: currentUsername)
@@ -217,13 +219,13 @@ public struct ContentView: View {
                         } label: {
                             Label("Join Room", systemImage: "person.badge.plus")
                         }
-                        
+
                         Button {
                             editingRoom = room
                         } label: {
                             Label("Edit Room", systemImage: "pencil")
                         }
-                        
+
                         Button {
                             Task {
                                 let currentUser = User(id: UUID(), username: currentUsername)
@@ -232,9 +234,9 @@ public struct ContentView: View {
                         } label: {
                             Label("Leave Room", systemImage: "rectangle.portrait.and.arrow.right")
                         }
-                        
+
                         Divider()
-                        
+
                         Button(role: .destructive) {
                             Task {
                                 await viewModel.deleteRoom(room)
@@ -250,11 +252,11 @@ public struct ContentView: View {
             await viewModel.loadRooms()
         }
     }
-    
+
     @ViewBuilder
     private func roomDetailView(for room: Room) -> some View {
         let currentUser = User(id: UUID(), username: currentUsername)
-        
+
         switch room.activityType {
         case .appleTVPlus:
             AppleTVView(room: room, currentUser: currentUser)

@@ -11,7 +11,7 @@ struct TexasHoldemGame: LayoverModel {
     var communityCards: [PlayingCard]
     var gamePhase: GamePhase
     var currentPlayerIndex: Int
-    
+
     enum GamePhase: String, Codable, Sendable {
         case preFlop
         case flop
@@ -20,7 +20,7 @@ struct TexasHoldemGame: LayoverModel {
         case showdown
         case ended
     }
-    
+
     init(
         id: UUID = UUID(),
         roomID: UUID,
@@ -53,7 +53,7 @@ struct TexasHoldemPlayer: Identifiable, Codable, Hashable, Sendable {
     var hand: [PlayingCard]
     var isFolded: Bool
     var position: Int
-    
+
     init(
         id: UUID = UUID(),
         userID: UUID,
@@ -78,12 +78,22 @@ struct PlayingCard: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     let rank: Rank
     let suit: Suit
-    
+
     enum Rank: String, Codable, CaseIterable, Sendable {
-        case two = "2", three = "3", four = "4", five = "5"
-        case six = "6", seven = "7", eight = "8", nine = "9"
-        case ten = "10", jack = "J", queen = "Q", king = "K", ace = "A"
-        
+        case two = "2"
+        case three = "3"
+        case four = "4"
+        case five = "5"
+        case six = "6"
+        case seven = "7"
+        case eight = "8"
+        case nine = "9"
+        case ten = "10"
+        case jack = "J"
+        case queen = "Q"
+        case king = "K"
+        case ace = "A"
+
         var value: Int {
             switch self {
             case .two: return 2
@@ -99,14 +109,14 @@ struct PlayingCard: Identifiable, Codable, Hashable, Sendable {
             }
         }
     }
-    
+
     enum Suit: String, Codable, CaseIterable, Sendable {
         case hearts = "♥️"
         case diamonds = "♦️"
         case clubs = "♣️"
         case spades = "♠️"
     }
-    
+
     init(id: UUID = UUID(), rank: Rank, suit: Suit) {
         self.id = id
         self.rank = rank

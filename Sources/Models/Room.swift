@@ -21,7 +21,7 @@ struct Room: LayoverModel {
     var isPrivate: Bool
     var createdAt: Date
     var metadata: [String: String]
-    
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -47,29 +47,29 @@ struct Room: LayoverModel {
         self.createdAt = createdAt
         self.metadata = metadata
     }
-    
+
     var isHost: Bool {
         participantIDs.contains(hostID)
     }
-    
+
     func isSubHost(userID: UUID) -> Bool {
         subHostIDs.contains(userID)
     }
-    
+
     mutating func addParticipant(_ userID: UUID) {
         participantIDs.insert(userID)
     }
-    
+
     mutating func removeParticipant(_ userID: UUID) {
         participantIDs.remove(userID)
     }
-    
+
     mutating func promoteToSubHost(_ userID: UUID) {
         if participantIDs.contains(userID) {
             subHostIDs.insert(userID)
         }
     }
-    
+
     mutating func demoteSubHost(_ userID: UUID) {
         subHostIDs.remove(userID)
     }

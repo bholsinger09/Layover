@@ -3,30 +3,33 @@ import SwiftUI
 /// Row view for displaying a room in a list
 struct RoomRowView: View {
     let room: Room
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(room.name)
                     .font(.headline)
-                
+
                 Spacer()
-                
+
                 activityIcon
             }
-            
+
             HStack {
-                Label("\(room.participantIDs.count)/\(room.maxParticipants)", systemImage: "person.2.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                
+                Label(
+                    "\(room.participantIDs.count)/\(room.maxParticipants)",
+                    systemImage: "person.2.fill"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
                 if room.isPrivate {
                     Label("Private", systemImage: "lock.fill")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
-            
+
             if !room.participants.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 4) {
@@ -44,7 +47,7 @@ struct RoomRowView: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     @ViewBuilder
     private var activityIcon: some View {
         switch room.activityType {
@@ -66,19 +69,21 @@ struct RoomRowView: View {
 
 #Preview {
     List {
-        RoomRowView(room: Room(
-            name: "Movie Night",
-            hostID: UUID(),
-            participantIDs: [UUID(), UUID()],
-            activityType: .appleTVPlus
-        ))
-        
-        RoomRowView(room: Room(
-            name: "Poker Game",
-            hostID: UUID(),
-            participantIDs: [UUID()],
-            activityType: .texasHoldem,
-            isPrivate: true
-        ))
+        RoomRowView(
+            room: Room(
+                name: "Movie Night",
+                hostID: UUID(),
+                participantIDs: [UUID(), UUID()],
+                activityType: .appleTVPlus
+            ))
+
+        RoomRowView(
+            room: Room(
+                name: "Poker Game",
+                hostID: UUID(),
+                participantIDs: [UUID()],
+                activityType: .texasHoldem,
+                isPrivate: true
+            ))
     }
 }

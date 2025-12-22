@@ -5,12 +5,12 @@ struct EditRoomView: View {
     @Environment(\.dismiss) private var dismiss
     let room: Room
     let onUpdate: (String, Bool, Int) async -> Void
-    
+
     @State private var roomName: String
     @State private var isPrivate: Bool
     @State private var maxParticipants: Int
     @State private var isUpdating = false
-    
+
     init(room: Room, onUpdate: @escaping (String, Bool, Int) async -> Void) {
         self.room = room
         self.onUpdate = onUpdate
@@ -18,22 +18,23 @@ struct EditRoomView: View {
         _isPrivate = State(initialValue: room.isPrivate)
         _maxParticipants = State(initialValue: room.maxParticipants)
     }
-    
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Room Details") {
                     TextField("Room Name", text: $roomName)
-                    
-                    Stepper("Max Participants: \(maxParticipants)", value: $maxParticipants, in: 2...50)
-                    
+
+                    Stepper(
+                        "Max Participants: \(maxParticipants)", value: $maxParticipants, in: 2...50)
+
                     Toggle("Private Room", isOn: $isPrivate)
                 }
-                
+
                 Section {
                     Text("Activity Type: \(activityTypeName)")
                         .foregroundStyle(.secondary)
-                    
+
                     Text("Created: \(room.createdAt.formatted())")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -41,7 +42,7 @@ struct EditRoomView: View {
             }
             .navigationTitle("Edit Room")
             #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -49,7 +50,7 @@ struct EditRoomView: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {
@@ -63,7 +64,7 @@ struct EditRoomView: View {
             }
         }
     }
-    
+
     private var activityTypeName: String {
         switch room.activityType {
         case .appleTVPlus:

@@ -9,7 +9,7 @@ public struct MediaContent: LayoverModel {
     public var artworkURL: URL?
     public var duration: TimeInterval
     public var contentType: ContentType
-    
+
     public enum ContentType: String, Codable, Sendable {
         case movie
         case tvShow
@@ -17,10 +17,10 @@ public struct MediaContent: LayoverModel {
         case album
         case playlist
     }
-    
+
     // Legacy support
     public var mediaType: ContentType { contentType }
-    
+
     public init(
         id: UUID = UUID(),
         title: String,

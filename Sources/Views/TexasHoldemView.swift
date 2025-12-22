@@ -4,12 +4,12 @@ import SwiftUI
 struct TexasHoldemView: View {
     let room: Room
     let currentUser: User
-    
+
     @State private var viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
     @State private var betAmount = 10
     @State private var sharePlayService = SharePlayService()
     @State private var sharePlayStarted = false
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // SharePlay prompt banner
@@ -31,7 +31,7 @@ struct TexasHoldemView: View {
                 .padding()
                 .background(Color.red.opacity(0.1))
             }
-            
+
             if let game = viewModel.currentGame {
                 gameView(game)
             } else {
@@ -40,7 +40,7 @@ struct TexasHoldemView: View {
         }
         .navigationTitle(room.name)
         #if !os(macOS)
-        .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline)
         #endif
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -52,17 +52,17 @@ struct TexasHoldemView: View {
             }
         }
     }
-    
+
     private var startGameView: some View {
         VStack(spacing: 20) {
             Image(systemName: "suit.spade.fill")
                 .font(.system(size: 80))
                 .foregroundStyle(.red)
-            
+
             Text("Texas Hold'em")
                 .font(.title)
                 .fontWeight(.bold)
-            
+
             Button("Start Game") {
                 Task {
                     let playerIDs = Array(room.participantIDs)
@@ -71,7 +71,7 @@ struct TexasHoldemView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(room.participantIDs.count < 2)
-            
+
             if room.participantIDs.count < 2 {
                 Text("Need at least 2 players to start")
                     .font(.caption)
@@ -79,14 +79,14 @@ struct TexasHoldemView: View {
             }
         }
     }
-    
+
     private func gameView(_ game: TexasHoldemGame) -> some View {
         VStack(spacing: 20) {
             // Game phase and pot
             VStack(spacing: 8) {
                 Text(game.gamePhase.rawValue.capitalized)
                     .font(.headline)
-                
+
                 Text("Pot: $\(game.pot)")
                     .font(.title2)
                     .fontWeight(.bold)
@@ -94,19 +94,19 @@ struct TexasHoldemView: View {
             .padding()
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 12))
-            
+
             // Community cards
             if !game.communityCards.isEmpty {
                 communityCardsView(game.communityCards)
             }
-            
+
             Spacer()
-            
+
             // Player's hand
             if let player = viewModel.getPlayer(for: currentUser.id) {
                 playerHandView(player)
             }
-            
+
             // Controls
             if game.gamePhase != .ended {
                 gameControls
@@ -121,7 +121,7 @@ struct TexasHoldemView: View {
         }
         .padding()
     }
-    
+
     private func communityCardsView(_ cards: [PlayingCard]) -> some View {
         HStack(spacing: 8) {
             ForEach(cards) { card in
@@ -129,24 +129,24 @@ struct TexasHoldemView: View {
             }
         }
     }
-    
+
     private func playerHandView(_ player: TexasHoldemPlayer) -> some View {
         VStack(spacing: 12) {
             Text("Your Hand")
                 .font(.headline)
-            
+
             HStack(spacing: 12) {
                 ForEach(player.hand) { card in
                     CardView(card: card)
                 }
             }
-            
+
             HStack {
                 Text("Chips: $\(player.chips)")
                     .font(.subheadline)
-                
+
                 Spacer()
-                
+
                 Text("Current Bet: $\(player.currentBet)")
                     .font(.subheadline)
             }
@@ -156,7 +156,7 @@ struct TexasHoldemView: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
-    
+
     private var gameControls: some View {
         HStack(spacing: 12) {
             Button("Fold") {
@@ -166,7 +166,7 @@ struct TexasHoldemView: View {
             }
             .buttonStyle(.bordered)
             .tint(.red)
-            
+
             Button("Call") {
                 Task {
                     await viewModel.call(playerID: currentUser.id)
@@ -174,14 +174,14 @@ struct TexasHoldemView: View {
             }
             .buttonStyle(.bordered)
             .tint(.blue)
-            
+
             Button("Raise") {
                 Task {
                     await viewModel.raise(playerID: currentUser.id, amount: betAmount)
                 }
             }
             .buttonStyle(.borderedProminent)
-            
+
             Button("Next Phase") {
                 Task {
                     await viewModel.nextPhase()
@@ -190,7 +190,7 @@ struct TexasHoldemView: View {
             .buttonStyle(.bordered)
         }
     }
-    
+
     private func startSharePlay() async {
         print("🃏 Starting SharePlay for Texas Hold'em room: \(room.name)")
         let activity = LayoverActivity(
@@ -198,7 +198,7 @@ struct TexasHoldemView: View {
             activityType: .texasHoldem,
             customMetadata: ["roomName": room.name]
         )
-        
+
         do {
             try await sharePlayService.startActivity(activity)
             sharePlayStarted = true
@@ -212,13 +212,13 @@ struct TexasHoldemView: View {
 /// Card view component
 struct CardView: View {
     let card: PlayingCard
-    
+
     var body: some View {
         VStack(spacing: 4) {
             Text(card.rank.rawValue)
                 .font(.title2)
                 .fontWeight(.bold)
-            
+
             Text(card.suit.rawValue)
                 .font(.title3)
         }

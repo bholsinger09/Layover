@@ -1,60 +1,61 @@
-import Foundation
 import AuthenticationServices
 import Combine
+import Foundation
 
 /// Protocol for authentication operations
 public protocol AuthenticationServiceProtocol: Sendable {
     var currentUser: User? { get async }
     var isAuthenticated: Bool { get async }
-    
+
     func signInWithApple() async throws -> User
     func signOut() async throws
 }
 
 /// Service for handling Apple Sign In authentication
 @MainActor
-public final class AuthenticationService: NSObject, AuthenticationServiceProtocol, ObservableObject {
-    
+public final class AuthenticationService: NSObject, AuthenticationServiceProtocol, ObservableObject
+{
+
     @Published public private(set) var currentUser: User?
-    
+
     public var isAuthenticated: Bool {
         get async {
             currentUser != nil
         }
     }
-    
+
     private let userDefaultsKey = "layover.currentUser"
-    
+
     public override init() {
         super.init()
         loadStoredUser()
     }
-    
+
     /// Sign in with Apple using ASAuthorization
     public func signInWithApple() async throws -> User {
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
         request.requestedScopes = [.fullName, .email]
-        
+
         let controller = ASAuthorizationController(authorizationRequests: [request])
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             let delegate = SignInDelegate(continuation: continuation, service: self)
             controller.delegate = delegate
             controller.presentationContextProvider = delegate
             controller.performRequests()
-            
+
             // Keep delegate alive
             objc_setAssociatedObject(controller, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
         }
     }
-    
+
     /// Sign out the current user
     public func signOut() async throws {
         currentUser = nil
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
     }
-    
+
     /// Store user to UserDefaults
     func storeUser(_ user: User) {
         currentUser = user
@@ -62,18 +63,21 @@ public final class AuthenticationService: NSObject, AuthenticationServiceProtoco
             UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
         }
     }
-    
+
     /// Load stored user from UserDefaults
     private func loadStoredUser() {
         guard let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-              let user = try? JSONDecoder().decode(User.self, from: data) else {
+            let user = try? JSONDecoder().decode(User.self, from: data)
+        else {
             return
         }
         currentUser = user
     }
-    
+
     /// Check credential state for a user
-    func checkCredentialState(for userID: String) async -> ASAuthorizationAppleIDProvider.CredentialState {
+    func checkCredentialState(for userID: String) async
+        -> ASAuthorizationAppleIDProvider.CredentialState
+    {
         let provider = ASAuthorizationAppleIDProvider()
         return await withCheckedContinuation { continuation in
             provider.getCredentialState(forUserID: userID) { state, error in
@@ -85,26 +89,31 @@ public final class AuthenticationService: NSObject, AuthenticationServiceProtoco
 
 /// Delegate for handling Sign in with Apple authorization
 @MainActor
-private class SignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
-    
+private class SignInDelegate: NSObject, ASAuthorizationControllerDelegate,
+    ASAuthorizationControllerPresentationContextProviding
+{
+
     let continuation: CheckedContinuation<User, Error>
     weak var service: AuthenticationService?
-    
+
     init(continuation: CheckedContinuation<User, Error>, service: AuthenticationService) {
         self.continuation = continuation
         self.service = service
     }
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+
+    func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithAuthorization authorization: ASAuthorization
+    ) {
         guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
             continuation.resume(throwing: AuthenticationError.invalidCredential)
             return
         }
-        
+
         let userID = credential.user
         let fullName = credential.fullName
         let email = credential.email
-        
+
         let displayName: String
         if let givenName = fullName?.givenName, let familyName = fullName?.familyName {
             displayName = "\(givenName) \(familyName)"
@@ -115,7 +124,7 @@ private class SignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAut
         } else {
             displayName = "Apple User"
         }
-        
+
         let user = User(
             id: UUID(),
             appleUserID: userID,
@@ -124,12 +133,14 @@ private class SignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAut
             isHost: false,
             isSubHost: false
         )
-        
+
         service?.storeUser(user)
         continuation.resume(returning: user)
     }
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+
+    func authorizationController(
+        controller: ASAuthorizationController, didCompleteWithError error: Error
+    ) {
         if let authError = error as? ASAuthorizationError {
             switch authError.code {
             case .canceled:
@@ -149,15 +160,15 @@ private class SignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAut
             continuation.resume(throwing: error)
         }
     }
-    
+
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         #if os(macOS)
-        return NSApplication.shared.windows.first ?? NSWindow()
+            return NSApplication.shared.windows.first ?? NSWindow()
         #else
-        return UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow } ?? UIWindow()
+            return UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .first { $0.isKeyWindow } ?? UIWindow()
         #endif
     }
 }
@@ -170,7 +181,7 @@ enum AuthenticationError: LocalizedError {
     case invalidResponse
     case notHandled
     case unknown
-    
+
     var errorDescription: String? {
         switch self {
         case .invalidCredential:
