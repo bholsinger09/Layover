@@ -12,12 +12,40 @@ final class RoomListViewModel: LayoverViewModel {
     private(set) var isLoading = false
     var errorMessage: String?
     
+    var isSharePlayActive: Bool {
+        sharePlayService.isSessionActive
+    }
+    
     nonisolated init(
         roomService: RoomServiceProtocol,
         sharePlayService: SharePlayServiceProtocol
     ) {
         self.roomService = roomService
         self.sharePlayService = sharePlayService
+        
+        Task { @MainActor in
+            // Setup SharePlay callbacks
+            self.sharePlayService.onRoomReceived = { [weak self] room in
+                guard let self = self else { return }
+                // Add room from SharePlay participant if not already in list
+                if !self.rooms.contains(where: { $0.id == room.id }) {
+                    self.rooms.append(room)
+                }
+            }
+            
+            self.sharePlayService.onParticipantJoined = { [weak self] user, roomID in
+                guard let self = self else { return }
+                // Add participant to room
+                if let index = self.rooms.firstIndex(where: { $0.id == roomID }) {
+                    var room = self.rooms[index]
+                    if !room.participants.contains(where: { $0.id == user.id }) {
+                        room.participants.append(user)
+                        room.participantIDs.insert(user.id)
+                        self.rooms[index] = room
+                    }
+                }
+            }
+        }
     }
     
     func loadRooms() async {
@@ -45,6 +73,9 @@ final class RoomListViewModel: LayoverViewModel {
             )
             rooms.append(room)
             
+            // Share room with SharePlay participants
+            await sharePlayService.shareRoom(room)
+            
             // Start SharePlay activity
             let activity = LayoverActivity(
                 roomID: room.id,
@@ -59,12 +90,35 @@ final class RoomListViewModel: LayoverViewModel {
         isLoading = false
     }
     
+    func updateRoom(_ room: Room, name: String, isPrivate: Bool, maxParticipants: Int) async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            try await roomService.updateRoom(
+                roomID: room.id,
+                name: name,
+                isPrivate: isPrivate,
+                maxParticipants: maxParticipants
+            )
+            await loadRooms()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
     func joinRoom(_ room: Room, user: User) async {
         isLoading = true
         errorMessage = nil
         
         do {
             try await roomService.joinRoom(roomID: room.id, user: user)
+            
+            // Share user joined with SharePlay participants
+            await sharePlayService.shareUserJoined(user, roomID: room.id)
+            
             await loadRooms()
         } catch {
             errorMessage = error.localizedDescription

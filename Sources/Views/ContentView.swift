@@ -9,6 +9,7 @@ public struct ContentView: View {
     )
     @State private var showingCreateRoom = false
     @State private var currentUsername = "User"
+    @State private var editingRoom: Room?
     
     public init() {}
     
@@ -17,7 +18,8 @@ public struct ContentView: View {
             if isAuthenticated {
                 mainAppView
             } else {
-                LoginView {
+                LoginView { username in
+                    currentUsername = username
                     isAuthenticated = true
                 }
             }
@@ -40,6 +42,14 @@ public struct ContentView: View {
                         showingCreateRoom = true
                     } label: {
                         Label("Create Room", systemImage: "plus")
+                    }
+                }
+                
+                ToolbarItem(placement: .automatic) {
+                    if viewModel.isSharePlayActive {
+                        Label("SharePlay Active", systemImage: "shareplay")
+                            .foregroundStyle(.green)
+                            .font(.caption)
                     }
                 }
                 
@@ -84,6 +94,16 @@ public struct ContentView: View {
                     }
                 )
             }
+            .sheet(item: $editingRoom) { room in
+                EditRoomView(room: room) { name, isPrivate, maxParticipants in
+                    await viewModel.updateRoom(
+                        room,
+                        name: name,
+                        isPrivate: isPrivate,
+                        maxParticipants: maxParticipants
+                    )
+                }
+            }
             .task {
                 await viewModel.loadRooms()
             }
@@ -105,12 +125,78 @@ public struct ContentView: View {
                 NavigationLink(destination: roomDetailView(for: room)) {
                     RoomRowView(room: room)
                 }
-            }
-            .onDelete { indexSet in
-                for index in indexSet {
-                    let room = viewModel.rooms[index]
-                    Task {
-                        await viewModel.deleteRoom(room)
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        Task {
+                            await viewModel.deleteRoom(room)
+                        }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    
+                    Button {
+                        editingRoom = room
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    .tint(.blue)
+                    
+                    Button {
+                        Task {
+                            let currentUser = User(id: UUID(), username: currentUsername)
+                            await viewModel.leaveRoom(room, userID: currentUser.id)
+                        }
+                    } label: {
+                        Label("Leave", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                    .tint(.orange)
+                }
+                .swipeActions(edge: .leading) {
+                    if !room.participantIDs.contains(where: { _ in true }) {
+                        Button {
+                            Task {
+                                let currentUser = User(id: UUID(), username: currentUsername)
+                                await viewModel.joinRoom(room, user: currentUser)
+                            }
+                        } label: {
+                            Label("Join", systemImage: "person.badge.plus")
+                        }
+                        .tint(.green)
+                    }
+                }
+                .contextMenu {
+                    Button {
+                        Task {
+                            let currentUser = User(id: UUID(), username: currentUsername)
+                            await viewModel.joinRoom(room, user: currentUser)
+                        }
+                    } label: {
+                        Label("Join Room", systemImage: "person.badge.plus")
+                    }
+                    
+                    Button {
+                        editingRoom = room
+                    } label: {
+                        Label("Edit Room", systemImage: "pencil")
+                    }
+                    
+                    Button {
+                        Task {
+                            let currentUser = User(id: UUID(), username: currentUsername)
+                            await viewModel.leaveRoom(room, userID: currentUser.id)
+                        }
+                    } label: {
+                        Label("Leave Room", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                    
+                    Divider()
+                    
+                    Button(role: .destructive) {
+                        Task {
+                            await viewModel.deleteRoom(room)
+                        }
+                    } label: {
+                        Label("Delete Room", systemImage: "trash")
                     }
                 }
             }

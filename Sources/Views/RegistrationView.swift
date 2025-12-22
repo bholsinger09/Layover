@@ -11,9 +11,9 @@ public struct RegistrationView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     
-    let onRegister: () -> Void
+    let onRegister: (String) -> Void
     
-    public init(onRegister: @escaping () -> Void) {
+    public init(onRegister: @escaping (String) -> Void) {
         self.onRegister = onRegister
     }
     
@@ -193,7 +193,7 @@ public struct RegistrationView: View {
             await MainActor.run {
                 dismiss()
             }
-            onRegister()
+            onRegister(username)
         } catch {
             await MainActor.run {
                 errorMessage = "Registration failed. Please try again."
@@ -204,5 +204,5 @@ public struct RegistrationView: View {
 }
 
 #Preview {
-    RegistrationView(onRegister: {})
+    RegistrationView(onRegister: { _ in })
 }

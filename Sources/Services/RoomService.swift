@@ -6,6 +6,7 @@ protocol RoomServiceProtocol: LayoverService {
     var rooms: [Room] { get }
     
     func createRoom(name: String, host: User, activityType: RoomActivityType) async throws -> Room
+    func updateRoom(roomID: UUID, name: String, isPrivate: Bool, maxParticipants: Int) async throws
     func joinRoom(roomID: UUID, user: User) async throws
     func leaveRoom(roomID: UUID, userID: UUID) async throws
     func promoteToSubHost(roomID: UUID, userID: UUID) async throws
@@ -62,6 +63,19 @@ final class RoomService: RoomServiceProtocol {
         rooms.append(room)
         saveRooms()
         return room
+    }
+    
+    func updateRoom(roomID: UUID, name: String, isPrivate: Bool, maxParticipants: Int) async throws {
+        guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
+            throw RoomError.roomNotFound
+        }
+        
+        var room = rooms[index]
+        room.name = name
+        room.isPrivate = isPrivate
+        room.maxParticipants = maxParticipants
+        rooms[index] = room
+        saveRooms()
     }
     
     func joinRoom(roomID: UUID, user: User) async throws {

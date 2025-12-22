@@ -9,9 +9,9 @@ public struct LoginView: View {
     @State private var errorMessage: String?
     @State private var showRegistration = false
     
-    let onSignIn: () -> Void
+    let onSignIn: (String) -> Void
     
-    public init(onSignIn: @escaping () -> Void) {
+    public init(onSignIn: @escaping (String) -> Void) {
         self.onSignIn = onSignIn
     }
     
@@ -40,8 +40,13 @@ public struct LoginView: View {
                 },
                 onCompletion: { result in
                     switch result {
-                    case .success:
-                        onSignIn()
+                    case .success(let authorization):
+                        if let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                            let username = credential.fullName?.givenName ?? "Apple User"
+                            onSignIn(username)
+                        } else {
+                            onSignIn("Apple User")
+                        }
                     case .failure(let error):
                         errorMessage = error.localizedDescription
                     }
@@ -147,7 +152,7 @@ public struct LoginView: View {
             // Check reviewer credentials
             if email == "reviewer@layoverlounge.app" && password == "TestFlight2025!" {
                 try await Task.sleep(nanoseconds: 500_000_000)
-                onSignIn()
+                onSignIn("Reviewer")
                 return
             }
             
@@ -158,8 +163,11 @@ public struct LoginView: View {
                 return
             }
             
+            // Extract username from email (part before @)
+            let username = String(email.split(separator: "@").first ?? "User")
+            
             try await Task.sleep(nanoseconds: 500_000_000)
-            onSignIn()
+            onSignIn(username)
         } catch {
             errorMessage = "Sign in failed. Please try again."
             isLoading = false
@@ -168,5 +176,5 @@ public struct LoginView: View {
 }
 
 #Preview {
-    LoginView(onSignIn: {})
+    LoginView(onSignIn: { _ in })
 }
