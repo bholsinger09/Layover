@@ -2,39 +2,38 @@ import SwiftUI
 
 /// Main app view with navigation
 public struct ContentView: View {
-    @StateObject private var authViewModel = AuthenticationViewModel(authService: AuthenticationService())
+    @State private var isAuthenticated = false
     @State private var viewModel = RoomListViewModel(
         roomService: RoomService(),
         sharePlayService: SharePlayService()
     )
     @State private var showingCreateRoom = false
+    @State private var currentUsername = "User"
     
     public init() {}
     
     public var body: some View {
         Group {
-            if authViewModel.isAuthenticated, let currentUser = authViewModel.currentUser {
-                mainAppView(currentUser: currentUser)
+            if isAuthenticated {
+                mainAppView
             } else {
-                SignInView(viewModel: authViewModel)
+                LoginView {
+                    isAuthenticated = true
+                }
             }
-        }
-        .task {
-            await authViewModel.checkCredentialState()
         }
     }
     
-    @ViewBuilder
-    private func mainAppView(currentUser: User) -> some View {
+    private var mainAppView: some View {
         NavigationStack {
             Group {
                 if viewModel.isLoading {
                     ProgressView("Loading rooms...")
                 } else {
-                    roomsList(currentUser: currentUser)
+                    roomsList
                 }
             }
-            .navigationTitle("Layover")
+            .navigationTitle("LayoverLounge")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -44,21 +43,24 @@ public struct ContentView: View {
                     }
                 }
                 
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        Task {
+                            await viewModel.loadRooms()
+                        }
+                    } label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                }
+                
                 ToolbarItem(placement: .navigation) {
                     Menu {
-                        Label(currentUser.username, systemImage: "person.circle.fill")
-                        
-                        if let email = currentUser.email {
-                            Text(email)
-                                .font(.caption)
-                        }
+                        Label(currentUsername, systemImage: "person.circle.fill")
                         
                         Divider()
                         
                         Button(role: .destructive) {
-                            Task {
-                                await authViewModel.signOut()
-                            }
+                            isAuthenticated = false
                         } label: {
                             Label("Sign Out", systemImage: "arrow.right.square")
                         }
@@ -70,11 +72,12 @@ public struct ContentView: View {
             }
             .sheet(isPresented: $showingCreateRoom) {
                 CreateRoomView(
-                    currentUser: currentUser,
+                    currentUser: User(id: UUID(), username: currentUsername),
                     onCreate: { name, activityType in
+                        let host = User(id: UUID(), username: currentUsername)
                         await viewModel.createRoom(
                             name: name,
-                            hostID: currentUser.id,
+                            host: host,
                             activityType: activityType
                         )
                         showingCreateRoom = false
@@ -96,10 +99,10 @@ public struct ContentView: View {
         }
     }
     
-    private func roomsList(currentUser: User) -> some View {
+    private var roomsList: some View {
         List {
             ForEach(viewModel.rooms) { room in
-                NavigationLink(destination: roomDetailView(for: room, currentUser: currentUser)) {
+                NavigationLink(destination: roomDetailView(for: room)) {
                     RoomRowView(room: room)
                 }
             }
@@ -118,7 +121,9 @@ public struct ContentView: View {
     }
     
     @ViewBuilder
-    private func roomDetailView(for room: Room, currentUser: User) -> some View {
+    private func roomDetailView(for room: Room) -> some View {
+        let currentUser = User(id: UUID(), username: currentUsername)
+        
         switch room.activityType {
         case .appleTVPlus:
             AppleTVView(room: room, currentUser: currentUser)

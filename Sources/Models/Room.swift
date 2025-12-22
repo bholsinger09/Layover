@@ -15,6 +15,7 @@ struct Room: LayoverModel {
     var hostID: UUID
     var subHostIDs: Set<UUID>
     var participantIDs: Set<UUID>
+    var participants: [User]
     var activityType: RoomActivityType
     var maxParticipants: Int
     var isPrivate: Bool
@@ -27,6 +28,7 @@ struct Room: LayoverModel {
         hostID: UUID,
         subHostIDs: Set<UUID> = [],
         participantIDs: Set<UUID> = [],
+        participants: [User] = [],
         activityType: RoomActivityType,
         maxParticipants: Int = 20,
         isPrivate: Bool = false,
@@ -38,6 +40,7 @@ struct Room: LayoverModel {
         self.hostID = hostID
         self.subHostIDs = subHostIDs
         self.participantIDs = participantIDs
+        self.participants = participants
         self.activityType = activityType
         self.maxParticipants = maxParticipants
         self.isPrivate = isPrivate

@@ -5,8 +5,8 @@ import Foundation
 protocol RoomServiceProtocol: LayoverService {
     var rooms: [Room] { get }
     
-    func createRoom(name: String, hostID: UUID, activityType: RoomActivityType) async throws -> Room
-    func joinRoom(roomID: UUID, userID: UUID) async throws
+    func createRoom(name: String, host: User, activityType: RoomActivityType) async throws -> Room
+    func joinRoom(roomID: UUID, user: User) async throws
     func leaveRoom(roomID: UUID, userID: UUID) async throws
     func promoteToSubHost(roomID: UUID, userID: UUID) async throws
     func demoteSubHost(roomID: UUID, userID: UUID) async throws
@@ -17,20 +17,54 @@ protocol RoomServiceProtocol: LayoverService {
 @MainActor
 final class RoomService: RoomServiceProtocol {
     private(set) var rooms: [Room] = []
+    private let defaults = NSUbiquitousKeyValueStore.default
+    private let roomsKey = "layoverlounge.rooms"
     
-    func createRoom(name: String, hostID: UUID, activityType: RoomActivityType) async throws -> Room {
+    init() {
+        loadRooms()
+        // Observe changes from other devices
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(cloudDataChanged),
+            name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: defaults
+        )
+    }
+    
+    @objc private func cloudDataChanged() {
+        loadRooms()
+    }
+    
+    private func loadRooms() {
+        guard let data = defaults.data(forKey: roomsKey),
+              let decoded = try? JSONDecoder().decode([Room].self, from: data) else {
+            rooms = []
+            return
+        }
+        rooms = decoded
+    }
+    
+    private func saveRooms() {
+        guard let encoded = try? JSONEncoder().encode(rooms) else { return }
+        defaults.set(encoded, forKey: roomsKey)
+        defaults.synchronize()
+    }
+    
+    func createRoom(name: String, host: User, activityType: RoomActivityType) async throws -> Room {
         let room = Room(
             name: name,
-            hostID: hostID,
-            participantIDs: [hostID],
+            hostID: host.id,
+            participantIDs: [host.id],
+            participants: [host],
             activityType: activityType
         )
         
         rooms.append(room)
+        saveRooms()
         return room
     }
     
-    func joinRoom(roomID: UUID, userID: UUID) async throws {
+    func joinRoom(roomID: UUID, user: User) async throws {
         guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
             throw RoomError.roomNotFound
         }
@@ -41,8 +75,12 @@ final class RoomService: RoomServiceProtocol {
             throw RoomError.roomFull
         }
         
-        room.addParticipant(userID)
+        room.addParticipant(user.id)
+        if !room.participants.contains(where: { $0.id == user.id }) {
+            room.participants.append(user)
+        }
         rooms[index] = room
+        saveRooms()
     }
     
     func leaveRoom(roomID: UUID, userID: UUID) async throws {
@@ -52,6 +90,7 @@ final class RoomService: RoomServiceProtocol {
         
         var room = rooms[index]
         room.removeParticipant(userID)
+        room.participants.removeAll { $0.id == userID }
         
         // If host leaves, delete the room
         if userID == room.hostID {
@@ -59,6 +98,7 @@ final class RoomService: RoomServiceProtocol {
         } else {
             rooms[index] = room
         }
+        saveRooms()
     }
     
     func promoteToSubHost(roomID: UUID, userID: UUID) async throws {
@@ -69,6 +109,7 @@ final class RoomService: RoomServiceProtocol {
         var room = rooms[index]
         room.promoteToSubHost(userID)
         rooms[index] = room
+        saveRooms()
     }
     
     func demoteSubHost(roomID: UUID, userID: UUID) async throws {
@@ -79,6 +120,7 @@ final class RoomService: RoomServiceProtocol {
         var room = rooms[index]
         room.demoteSubHost(userID)
         rooms[index] = room
+        saveRooms()
     }
     
     func deleteRoom(roomID: UUID) async throws {
@@ -87,10 +129,11 @@ final class RoomService: RoomServiceProtocol {
         }
         
         rooms.remove(at: index)
+        saveRooms()
     }
     
     func fetchRooms() async throws -> [Room] {
-        // In a real app, this would fetch from a backend
+        loadRooms()
         return rooms
     }
 }

@@ -30,15 +30,25 @@ final class AppleTVViewModel: LayoverViewModel {
         errorMessage = nil
         
         do {
-            try await tvService.loadContent(content)
+            // Try to open in Apple TV app first for better SharePlay support
+            try await tvService.openInTVApp(content)
             currentContent = content
             
-            // Setup SharePlay coordination
-            if let player = tvService.player {
-                try await sharePlayService.setupPlaybackCoordinator(player: player)
-            }
+            // Note: When opening in TV app, SharePlay is handled automatically
+            // by the TV app itself, no need for manual coordinator setup
         } catch {
-            errorMessage = error.localizedDescription
+            // Fallback: try in-app playback if TV app fails
+            do {
+                try await tvService.loadContent(content)
+                currentContent = content
+                
+                // Setup SharePlay coordination for in-app playback
+                if let player = tvService.player {
+                    try await sharePlayService.setupPlaybackCoordinator(player: player)
+                }
+            } catch {
+                errorMessage = error.localizedDescription
+            }
         }
         
         isLoading = false

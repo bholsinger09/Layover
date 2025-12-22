@@ -33,14 +33,14 @@ final class RoomListViewModel: LayoverViewModel {
         isLoading = false
     }
     
-    func createRoom(name: String, hostID: UUID, activityType: RoomActivityType) async {
+    func createRoom(name: String, host: User, activityType: RoomActivityType) async {
         isLoading = true
         errorMessage = nil
         
         do {
             let room = try await roomService.createRoom(
                 name: name,
-                hostID: hostID,
+                host: host,
                 activityType: activityType
             )
             rooms.append(room)
@@ -59,12 +59,12 @@ final class RoomListViewModel: LayoverViewModel {
         isLoading = false
     }
     
-    func joinRoom(_ room: Room, userID: UUID) async {
+    func joinRoom(_ room: Room, user: User) async {
         isLoading = true
         errorMessage = nil
         
         do {
-            try await roomService.joinRoom(roomID: room.id, userID: userID)
+            try await roomService.joinRoom(roomID: room.id, user: user)
             await loadRooms()
         } catch {
             errorMessage = error.localizedDescription

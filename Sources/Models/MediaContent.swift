@@ -1,15 +1,16 @@
 import Foundation
 
 /// Media content being played in Apple TV+ rooms
-struct MediaContent: LayoverModel {
-    let id: UUID
-    var title: String
-    var contentID: String
-    var artworkURL: URL?
-    var duration: TimeInterval
-    var mediaType: MediaType
+public struct MediaContent: LayoverModel {
+    public let id: UUID
+    public var title: String
+    public var contentID: String
+    public var streamURL: URL?
+    public var artworkURL: URL?
+    public var duration: TimeInterval
+    public var contentType: ContentType
     
-    enum MediaType: String, Codable, Sendable {
+    public enum ContentType: String, Codable, Sendable {
         case movie
         case tvShow
         case song
@@ -17,19 +18,24 @@ struct MediaContent: LayoverModel {
         case playlist
     }
     
-    init(
+    // Legacy support
+    public var mediaType: ContentType { contentType }
+    
+    public init(
         id: UUID = UUID(),
         title: String,
         contentID: String,
+        streamURL: URL? = nil,
         artworkURL: URL? = nil,
         duration: TimeInterval = 0,
-        mediaType: MediaType
+        contentType: ContentType
     ) {
         self.id = id
         self.title = title
         self.contentID = contentID
+        self.streamURL = streamURL
         self.artworkURL = artworkURL
         self.duration = duration
-        self.mediaType = mediaType
+        self.contentType = contentType
     }
 }

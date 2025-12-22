@@ -12,6 +12,7 @@ let package = Package(
     products: [
         .library(
             name: "LayoverKit",
+            type: .static,
             targets: ["LayoverKit"]
         ),
     ],

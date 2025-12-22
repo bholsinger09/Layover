@@ -26,6 +26,21 @@ struct RoomRowView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            
+            if !room.participants.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 4) {
+                        ForEach(room.participants) { participant in
+                            Text(participant.username)
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(.blue.opacity(0.2))
+                                .cornerRadius(4)
+                        }
+                    }
+                }
+            }
         }
         .padding(.vertical, 4)
     }

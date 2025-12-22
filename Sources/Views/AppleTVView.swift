@@ -91,33 +91,80 @@ struct AppleTVView: View {
     }
 }
 
-/// Content picker placeholder
+/// Content picker with real Apple TV+ shows and option to open TV app
 struct ContentPickerView: View {
     let onSelect: (MediaContent) -> Void
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
             List {
-                Button("Sample Movie") {
-                    onSelect(MediaContent(
-                        title: "Sample Movie",
-                        contentID: "sample-movie",
-                        duration: 7200,
-                        mediaType: .movie
-                    ))
+                Section("Popular Movies") {
+                    appleTVButton(
+                        title: "Ted Lasso",
+                        contentID: "umc.cmc.vtoh0mn0xn7t3c643xqonfzy",
+                        type: .tvShow
+                    )
+                    
+                    appleTVButton(
+                        title: "Foundation",
+                        contentID: "umc.cmc.5983fipzqbicvrve6jdfep4x3",
+                        type: .tvShow
+                    )
+                    
+                    appleTVButton(
+                        title: "Severance",
+                        contentID: "umc.cmc.1srk2goyh2q2zdxcx605w8vtx",
+                        type: .tvShow
+                    )
                 }
                 
-                Button("Sample TV Show") {
-                    onSelect(MediaContent(
-                        title: "Sample TV Show",
-                        contentID: "sample-show",
-                        duration: 3600,
-                        mediaType: .tvShow
-                    ))
+                Section("Open in Apple TV App") {
+                    Button {
+                        // Open TV app directly
+                        openTVApp()
+                    } label: {
+                        Label("Browse Apple TV+", systemImage: "tv")
+                    }
                 }
             }
             .navigationTitle("Select Content")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
         }
+    }
+    
+    private func appleTVButton(title: String, contentID: String, type: MediaContent.ContentType) -> some View {
+        Button {
+            onSelect(MediaContent(
+                title: title,
+                contentID: contentID,
+                duration: type == .movie ? 7200 : 3600,
+                contentType: type
+            ))
+        } label: {
+            HStack {
+                Image(systemName: type == .movie ? "film" : "tv")
+                Text(title)
+                Spacer()
+                Image(systemName: "arrow.up.forward.square")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+    
+    private func openTVApp() {
+        #if canImport(UIKit)
+        if let url = URL(string: "videos://") {
+            UIApplication.shared.open(url)
+        }
+        #endif
+        dismiss()
     }
 }
 

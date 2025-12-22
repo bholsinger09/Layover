@@ -124,7 +124,7 @@ struct MusicPickerView: View {
                         title: "Sample Song",
                         contentID: "sample-song",
                         duration: 240,
-                        mediaType: .song
+                        contentType: .song
                     ))
                 }
                 
@@ -133,7 +133,7 @@ struct MusicPickerView: View {
                         title: "Sample Album",
                         contentID: "sample-album",
                         duration: 3600,
-                        mediaType: .album
+                        contentType: .album
                     ))
                 }
             }

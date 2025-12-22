@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Error><Code>AuthenticationFailed</Code><Message>Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.
+RequestId:b83abe5f-701e-0006-569e-72ce13000000
+Time:2025-12-21T17:25:03.2976797Z</Message><AuthenticationErrorDetail>Signature did not match. String to sign used was r
+
+2025-12-21T21:56:05Z
+/blob/fileserviceuploadsperm/files/file-HmqW4SJAl0wJBnS7VsOGdI
+
+
+
+2024-08-04
+b
+
+
+max-age=604800, immutable, private
+attachment; filename=dall-e-2025-12-21-16.56.03-a-modern-and-vibrant-logo-for-an-app-named-layover.-the-design-features-a-sleek-purple-and-teal-color-scheme-with-abstract-geometric-shapes-represent.webp
+
+
+</AuthenticationErrorDetail></Error>
