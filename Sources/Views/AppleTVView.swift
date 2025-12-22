@@ -11,9 +11,46 @@ struct AppleTVView: View {
         sharePlayService: SharePlayService()
     )
     @State private var showingContentPicker = false
+    @State private var sharePlayStarted = false
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            // SharePlay prompt banner
+            if !sharePlayStarted && !viewModel.sharePlayService.isSessionActive {
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "shareplay")
+                            .font(.largeTitle)
+                            .foregroundStyle(.blue)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Start SharePlay Session")
+                                .font(.headline)
+                            Text("Watch together with FaceTime participants")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    Button {
+                        Task {
+                            await startSharePlay()
+                        }
+                    } label: {
+                        Label("Start SharePlay", systemImage: "shareplay")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                    }
+                }
+                .padding()
+                .background(Color.blue.opacity(0.1))
+            }
+            
             if let player = viewModel.player {
                 VideoPlayer(player: player)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -87,6 +124,23 @@ struct AppleTVView: View {
             return "\(hours)h \(minutes)m"
         } else {
             return "\(minutes)m"
+        }
+    }
+    
+    private func startSharePlay() async {
+        print("🎬 Starting SharePlay for Apple TV room: \(room.name)")
+        let activity = LayoverActivity(
+            roomID: room.id,
+            activityType: .appleTVPlus,
+            customMetadata: ["roomName": room.name]
+        )
+        
+        do {
+            try await viewModel.sharePlayService.startActivity(activity)
+            sharePlayStarted = true
+            print("✅ SharePlay started successfully")
+        } catch {
+            print("❌ Failed to start SharePlay: \(error)")
         }
     }
 }

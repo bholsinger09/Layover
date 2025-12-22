@@ -7,7 +7,7 @@ import AVFoundation
 @Observable
 final class AppleTVViewModel: LayoverViewModel {
     private let tvService: AppleTVServiceProtocol
-    private let sharePlayService: SharePlayServiceProtocol
+    let sharePlayService: SharePlayServiceProtocol
     
     private(set) var currentContent: MediaContent?
     private(set) var isPlaying = false

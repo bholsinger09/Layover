@@ -84,15 +84,6 @@ final class RoomListViewModel: LayoverViewModel {
             print("📤 SharePlay: Sharing room '\(name)' with participants")
             // Share room with SharePlay participants
             await sharePlayService.shareRoom(room)
-            
-            print("🎬 SharePlay: Starting activity")
-            // Start SharePlay activity
-            let activity = LayoverActivity(
-                roomID: room.id,
-                activityType: activityType,
-                customMetadata: ["roomName": name]
-            )
-            try await sharePlayService.startActivity(activity)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -164,5 +155,19 @@ final class RoomListViewModel: LayoverViewModel {
         }
         
         isLoading = false
+    }
+    
+    func startSharePlayForRoom(_ room: Room) async {
+        do {
+            print("🎬 SharePlay: Starting activity for room '\(room.name)'")
+            let activity = LayoverActivity(
+                roomID: room.id,
+                activityType: room.activityType,
+                customMetadata: ["roomName": room.name]
+            )
+            try await sharePlayService.startActivity(activity)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 }

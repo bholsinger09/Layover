@@ -7,9 +7,31 @@ struct AppleMusicView: View {
     
     @State private var viewModel = AppleMusicViewModel(musicService: AppleMusicService())
     @State private var showingContentPicker = false
+    @State private var sharePlayService = SharePlayService()
+    @State private var sharePlayStarted = false
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            // SharePlay prompt banner
+            if !sharePlayStarted && !sharePlayService.isSessionActive {
+                VStack(spacing: 12) {
+                    Button {
+                        Task {
+                            await startSharePlay()
+                        }
+                    } label: {
+                        Label("Start SharePlay to listen together", systemImage: "shareplay")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.pink)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                    }
+                }
+                .padding()
+                .background(Color.pink.opacity(0.1))
+            }
+            
             Spacer()
             
             if let content = viewModel.currentContent {
@@ -109,6 +131,23 @@ struct AppleMusicView: View {
         }
         .padding()
         .background(.ultraThinMaterial)
+    }
+    
+    private func startSharePlay() async {
+        print("🎵 Starting SharePlay for Apple Music room: \(room.name)")
+        let activity = LayoverActivity(
+            roomID: room.id,
+            activityType: .appleMusic,
+            customMetadata: ["roomName": room.name]
+        )
+        
+        do {
+            try await sharePlayService.startActivity(activity)
+            sharePlayStarted = true
+            print("✅ SharePlay started successfully")
+        } catch {
+            print("❌ Failed to start SharePlay: \(error)")
+        }
     }
 }
 

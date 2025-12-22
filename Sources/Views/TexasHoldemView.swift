@@ -7,9 +7,31 @@ struct TexasHoldemView: View {
     
     @State private var viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
     @State private var betAmount = 10
+    @State private var sharePlayService = SharePlayService()
+    @State private var sharePlayStarted = false
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            // SharePlay prompt banner
+            if !sharePlayStarted && !sharePlayService.isSessionActive {
+                VStack(spacing: 12) {
+                    Button {
+                        Task {
+                            await startSharePlay()
+                        }
+                    } label: {
+                        Label("Start SharePlay to play together", systemImage: "shareplay")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                    }
+                }
+                .padding()
+                .background(Color.red.opacity(0.1))
+            }
+            
             if let game = viewModel.currentGame {
                 gameView(game)
             } else {
@@ -166,6 +188,23 @@ struct TexasHoldemView: View {
                 }
             }
             .buttonStyle(.bordered)
+        }
+    }
+    
+    private func startSharePlay() async {
+        print("🃏 Starting SharePlay for Texas Hold'em room: \(room.name)")
+        let activity = LayoverActivity(
+            roomID: room.id,
+            activityType: .texasHoldem,
+            customMetadata: ["roomName": room.name]
+        )
+        
+        do {
+            try await sharePlayService.startActivity(activity)
+            sharePlayStarted = true
+            print("✅ SharePlay started successfully")
+        } catch {
+            print("❌ Failed to start SharePlay: \(error)")
         }
     }
 }
