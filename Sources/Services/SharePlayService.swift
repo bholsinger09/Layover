@@ -51,21 +51,25 @@ final class SharePlayService: SharePlayServiceProtocol {
     }
     
     private func handleSession(_ session: GroupSession<LayoverActivity>) async {
+        print("🔗 SharePlay: Session started!")
         currentSession = session
         messenger = GroupSessionMessenger(session: session)
         
         session.join()
+        print("✅ SharePlay: Joined session")
         
         // Setup message listener
         setupMessageListener()
         
         sessionTask = Task {
             for await state in session.$state.values {
+                print("📊 SharePlay: Session state changed to \(state)")
                 if case .invalidated = state {
                     currentSession = nil
                     messenger = nil
                     messageTask?.cancel()
                     sessionTask?.cancel()
+                    print("❌ SharePlay: Session invalidated")
                 }
             }
         }
@@ -108,31 +112,44 @@ final class SharePlayService: SharePlayServiceProtocol {
     }
     
     private func handleMessage(_ message: SharePlayMessage) async {
+        print("📨 SharePlay: Received message")
         switch message {
         case .roomCreated(let room):
+            print("🏠 SharePlay: Room created message - '\(room.name)'")
             onRoomReceived?(room)
         case .userJoined(let user, let roomID):
+            print("👋 SharePlay: User joined message - '\(user.username)'")
             onParticipantJoined?(user, roomID)
         }
     }
     
     func shareRoom(_ room: Room) async {
-        guard let messenger = messenger else { return }
+        guard let messenger = messenger else {
+            print("⚠️ SharePlay: No messenger available to share room")
+            return
+        }
         
         do {
+            print("📤 SharePlay: Sending room '\(room.name)' to participants")
             try await messenger.send(SharePlayMessage.roomCreated(room))
+            print("✅ SharePlay: Room sent successfully")
         } catch {
-            print("Failed to share room: \(error)")
+            print("❌ SharePlay: Failed to share room: \(error)")
         }
     }
     
     func shareUserJoined(_ user: User, roomID: UUID) async {
-        guard let messenger = messenger else { return }
+        guard let messenger = messenger else {
+            print("⚠️ SharePlay: No messenger available to share user joined")
+            return
+        }
         
         do {
+            print("📤 SharePlay: Sending user '\(user.username)' joined")
             try await messenger.send(SharePlayMessage.userJoined(user, roomID))
+            print("✅ SharePlay: User joined sent successfully")
         } catch {
-            print("Failed to share user joined: \(error)")
+            print("❌ SharePlay: Failed to share user joined: \(error)")
         }
     }
     

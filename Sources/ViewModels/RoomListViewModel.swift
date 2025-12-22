@@ -6,7 +6,7 @@ import Observation
 @Observable
 final class RoomListViewModel: LayoverViewModel {
     private let roomService: RoomServiceProtocol
-    private let sharePlayService: SharePlayServiceProtocol
+    let sharePlayService: SharePlayServiceProtocol
     
     private(set) var rooms: [Room] = []
     private(set) var isLoading = false
@@ -27,14 +27,19 @@ final class RoomListViewModel: LayoverViewModel {
             // Setup SharePlay callbacks
             self.sharePlayService.onRoomReceived = { [weak self] room in
                 guard let self = self else { return }
+                print("📥 SharePlay: Received room '\(room.name)' from participant")
                 // Add room from SharePlay participant if not already in list
                 if !self.rooms.contains(where: { $0.id == room.id }) {
                     self.rooms.append(room)
+                    print("✅ Room added to list. Total rooms: \(self.rooms.count)")
+                } else {
+                    print("⚠️ Room already exists in list")
                 }
             }
             
             self.sharePlayService.onParticipantJoined = { [weak self] user, roomID in
                 guard let self = self else { return }
+                print("👤 SharePlay: User '\(user.username)' joined room")
                 // Add participant to room
                 if let index = self.rooms.firstIndex(where: { $0.id == roomID }) {
                     var room = self.rooms[index]
@@ -42,6 +47,9 @@ final class RoomListViewModel: LayoverViewModel {
                         room.participants.append(user)
                         room.participantIDs.insert(user.id)
                         self.rooms[index] = room
+                        print("✅ Participant added. Total in room: \(room.participants.count)")
+                    } else {
+                        print("⚠️ Participant already in room")
                     }
                 }
             }
@@ -73,9 +81,11 @@ final class RoomListViewModel: LayoverViewModel {
             )
             rooms.append(room)
             
+            print("📤 SharePlay: Sharing room '\(name)' with participants")
             // Share room with SharePlay participants
             await sharePlayService.shareRoom(room)
             
+            print("🎬 SharePlay: Starting activity")
             // Start SharePlay activity
             let activity = LayoverActivity(
                 roomID: room.id,

@@ -11,9 +11,31 @@ struct LayoverActivity: GroupActivity {
     
     var metadata: GroupActivityMetadata {
         var meta = GroupActivityMetadata()
-        meta.title = "Layover - \(activityType.rawValue)"
+        
+        // Set title based on room name if available
+        if let roomName = customMetadata["roomName"] {
+            meta.title = roomName
+            meta.subtitle = "LayoverLounge - \(activityTypeName)"
+        } else {
+            meta.title = "LayoverLounge"
+            meta.subtitle = activityTypeName
+        }
+        
         meta.type = .generic
         meta.supportsContinuationOnTV = true
         return meta
+    }
+    
+    private var activityTypeName: String {
+        switch activityType {
+        case .appleTVPlus:
+            return "Apple TV+"
+        case .appleMusic:
+            return "Apple Music"
+        case .texasHoldem:
+            return "Texas Hold'em"
+        case .chess:
+            return "Chess"
+        }
     }
 }

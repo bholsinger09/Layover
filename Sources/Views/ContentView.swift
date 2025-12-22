@@ -28,11 +28,28 @@ public struct ContentView: View {
     
     private var mainAppView: some View {
         NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView("Loading rooms...")
-                } else {
-                    roomsList
+            VStack(spacing: 0) {
+                // SharePlay status banner
+                if viewModel.isSharePlayActive {
+                    HStack {
+                        Image(systemName: "shareplay")
+                            .foregroundStyle(.green)
+                        Text("SharePlay Active - Sharing with FaceTime participants")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(Color.green.opacity(0.1))
+                }
+                
+                Group {
+                    if viewModel.isLoading {
+                        ProgressView("Loading rooms...")
+                    } else {
+                        roomsList
+                    }
                 }
             }
             .navigationTitle("LayoverLounge")
@@ -69,14 +86,36 @@ public struct ContentView: View {
                         
                         Divider()
                         
+                        Button("Clear All Rooms", systemImage: "trash.fill", role: .destructive) {
+                            Task {
+                                for room in viewModel.rooms {
+                                    await viewModel.deleteRoom(room)
+                                }
+                            }
+                        }
+                        
+                        Button("SharePlay Debug", systemImage: "info.circle") {
+                            print("SharePlay Active: \(viewModel.isSharePlayActive)")
+                            print("Current Session: \(viewModel.sharePlayService.currentSession != nil)")
+                            print("Rooms count: \(viewModel.rooms.count)")
+                            print("Current username: \(currentUsername)")
+                        }
+                        
+                        Divider()
+                        
                         Button(role: .destructive) {
                             isAuthenticated = false
                         } label: {
                             Label("Sign Out", systemImage: "arrow.right.square")
                         }
                     } label: {
-                        Image(systemName: "person.circle.fill")
-                            .foregroundStyle(.blue)
+                        VStack(spacing: 2) {
+                            Image(systemName: "person.circle.fill")
+                                .foregroundStyle(.blue)
+                            Text(currentUsername)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
@@ -121,38 +160,44 @@ public struct ContentView: View {
     
     private var roomsList: some View {
         List {
-            ForEach(viewModel.rooms) { room in
-                NavigationLink(destination: roomDetailView(for: room)) {
-                    RoomRowView(room: room)
-                }
-                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                    Button(role: .destructive) {
-                        Task {
-                            await viewModel.deleteRoom(room)
+            if viewModel.rooms.isEmpty {
+                ContentUnavailableView(
+                    "No Rooms Yet",
+                    systemImage: "rectangle.3.group",
+                    description: Text("Create a room or join a FaceTime call to see shared rooms")
+                )
+            } else {
+                ForEach(viewModel.rooms) { room in
+                    NavigationLink(destination: roomDetailView(for: room)) {
+                        RoomRowView(room: room)
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            Task {
+                                await viewModel.deleteRoom(room)
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
-                    } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
-                    
-                    Button {
-                        editingRoom = room
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                    }
-                    .tint(.blue)
-                    
-                    Button {
-                        Task {
-                            let currentUser = User(id: UUID(), username: currentUsername)
-                            await viewModel.leaveRoom(room, userID: currentUser.id)
+                        
+                        Button {
+                            editingRoom = room
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
                         }
-                    } label: {
-                        Label("Leave", systemImage: "rectangle.portrait.and.arrow.right")
+                        .tint(.blue)
+                        
+                        Button {
+                            Task {
+                                let currentUser = User(id: UUID(), username: currentUsername)
+                                await viewModel.leaveRoom(room, userID: currentUser.id)
+                            }
+                        } label: {
+                            Label("Leave", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                        .tint(.orange)
                     }
-                    .tint(.orange)
-                }
-                .swipeActions(edge: .leading) {
-                    if !room.participantIDs.contains(where: { _ in true }) {
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
                         Button {
                             Task {
                                 let currentUser = User(id: UUID(), username: currentUsername)
@@ -163,40 +208,40 @@ public struct ContentView: View {
                         }
                         .tint(.green)
                     }
-                }
-                .contextMenu {
-                    Button {
-                        Task {
-                            let currentUser = User(id: UUID(), username: currentUsername)
-                            await viewModel.joinRoom(room, user: currentUser)
+                    .contextMenu {
+                        Button {
+                            Task {
+                                let currentUser = User(id: UUID(), username: currentUsername)
+                                await viewModel.joinRoom(room, user: currentUser)
+                            }
+                        } label: {
+                            Label("Join Room", systemImage: "person.badge.plus")
                         }
-                    } label: {
-                        Label("Join Room", systemImage: "person.badge.plus")
-                    }
-                    
-                    Button {
-                        editingRoom = room
-                    } label: {
-                        Label("Edit Room", systemImage: "pencil")
-                    }
-                    
-                    Button {
-                        Task {
-                            let currentUser = User(id: UUID(), username: currentUsername)
-                            await viewModel.leaveRoom(room, userID: currentUser.id)
+                        
+                        Button {
+                            editingRoom = room
+                        } label: {
+                            Label("Edit Room", systemImage: "pencil")
                         }
-                    } label: {
-                        Label("Leave Room", systemImage: "rectangle.portrait.and.arrow.right")
-                    }
-                    
-                    Divider()
-                    
-                    Button(role: .destructive) {
-                        Task {
-                            await viewModel.deleteRoom(room)
+                        
+                        Button {
+                            Task {
+                                let currentUser = User(id: UUID(), username: currentUsername)
+                                await viewModel.leaveRoom(room, userID: currentUser.id)
+                            }
+                        } label: {
+                            Label("Leave Room", systemImage: "rectangle.portrait.and.arrow.right")
                         }
-                    } label: {
-                        Label("Delete Room", systemImage: "trash")
+                        
+                        Divider()
+                        
+                        Button(role: .destructive) {
+                            Task {
+                                await viewModel.deleteRoom(room)
+                            }
+                        } label: {
+                            Label("Delete Room", systemImage: "trash")
+                        }
                     }
                 }
             }
