@@ -25,6 +25,14 @@ struct LayoverActivity: GroupActivity {
         switch activityType {
         case .appleTVPlus:
             meta.type = .watchTogether
+            // Add fallback URL for Apple TV content if provided
+            if let contentID = customMetadata["contentID"],
+               let contentType = customMetadata["contentType"] {
+                let urlString = "https://tv.apple.com/\(contentType)/\(contentID)"
+                if let url = URL(string: urlString) {
+                    meta.fallbackURL = url
+                }
+            }
         case .appleMusic:
             meta.type = .listenTogether
         case .texasHoldem, .chess:

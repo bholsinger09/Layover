@@ -149,6 +149,13 @@ public struct ContentView: View {
             }
             .task {
                 await viewModel.loadRooms()
+                
+                // Setup navigation when SharePlay room is received
+                viewModel.onRoomReceivedForNavigation = { room in
+                    print("🚀 Auto-navigating to SharePlay room: \(room.name)")
+                    sharePlayReceivedRoom = room
+                    navigationPath.append(room)
+                }
             }
             .onChange(of: viewModel.rooms) { oldValue, newValue in
                 // Auto-navigate to SharePlay received rooms

@@ -5,6 +5,10 @@ import Foundation
     import UIKit
 #endif
 
+#if canImport(AppKit)
+    import AppKit
+#endif
+
 /// Service for managing Apple TV+ playback
 @MainActor
 public protocol AppleTVServiceProtocol: LayoverService {
@@ -45,25 +49,28 @@ public final class AppleTVService: AppleTVServiceProtocol {
             } else {
                 throw MediaError.tvAppNotAvailable
             }
+        #elseif canImport(AppKit)
+            // On macOS, open TV app with deep link
+            let baseURL = "https://tv.apple.com"
+            let contentPath = content.contentType == .movie ? "movie" : "show"
+            let urlString = "\(baseURL)/\(contentPath)/\(content.contentID)"
+
+            guard let url = URL(string: urlString) else {
+                throw MediaError.invalidURL
+            }
+
+            // Open URL - macOS will open it in the TV app
+            NSWorkspace.shared.open(url)
+            currentContent = content
         #else
             throw MediaError.tvAppNotAvailable
         #endif
     }
 
     public func loadContent(_ content: MediaContent) async throws {
-        // For in-app playback (if you have the actual stream URL)
-        // This is a fallback - prefer openInTVApp for Apple TV+ content
-        guard let streamURL = content.streamURL else {
-            // If no stream URL, try opening in TV app
-            try await openInTVApp(content)
-            return
-        }
-
-        let playerItem = AVPlayerItem(url: streamURL)
-        let newPlayer = AVPlayer(playerItem: playerItem)
-
-        self.player = newPlayer
-        self.currentContent = content
+        // This method is for potential future in-app playback
+        // For now, we use openInTVApp for all Apple TV+ content
+        try await openInTVApp(content)
     }
 
     public func play() async {

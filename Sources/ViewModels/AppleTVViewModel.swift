@@ -17,7 +17,7 @@ final class AppleTVViewModel: LayoverViewModel {
         tvService.player
     }
 
-    nonisolated init(
+    init(
         tvService: AppleTVServiceProtocol,
         sharePlayService: SharePlayServiceProtocol
     ) {
@@ -30,25 +30,23 @@ final class AppleTVViewModel: LayoverViewModel {
         errorMessage = nil
 
         do {
-            // Try to open in Apple TV app first for better SharePlay support
+            // Open content in Apple TV app
+            // When SharePlay is active, the TV app will automatically join the session
+            // and sync playback across all participants
             try await tvService.openInTVApp(content)
             currentContent = content
-
-            // Note: When opening in TV app, SharePlay is handled automatically
-            // by the TV app itself, no need for manual coordinator setup
-        } catch {
-            // Fallback: try in-app playback if TV app fails
-            do {
-                try await tvService.loadContent(content)
-                currentContent = content
-
-                // Setup SharePlay coordination for in-app playback
-                if let player = tvService.player {
-                    try await sharePlayService.setupPlaybackCoordinator(player: player)
-                }
-            } catch {
-                errorMessage = error.localizedDescription
+            print("✅ Opened content in Apple TV app: \(content.title)")
+            
+            // Share the content selection with other participants
+            if sharePlayService.isSessionActive {
+                print("📤 Sharing content '\(content.title)' with SharePlay participants...")
+                await sharePlayService.shareContent(content)
+            } else {
+                print("⚠️ SharePlay not active, content not shared")
             }
+        } catch {
+            errorMessage = error.localizedDescription
+            print("❌ Failed to open content in TV app: \(error)")
         }
 
         isLoading = false

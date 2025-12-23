@@ -11,6 +11,7 @@ final class RoomListViewModel: LayoverViewModel {
     private(set) var rooms: [Room] = []
     private(set) var isLoading = false
     var errorMessage: String?
+    var onRoomReceivedForNavigation: ((Room) -> Void)?
 
     var isSharePlayActive: Bool {
         sharePlayService.isSessionActive
@@ -32,6 +33,8 @@ final class RoomListViewModel: LayoverViewModel {
                 if !self.rooms.contains(where: { $0.id == room.id }) {
                     self.rooms.append(room)
                     print("✅ Room added to list. Total rooms: \(self.rooms.count)")
+                    // Trigger navigation callback
+                    self.onRoomReceivedForNavigation?(room)
                 } else {
                     print("⚠️ Room already exists in list")
                 }

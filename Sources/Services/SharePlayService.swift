@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import GroupActivities
+import OSLog
 
 /// Service for managing SharePlay sessions and coordination
 @MainActor
@@ -9,16 +10,21 @@ protocol SharePlayServiceProtocol: LayoverService {
     var isSessionActive: Bool { get }
     var onRoomReceived: ((Room) -> Void)? { get set }
     var onParticipantJoined: ((User, UUID) -> Void)? { get set }
+    var onContentReceived: ((MediaContent) -> Void)? { get set }
+    var onSessionStateChanged: ((Bool) -> Void)? { get set }
 
     func startActivity(_ activity: LayoverActivity) async throws
     func leaveSession() async
     func setupPlaybackCoordinator(player: AVPlayer) async throws
     func shareRoom(_ room: Room) async
     func shareUserJoined(_ user: User, roomID: UUID) async
+    func shareContent(_ content: MediaContent) async
 }
 
 @MainActor
 final class SharePlayService: SharePlayServiceProtocol {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "SharePlay")
+    
     private(set) var currentSession: GroupSession<LayoverActivity>?
     private var groupStateObserver: Task<Void, Never>?
     private var sessionTask: Task<Void, Never>?
@@ -28,7 +34,9 @@ final class SharePlayService: SharePlayServiceProtocol {
 
     var onRoomReceived: ((Room) -> Void)?
     var onParticipantJoined: ((User, UUID) -> Void)?
-
+    var onContentReceived: ((MediaContent) -> Void)?
+    var onSessionStateChanged: ((Bool) -> Void)?
+    
     var isSessionActive: Bool {
         currentSession != nil
     }
@@ -51,50 +59,54 @@ final class SharePlayService: SharePlayServiceProtocol {
     }
 
     private func handleSession(_ session: GroupSession<LayoverActivity>) async {
-        print("🔗 SharePlay: Session received!")
+        logger.info("🔗 SharePlay: Session received!")
         currentSession = session
         messenger = GroupSessionMessenger(session: session)
 
         // Automatically join the session
         session.join()
-        print("✅ SharePlay: Joined session automatically")
+        logger.info("✅ SharePlay: Joined session automatically")
+        
+        // Notify that session is now active
+        onSessionStateChanged?(true)
 
         // Setup message listener
         setupMessageListener()
 
         sessionTask = Task {
             for await state in session.$state.values {
-                print("📊 SharePlay: Session state changed to \(state)")
+                logger.info("📊 SharePlay: Session state changed to \(String(describing: state))")
                 if case .invalidated = state {
                     currentSession = nil
                     messenger = nil
                     messageTask?.cancel()
                     sessionTask?.cancel()
-                    print("❌ SharePlay: Session invalidated")
+                    logger.warning("❌ SharePlay: Session invalidated")
+                    onSessionStateChanged?(false)
                 }
             }
         }
     }
 
     func startActivity(_ activity: LayoverActivity) async throws {
-        print("🎬 SharePlay: Preparing activity for '\(activity.metadata.title)'")
+        logger.info("🎬 SharePlay: Preparing activity for '\(activity.metadata.title ?? "unknown")'")
 
         let prepareResult = await activity.prepareForActivation()
-        print("📋 SharePlay: Preparation result - \(prepareResult)")
+        logger.info("📋 SharePlay: Preparation result - \(String(describing: prepareResult))")
 
         switch prepareResult {
         case .activationPreferred:
-            print("✅ SharePlay: Activation preferred, activating...")
+            logger.info("✅ SharePlay: Activation preferred, activating...")
             let result = try await activity.activate()
-            print("🎉 SharePlay: Activity activated successfully! Result: \(result)")
+            logger.info("🎉 SharePlay: Activity activated successfully! Result: \(String(describing: result))")
 
             // Wait a moment for session to establish
             try? await Task.sleep(nanoseconds: 500_000_000)
 
             if currentSession != nil {
-                print("✅ SharePlay: Session is now active")
+                logger.info("✅ SharePlay: Session is now active")
             } else {
-                print("⚠️ SharePlay: Activity activated but session not yet established")
+                logger.warning("⚠️ SharePlay: Activity activated but session not yet established")
             }
 
         case .activationDisabled:
@@ -116,46 +128,53 @@ final class SharePlayService: SharePlayServiceProtocol {
         playbackCoordinator = nil
         messageTask?.cancel()
         sessionTask?.cancel()
+        onSessionStateChanged?(false)
     }
 
     private func setupMessageListener() {
         messageTask = Task {
             guard let messenger = messenger else { return }
 
-            do {
-                for try await (message, _) in messenger.messages(of: SharePlayMessage.self) {
-                    await handleMessage(message)
-                }
-            } catch {
-                print("SharePlay message error: \(error)")
+            for await (message, _) in messenger.messages(of: SharePlayMessage.self) {
+                await handleMessage(message)
             }
         }
     }
 
     private func handleMessage(_ message: SharePlayMessage) async {
-        print("📨 SharePlay: Received message")
+        logger.info("📨 SharePlay: Received message")
         switch message {
         case .roomCreated(let room):
-            print("🏠 SharePlay: Room created message - '\(room.name)'")
+            logger.info("🏠 SharePlay: Room created message - '\(room.name)'")
             onRoomReceived?(room)
         case .userJoined(let user, let roomID):
-            print("👋 SharePlay: User joined message - '\(user.username)'")
+            logger.info("👋 SharePlay: User joined message - '\(user.username)'")
             onParticipantJoined?(user, roomID)
+        case .contentSelected(let content):
+            logger.info("🎬 SharePlay: Content selected message - '\(content.title)'")
+            logger.info("🎬 Content ID: \(content.contentID)")
+            logger.info("🎬 Triggering onContentReceived callback...")
+            onContentReceived?(content)
+            logger.info("🎬 Callback triggered")
         }
     }
 
     func shareRoom(_ room: Room) async {
         guard let messenger = messenger else {
-            print("⚠️ SharePlay: No messenger available to share room")
+            logger.warning("⚠️ SharePlay: No messenger available to share room")
+            logger.info("   Current session exists: \(self.currentSession != nil)")
             return
         }
 
         do {
-            print("📤 SharePlay: Sending room '\(room.name)' to participants")
+            logger.info("📤 SharePlay: Sending room '\(room.name)' to participants")
+            logger.info("   Room ID: \(room.id)")
+            logger.info("   Activity type: \(room.activityType.rawValue)")
             try await messenger.send(SharePlayMessage.roomCreated(room))
-            print("✅ SharePlay: Room sent successfully")
+            logger.info("✅ SharePlay: Room sent successfully via messenger")
         } catch {
-            print("❌ SharePlay: Failed to share room: \(error)")
+            logger.error("❌ SharePlay: Failed to share room: \(error.localizedDescription)")
+            logger.error("   Error details: \(String(describing: error))")
         }
     }
 
@@ -173,6 +192,25 @@ final class SharePlayService: SharePlayServiceProtocol {
             print("❌ SharePlay: Failed to share user joined: \(error)")
         }
     }
+    
+    func shareContent(_ content: MediaContent) async {
+        guard let messenger = messenger else {
+            logger.warning("⚠️ SharePlay: No messenger available to share content")
+            logger.info("   Current session: \(self.currentSession != nil ? "EXISTS" : "NIL")")
+            return
+        }
+
+        do {
+            logger.info("📤 SharePlay: Sending content '\(content.title)' to participants")
+            logger.info("   Content ID: \(content.contentID)")
+            logger.info("   Content type: \(content.contentType == .movie ? "movie" : "show")")
+            try await messenger.send(SharePlayMessage.contentSelected(content))
+            logger.info("✅ SharePlay: Content sent successfully via messenger")
+        } catch {
+            logger.error("❌ SharePlay: Failed to share content: \(error.localizedDescription)")
+            logger.error("   Error details: \(String(describing: error))")
+        }
+    }
 
     func setupPlaybackCoordinator(player: AVPlayer) async throws {
         guard let session = currentSession else {
@@ -188,6 +226,7 @@ final class SharePlayService: SharePlayServiceProtocol {
 enum SharePlayMessage: Codable {
     case roomCreated(Room)
     case userJoined(User, UUID)
+    case contentSelected(MediaContent)
 }
 
 enum SharePlayError: LocalizedError {
