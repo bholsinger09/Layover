@@ -135,7 +135,7 @@ struct AppleTVView: View {
                             
                             Button {
                                 Task {
-                                    try? await viewModel.tvService.openInTVApp(content)
+                                    await viewModel.openContentInTVApp(content)
                                 }
                             } label: {
                                 Label("Open Apple TV App", systemImage: "tv.fill")

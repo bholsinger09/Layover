@@ -73,4 +73,12 @@ final class AppleTVViewModel: LayoverViewModel {
             await play()
         }
     }
+    
+    func openContentInTVApp(_ content: MediaContent) async {
+        do {
+            try await tvService.openInTVApp(content)
+        } catch {
+            print("❌ Failed to open TV app: \(error)")
+        }
+    }
 }
