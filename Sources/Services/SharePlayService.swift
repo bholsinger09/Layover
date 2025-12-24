@@ -8,6 +8,7 @@ import OSLog
 protocol SharePlayServiceProtocol: LayoverService {
     var currentSession: GroupSession<LayoverActivity>? { get }
     var isSessionActive: Bool { get }
+    var isSessionHost: Bool { get }
     var onRoomReceived: ((Room) -> Void)? { get set }
     var onParticipantJoined: ((User, UUID) -> Void)? { get set }
     var onContentReceived: ((MediaContent) -> Void)? { get set }
@@ -31,6 +32,9 @@ final class SharePlayService: SharePlayServiceProtocol {
     private var playbackCoordinator: AVPlaybackCoordinator?
     private var messenger: GroupSessionMessenger?
     private var messageTask: Task<Void, Never>?
+    
+    // Track if this device initiated the session or joined via invitation
+    private(set) var isSessionHost: Bool = false
 
     var onRoomReceived: ((Room) -> Void)?
     var onParticipantJoined: ((User, UUID) -> Void)?
@@ -72,12 +76,15 @@ final class SharePlayService: SharePlayServiceProtocol {
 
     private func handleSession(_ session: GroupSession<LayoverActivity>) async {
         logger.info("🔗 SharePlay: Session received!")
+        logger.info("   This device is JOINING an existing session (not the host)")
+        isSessionHost = false  // This device joined via invitation
+        
         currentSession = session
         messenger = GroupSessionMessenger(session: session)
 
         // Automatically join the session
         session.join()
-        logger.info("✅ SharePlay: Joined session automatically")
+        logger.info("✅ SharePlay: Joined session automatically as PARTICIPANT")
 
         // Notify that session is now active - ensure callback runs on MainActor
         await MainActor.run {
@@ -108,6 +115,7 @@ final class SharePlayService: SharePlayServiceProtocol {
 
     func startActivity(_ activity: LayoverActivity) async throws {
         logger.info("🎬 SharePlay: Preparing activity for '\(activity.metadata.title ?? "unknown")'")
+        logger.info("   This device is STARTING the session (will be the host)")
 
         let prepareResult = await activity.prepareForActivation()
         logger.info("📋 SharePlay: Preparation result - \(String(describing: prepareResult))")
@@ -115,10 +123,12 @@ final class SharePlayService: SharePlayServiceProtocol {
         switch prepareResult {
         case .activationPreferred:
             logger.info("✅ SharePlay: Activation preferred, activating...")
+            isSessionHost = true  // This device initiated the session
             let result = try await activity.activate()
             logger.info(
                 "🎉 SharePlay: Activity activated successfully! Result: \(String(describing: result))"
             )
+            logger.info("👑 This device is the SESSION HOST")
 
             // Wait a moment for session to establish
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -146,6 +156,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         currentSession = nil
         messenger = nil
         playbackCoordinator = nil
+        isSessionHost = false  // Reset host status
         messageTask?.cancel()
         sessionTask?.cancel()
         notifySessionStateObservers(false)

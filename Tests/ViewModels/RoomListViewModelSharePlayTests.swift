@@ -16,6 +16,7 @@ struct RoomListViewModelSharePlayTests {
     final class MockSharePlayService: SharePlayServiceProtocol {
         var currentSession: GroupSession<LayoverActivity>?
         var isSessionActive: Bool = false
+        var isSessionHost: Bool = false
         var onRoomReceived: ((Room) -> Void)?
         var onParticipantJoined: ((User, UUID) -> Void)?
         var onContentReceived: ((MediaContent) -> Void)?

@@ -39,20 +39,23 @@ struct AppleTVView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // SharePlay joined notification
-            if showJoinedMessage {
+            // SharePlay status banner
+            if isSharePlayActive {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: viewModel.sharePlayService.isSessionHost ? "crown.fill" : "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                    Text("Joined SharePlay session!")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Dismiss") {
-                        showJoinedMessage = false
+                    
+                    if viewModel.sharePlayService.isSessionHost {
+                        Text("SharePlay Active - You're the host")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("SharePlay Active - Connected as participant")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                    .buttonStyle(.borderless)
-                    .font(.caption)
+                    
+                    Spacer()
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
@@ -104,8 +107,8 @@ struct AppleTVView: View {
                 .background(Color.blue.opacity(0.1))
             }
             
-            // DEBUG: Test SharePlay messaging button
-            if isSharePlayActive {
+            // DEBUG: Test SharePlay messaging button - only for host
+            if isSharePlayActive && viewModel.sharePlayService.isSessionHost {
                 Button {
                     Task {
                         await viewModel.testShareContent()
@@ -122,7 +125,8 @@ struct AppleTVView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 8)
             }
-
+            
+            // Show current content or instructions
             if viewModel.sharePlayService.isSessionActive {
                 if let content = viewModel.currentContent {
                     ContentUnavailableView {
@@ -218,17 +222,12 @@ struct AppleTVView: View {
             viewModel.sharePlayService.addSessionStateObserver { isActive in
                 // Callback already runs on MainActor from SharePlayService
                 logger.info("🔄 SharePlay state changed callback received: \(isActive)")
+                logger.info("   Is session host: \(viewModel.sharePlayService.isSessionHost)")
                 isSharePlayActive = isActive
                 sharePlayStarted = isActive
 
-                // Show joined message when session becomes active
                 if isActive {
                     logger.info("✅ Updating UI to show SharePlay is active")
-                    showJoinedMessage = true
-                    Task {
-                        try? await Task.sleep(nanoseconds: UITiming.messageDisplayDuration)
-                        showJoinedMessage = false
-                    }
                 } else {
                     logger.info("❌ Updating UI to show SharePlay is inactive")
                 }
@@ -238,17 +237,7 @@ struct AppleTVView: View {
             isSharePlayActive = viewModel.sharePlayService.isSessionActive
             sharePlayStarted = isSharePlayActive
             logger.info("🎬 Initial SharePlay state on appear: \(isSharePlayActive)")
-
-            // If SharePlay is already active when we appear, show the joined message
-            if isSharePlayActive {
-                logger.info("🎉 SharePlay session already active - user joined from invitation")
-                showJoinedMessage = true
-                // Auto-dismiss after 3 seconds
-                Task {
-                    try? await Task.sleep(nanoseconds: 3_000_000_000)
-                    showJoinedMessage = false
-                }
-            }
+            logger.info("   Is session host: \(viewModel.sharePlayService.isSessionHost)")
 
             // Content received callback is set up in ViewModel init
             // Just show notification when content is received
