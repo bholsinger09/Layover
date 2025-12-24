@@ -160,21 +160,34 @@ final class SharePlayService: SharePlayServiceProtocol {
     }
 
     private func handleMessage(_ message: SharePlayMessage) async {
-        logger.info("📨 SharePlay: Received message")
+        logger.info("📨 ═══════════════════════════════════")
+        logger.info("📨 SharePlay: MESSAGE RECEIVED")
         switch message {
         case .roomCreated(let room):
             logger.info("🏠 SharePlay: Room created message - '\(room.name)'")
+            logger.info("🏠 Triggering onRoomReceived callback...")
             onRoomReceived?(room)
+            logger.info("🏠 onRoomReceived callback completed")
         case .userJoined(let user, let roomID):
             logger.info("👋 SharePlay: User joined message - '\(user.username)'")
+            logger.info("👋 Triggering onParticipantJoined callback...")
             onParticipantJoined?(user, roomID)
+            logger.info("👋 onParticipantJoined callback completed")
         case .contentSelected(let content):
-            logger.info("🎬 SharePlay: Content selected message - '\(content.title)'")
+            logger.info("🎬 ✨ SharePlay: CONTENT SELECTED MESSAGE")
+            logger.info("🎬 Content title: \(content.title)")
             logger.info("🎬 Content ID: \(content.contentID)")
-            logger.info("🎬 Triggering onContentReceived callback...")
-            onContentReceived?(content)
-            logger.info("🎬 Callback triggered")
+            logger.info("🎬 Content type: \(content.contentType.rawValue)")
+            logger.info("🎬 onContentReceived callback exists: \(self.onContentReceived != nil)")
+            if self.onContentReceived == nil {
+                logger.error("❌ WARNING: onContentReceived callback is NIL!")
+            } else {
+                logger.info("🎬 Triggering onContentReceived callback NOW...")
+                self.onContentReceived?(content)
+                logger.info("✅ onContentReceived callback invoked")
+            }
         }
+        logger.info("📨 ═══════════════════════════════════")
     }
 
     func shareRoom(_ room: Room) async {
@@ -212,9 +225,19 @@ final class SharePlayService: SharePlayServiceProtocol {
     }
     
     func shareContent(_ content: MediaContent) async {
+        logger.info("📤 ═══════════════════════════════════")
+        logger.info("📤 shareContent() called")
+        logger.info("📤 Content: \(content.title)")
+        
         guard let messenger = messenger else {
-            logger.warning("⚠️ SharePlay: No messenger available to share content")
-            logger.info("   Current session: \(self.currentSession != nil ? "EXISTS" : "NIL")")
+            logger.error("❌ SharePlay: No messenger available to share content")
+            logger.error("   Current session exists: \(self.currentSession != nil)")
+            if let session = self.currentSession {
+                logger.error("   Session state: \(String(describing: session.state))")
+            } else {
+                logger.error("   Session state: no session")
+            }
+            logger.info("📤 ═══════════════════════════════════")
             return
         }
 
@@ -222,12 +245,16 @@ final class SharePlayService: SharePlayServiceProtocol {
             logger.info("📤 SharePlay: Sending content '\(content.title)' to participants")
             logger.info("   Content ID: \(content.contentID)")
             logger.info("   Content type: \(content.contentType == .movie ? "movie" : "show")")
+            logger.info("   Sending message now...")
             try await messenger.send(SharePlayMessage.contentSelected(content))
-            logger.info("✅ SharePlay: Content sent successfully via messenger")
+            logger.info("✅ SharePlay: Content message SENT successfully via messenger")
+            logger.info("✅ Other participants should receive this message")
         } catch {
             logger.error("❌ SharePlay: Failed to share content: \(error.localizedDescription)")
+            logger.error("   Error type: \(type(of: error))")
             logger.error("   Error details: \(String(describing: error))")
         }
+        logger.info("📤 ═══════════════════════════════════")
     }
 
     func setupPlaybackCoordinator(player: AVPlayer) async throws {
