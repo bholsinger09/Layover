@@ -30,6 +30,7 @@ final class AppleTVViewModel: LayoverViewModel {
 
         logger.info("🎬 AppleTVViewModel initialized")
         logger.info("🔌 Setting up onContentReceived callback...")
+        logger.info("   SharePlay session active: \(sharePlayService.isSessionActive)")
 
         // Set up callback to receive content from other participants
         self.sharePlayService.onContentReceived = { [weak self] content in
@@ -38,19 +39,24 @@ final class AppleTVViewModel: LayoverViewModel {
                     print("⚠️ Self is nil in onContentReceived callback")
                     return
                 }
+                self.logger.info("📺 ═══════════════════════════════════")
                 self.logger.info("📺 ✅ CALLBACK TRIGGERED: Received content from SharePlay")
                 self.logger.info("📺 Content title: \(content.title)")
                 self.logger.info("📺 Content ID: \(content.contentID)")
                 self.logger.info("📺 Content type: \(content.contentType.rawValue)")
+                self.logger.info("📺 Current content before: \(self.currentContent?.title ?? "none")")
                 self.logger.info("📺 Setting isLoadingFromSharePlay = true to prevent loop")
                 self.isLoadingFromSharePlay = true
                 await self.loadContent(content)
+                self.logger.info("📺 Current content after: \(self.currentContent?.title ?? "none")")
                 self.logger.info("📺 Content loaded, clearing isLoadingFromSharePlay flag")
                 self.isLoadingFromSharePlay = false
+                self.logger.info("📺 ═══════════════════════════════════")
             }
         }
 
         logger.info("✅ onContentReceived callback setup complete")
+        logger.info("   Callback is set: \(self.sharePlayService.onContentReceived != nil)")
     }
 
     func loadContent(_ content: MediaContent) async {

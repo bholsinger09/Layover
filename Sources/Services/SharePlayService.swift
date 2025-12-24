@@ -152,12 +152,19 @@ final class SharePlayService: SharePlayServiceProtocol {
     }
 
     private func setupMessageListener() {
+        logger.info("🔧 Setting up message listener...")
         messageTask = Task {
-            guard let messenger = messenger else { return }
+            guard let messenger = messenger else {
+                logger.error("❌ No messenger available for message listener")
+                return
+            }
+            logger.info("✅ Message listener started, waiting for messages...")
 
             for await (message, _) in messenger.messages(of: SharePlayMessage.self) {
+                logger.info("📨 ⚡️ Message received from messenger!")
                 await handleMessage(message)
             }
+            logger.warning("⚠️ Message listener loop ended")
         }
     }
 

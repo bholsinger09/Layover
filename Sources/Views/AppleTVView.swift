@@ -188,7 +188,12 @@ struct AppleTVView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
+            logger.info("🎬 ═══════════════════════════════════")
             logger.info("🎬 AppleTVView appeared for room: \(room.name)")
+            logger.info("   ViewModel callback is set: \(viewModel.sharePlayService.onContentReceived != nil)")
+            logger.info("   SharePlay session active: \(viewModel.sharePlayService.isSessionActive)")
+            logger.info("   Current content: \(viewModel.currentContent?.title ?? "none")")
+            logger.info("🎬 ═══════════════════════════════════")
 
             // Listen for session state changes BEFORE checking initial state
             viewModel.sharePlayService.addSessionStateObserver { isActive in
