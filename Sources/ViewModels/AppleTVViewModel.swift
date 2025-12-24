@@ -1,13 +1,14 @@
 import AVFoundation
 import Foundation
-import Observation
 import OSLog
+import Observation
 
 /// ViewModel for Apple TV+ viewing rooms
 @MainActor
 @Observable
 final class AppleTVViewModel: LayoverViewModel {
-    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVViewModel")
+    private let logger = Logger(
+        subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVViewModel")
     private let tvService: AppleTVServiceProtocol
     let sharePlayService: SharePlayServiceProtocol
     private var isLoadingFromSharePlay = false
@@ -26,10 +27,10 @@ final class AppleTVViewModel: LayoverViewModel {
     ) {
         self.tvService = tvService
         self.sharePlayService = sharePlayService
-        
+
         logger.info("🎬 AppleTVViewModel initialized")
         logger.info("🔌 Setting up onContentReceived callback...")
-        
+
         // Set up callback to receive content from other participants
         self.sharePlayService.onContentReceived = { [weak self] content in
             Task { @MainActor in
@@ -48,7 +49,7 @@ final class AppleTVViewModel: LayoverViewModel {
                 self.isLoadingFromSharePlay = false
             }
         }
-        
+
         logger.info("✅ onContentReceived callback setup complete")
     }
 
@@ -60,10 +61,10 @@ final class AppleTVViewModel: LayoverViewModel {
         logger.info("🎬 isLoadingFromSharePlay: \(self.isLoadingFromSharePlay)")
         logger.info("🎬 SharePlay active: \(self.sharePlayService.isSessionActive)")
         logger.info("🎬 ═══════════════════════════════════")
-        
+
         isLoading = true
         errorMessage = nil
-        
+
         // Update current content immediately so UI reflects it
         logger.info("📝 Setting currentContent = \(content.title)")
         currentContent = content
@@ -76,7 +77,7 @@ final class AppleTVViewModel: LayoverViewModel {
             logger.info("📱 Opening content in TV app...")
             try await tvService.openInTVApp(content)
             logger.info("✅ Opened content in Apple TV app: \(content.title)")
-            
+
             // Share the content selection with other participants
             // But only if we're not already loading content from SharePlay (prevent loop)
             if sharePlayService.isSessionActive && !isLoadingFromSharePlay {
@@ -88,7 +89,9 @@ final class AppleTVViewModel: LayoverViewModel {
                 logger.info("📥 This content was RECEIVED from SharePlay, not re-sharing")
             } else {
                 logger.warning("⚠️ SharePlay session is NOT active, content will NOT be shared")
-                logger.warning("⚠️ Current session state: \(self.sharePlayService.isSessionActive ? "active" : "inactive")")
+                logger.warning(
+                    "⚠️ Current session state: \(self.sharePlayService.isSessionActive ? "active" : "inactive")"
+                )
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -121,7 +124,7 @@ final class AppleTVViewModel: LayoverViewModel {
             await play()
         }
     }
-    
+
     func openContentInTVApp(_ content: MediaContent) async {
         do {
             try await tvService.openInTVApp(content)

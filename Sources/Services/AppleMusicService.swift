@@ -16,13 +16,14 @@ protocol AppleMusicServiceProtocol: LayoverService {
 
 @MainActor
 final class AppleMusicService: AppleMusicServiceProtocol {
-    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleMusicService")
+    private let logger = Logger(
+        subsystem: "com.bholsinger.LayoverLounge", category: "AppleMusicService")
     private(set) var currentContent: MediaContent?
     private let musicPlayer = ApplicationMusicPlayer.shared
 
     var isAuthorized: Bool {
         get async {
-            let status = await MusicAuthorization.currentStatus
+            let status = MusicAuthorization.currentStatus
             return status == .authorized
         }
     }

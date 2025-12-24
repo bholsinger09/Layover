@@ -11,7 +11,7 @@ protocol SharePlayServiceProtocol: LayoverService {
     var onRoomReceived: ((Room) -> Void)? { get set }
     var onParticipantJoined: ((User, UUID) -> Void)? { get set }
     var onContentReceived: ((MediaContent) -> Void)? { get set }
-    
+
     func addSessionStateObserver(_ observer: @escaping (Bool) -> Void)
     func startActivity(_ activity: LayoverActivity) async throws
     func leaveSession() async
@@ -24,7 +24,7 @@ protocol SharePlayServiceProtocol: LayoverService {
 @MainActor
 final class SharePlayService: SharePlayServiceProtocol {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "SharePlay")
-    
+
     private(set) var currentSession: GroupSession<LayoverActivity>?
     private var groupStateObserver: Task<Void, Never>?
     private var sessionTask: Task<Void, Never>?
@@ -36,19 +36,19 @@ final class SharePlayService: SharePlayServiceProtocol {
     var onParticipantJoined: ((User, UUID) -> Void)?
     var onContentReceived: ((MediaContent) -> Void)?
     private var sessionStateObservers: [(Bool) -> Void] = []
-    
+
     func addSessionStateObserver(_ observer: @escaping (Bool) -> Void) {
         sessionStateObservers.append(observer)
         // Immediately call with current state
         observer(isSessionActive)
     }
-    
+
     private func notifySessionStateObservers(_ isActive: Bool) {
         for observer in sessionStateObservers {
             observer(isActive)
         }
     }
-    
+
     var isSessionActive: Bool {
         currentSession != nil
     }
@@ -78,7 +78,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         // Automatically join the session
         session.join()
         logger.info("✅ SharePlay: Joined session automatically")
-        
+
         // Notify that session is now active - ensure callback runs on MainActor
         await MainActor.run {
             logger.info("📢 SharePlay: Notifying UI of session state change (active)")
@@ -116,7 +116,9 @@ final class SharePlayService: SharePlayServiceProtocol {
         case .activationPreferred:
             logger.info("✅ SharePlay: Activation preferred, activating...")
             let result = try await activity.activate()
-            logger.info("🎉 SharePlay: Activity activated successfully! Result: \(String(describing: result))")
+            logger.info(
+                "🎉 SharePlay: Activity activated successfully! Result: \(String(describing: result))"
+            )
 
             // Wait a moment for session to establish
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -223,12 +225,12 @@ final class SharePlayService: SharePlayServiceProtocol {
             logger.error("❌ SharePlay: Failed to share user joined: \(error.localizedDescription)")
         }
     }
-    
+
     func shareContent(_ content: MediaContent) async {
         logger.info("📤 ═══════════════════════════════════")
         logger.info("📤 shareContent() called")
         logger.info("📤 Content: \(content.title)")
-        
+
         guard let messenger = messenger else {
             logger.error("❌ SharePlay: No messenger available to share content")
             logger.error("   Current session exists: \(self.currentSession != nil)")

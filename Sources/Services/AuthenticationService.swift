@@ -16,7 +16,8 @@ public protocol AuthenticationServiceProtocol: Sendable {
 @MainActor
 public final class AuthenticationService: NSObject, AuthenticationServiceProtocol, ObservableObject
 {
-    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AuthenticationService")
+    private let logger = Logger(
+        subsystem: "com.bholsinger.LayoverLounge", category: "AuthenticationService")
 
     @Published public private(set) var currentUser: User?
 

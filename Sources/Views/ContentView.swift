@@ -140,7 +140,7 @@ public struct ContentView: View {
             }
             .task {
                 await viewModel.loadRooms()
-                
+
                 // Setup navigation when SharePlay room is received
                 viewModel.onRoomReceivedForNavigation = { room in
                     print("🚀 Auto-navigating to SharePlay room: \(room.name)")
@@ -151,7 +151,8 @@ public struct ContentView: View {
             .onChange(of: viewModel.rooms) { oldValue, newValue in
                 // Auto-navigate to SharePlay received rooms
                 if let lastRoom = newValue.last,
-                   !oldValue.contains(where: { $0.id == lastRoom.id }) {
+                    !oldValue.contains(where: { $0.id == lastRoom.id })
+                {
                     print("🚀 Auto-navigating to SharePlay room: \(lastRoom.name)")
                     sharePlayReceivedRoom = lastRoom
                     navigationPath.append(lastRoom)
@@ -269,7 +270,7 @@ public struct ContentView: View {
     private func roomDetailView(for room: Room) -> some View {
         let currentUser = User(id: UUID(), username: currentUsername)
         let _ = print("🏠 Navigating to room: \(room.name), type: \(room.activityType)")
-        
+
         switch room.activityType {
         case .appleTVPlus:
             AppleTVView(room: room, currentUser: currentUser)

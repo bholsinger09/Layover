@@ -1,15 +1,15 @@
 import AVKit
-import SwiftUI
 import OSLog
+import SwiftUI
 
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 /// Constants for AppleTVView UI timing
 private enum UITiming {
     static let messageDisplayDuration: UInt64 = 3_000_000_000  // 3 seconds
-    static let sessionCheckInterval: UInt64 = 2_000_000_000    // 2 seconds
+    static let sessionCheckInterval: UInt64 = 2_000_000_000  // 2 seconds
 }
 
 /// View for Apple TV+ watching rooms
@@ -26,7 +26,7 @@ struct AppleTVView: View {
     @State private var sharePlayError: String?
     @State private var isSharePlayActive = false
     @State private var showJoinedMessage = false
-    
+
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVView")
 
     var body: some View {
@@ -50,7 +50,7 @@ struct AppleTVView: View {
                 .padding(.vertical, 8)
                 .background(Color.green.opacity(0.1))
             }
-            
+
             // SharePlay prompt banner - only show if no active session
             if !isSharePlayActive {
                 VStack(spacing: 12) {
@@ -104,14 +104,14 @@ struct AppleTVView: View {
                         VStack(spacing: 12) {
                             Text(content.title)
                                 .font(.headline)
-                            
+
                             Divider()
-                            
+
                             VStack(spacing: 8) {
                                 Text("To watch together with synchronized playback:")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
-                                
+
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
                                         Text("1.")
@@ -132,13 +132,15 @@ struct AppleTVView: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.vertical, 4)
-                                
-                                Text("The Apple TV app will handle synchronized playback automatically during your FaceTime call.")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
+
+                                Text(
+                                    "The Apple TV app will handle synchronized playback automatically during your FaceTime call."
+                                )
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
                             }
-                            
+
                             Button {
                                 Task {
                                     await viewModel.openContentInTVApp(content)
@@ -166,25 +168,27 @@ struct AppleTVView: View {
                 ContentUnavailableView(
                     "Start SharePlay First",
                     systemImage: "shareplay",
-                    description: Text("You need to be in a FaceTime call and start SharePlay before selecting content")
+                    description: Text(
+                        "You need to be in a FaceTime call and start SharePlay before selecting content"
+                    )
                 )
             }
 
         }
         .navigationTitle(room.name)
         #if !os(macOS)
-        .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline)
         #endif
         .onAppear {
             logger.info("🎬 AppleTVView appeared for room: \(room.name)")
-            
+
             // Listen for session state changes BEFORE checking initial state
             viewModel.sharePlayService.addSessionStateObserver { isActive in
                 // Callback already runs on MainActor from SharePlayService
                 logger.info("🔄 SharePlay state changed callback received: \(isActive)")
                 isSharePlayActive = isActive
                 sharePlayStarted = isActive
-                
+
                 // Show joined message when session becomes active
                 if isActive {
                     logger.info("✅ Updating UI to show SharePlay is active")
@@ -197,12 +201,12 @@ struct AppleTVView: View {
                     logger.info("❌ Updating UI to show SharePlay is inactive")
                 }
             }
-            
+
             // Now check initial state after setting up callback
             isSharePlayActive = viewModel.sharePlayService.isSessionActive
             sharePlayStarted = isSharePlayActive
             logger.info("🎬 Initial SharePlay state on appear: \(isSharePlayActive)")
-            
+
             // If SharePlay is already active when we appear, show the joined message
             if isSharePlayActive {
                 logger.info("🎉 SharePlay session already active - user joined from invitation")
@@ -213,20 +217,21 @@ struct AppleTVView: View {
                     showJoinedMessage = false
                 }
             }
-            
+
             // Content received callback is set up in ViewModel init
             // Just show notification when content is received
             if viewModel.currentContent != nil {
                 logger.info("📺 Content is loaded: \(viewModel.currentContent?.title ?? "unknown")")
             }
-            
+
             // Periodically check session state in case callback was missed
             Task {
                 while !Task.isCancelled {
-                    try? await Task.sleep(nanoseconds: 2_000_000_000) // Check every 2 seconds
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)  // Check every 2 seconds
                     let currentState = viewModel.sharePlayService.isSessionActive
                     if currentState != isSharePlayActive {
-                        logger.warning("⚠️ Session state mismatch detected - updating to: \(currentState)")
+                        logger.warning(
+                            "⚠️ Session state mismatch detected - updating to: \(currentState)")
                         isSharePlayActive = currentState
                     }
                 }
@@ -257,7 +262,7 @@ struct AppleTVView: View {
     private func startSharePlay() async {
         sharePlayError = nil
         logger.info("🎬 Starting SharePlay for Apple TV room: \(room.name)")
-        
+
         // Include content metadata if available for better TV app coordination
         var metadata: [String: String] = ["roomName": room.name]
         if let content = viewModel.currentContent {
@@ -265,7 +270,7 @@ struct AppleTVView: View {
             metadata["contentType"] = content.contentType == .movie ? "movie" : "show"
             metadata["title"] = content.title
         }
-        
+
         let activity = LayoverActivity(
             roomID: room.id,
             activityType: .appleTVPlus,
@@ -274,19 +279,20 @@ struct AppleTVView: View {
 
         do {
             try await viewModel.sharePlayService.startActivity(activity)
-            
+
             // Update state on main actor to trigger UI updates
             await MainActor.run {
                 sharePlayStarted = true
                 sharePlayError = nil
                 isSharePlayActive = viewModel.sharePlayService.isSessionActive
-                logger.info("✅ SharePlay started successfully, session active: \(isSharePlayActive)")
+                logger.info(
+                    "✅ SharePlay started successfully, session active: \(isSharePlayActive)")
             }
-            
+
             // Share the room data with other participants
             logger.info("📤 Sending room data to SharePlay participants...")
             await viewModel.sharePlayService.shareRoom(room)
-            
+
             // If content is already selected, reload it with SharePlay coordination
             if let content = viewModel.currentContent {
                 logger.info("🔄 Reloading content with SharePlay coordination...")
@@ -339,7 +345,7 @@ struct ContentPickerView: View {
                         .padding(.vertical, 4)
                     }
                 }
-                
+
                 Section("Quick Access") {
                     appleTVButton(
                         title: "Ted Lasso",
@@ -358,7 +364,7 @@ struct ContentPickerView: View {
                         contentID: "umc.cmc.1srk2goyh2q2zdxcx605w8vtx",
                         type: .tvShow
                     )
-                    
+
                     appleTVButton(
                         title: "The Morning Show",
                         contentID: "umc.cmc.25tn3v8ku4b39tr6ccgb8nl6m",
@@ -367,7 +373,7 @@ struct ContentPickerView: View {
                 }
             }
             #if os(macOS)
-            .frame(minWidth: 400, minHeight: 400)
+                .frame(minWidth: 400, minHeight: 400)
             #endif
             .navigationTitle("Select Content")
             .toolbar {
@@ -379,7 +385,7 @@ struct ContentPickerView: View {
             }
         }
         #if os(macOS)
-        .frame(minWidth: 500, minHeight: 500)
+            .frame(minWidth: 500, minHeight: 500)
         #endif
     }
 
@@ -405,7 +411,7 @@ struct ContentPickerView: View {
         }
         .disabled(!sharePlayActive)
     }
-    
+
     private func openAppleTVApp() {
         #if canImport(UIKit)
             // Open Apple TV app on iOS
@@ -414,12 +420,9 @@ struct ContentPickerView: View {
             }
         #elseif canImport(AppKit)
             // On macOS, open TV app by bundle identifier
-            NSWorkspace.shared.launchApplication(
-                withBundleIdentifier: "com.apple.TV",
-                options: [],
-                additionalEventParamDescriptor: nil,
-                launchIdentifier: nil
-            )
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.TV") {
+                NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration(), completionHandler: nil)
+            }
         #endif
         dismiss()
     }

@@ -152,14 +152,14 @@ struct AppleMusicView: View {
 
         do {
             try await sharePlayService.startActivity(activity)
-            
+
             // Update state on main actor to trigger UI updates
             await MainActor.run {
                 sharePlayStarted = true
                 isSharePlayActive = sharePlayService.isSessionActive
                 print("✅ SharePlay started successfully, session active: \(isSharePlayActive)")
             }
-            
+
             // Share the room data with other participants
             print("📤 Sending room data to SharePlay participants...")
             await sharePlayService.shareRoom(room)

@@ -1,12 +1,13 @@
 import Foundation
-import Observation
 import OSLog
+import Observation
 
 /// ViewModel for managing rooms and room list
 @MainActor
 @Observable
 final class RoomListViewModel: LayoverViewModel {
-    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "RoomListViewModel")
+    private let logger = Logger(
+        subsystem: "com.bholsinger.LayoverLounge", category: "RoomListViewModel")
     private let roomService: RoomServiceProtocol
     let sharePlayService: SharePlayServiceProtocol
 
@@ -22,7 +23,7 @@ final class RoomListViewModel: LayoverViewModel {
     ) {
         self.roomService = roomService
         self.sharePlayService = sharePlayService
-        
+
         // Setup SharePlay callbacks synchronously
         self.sharePlayService.onRoomReceived = { [weak self] room in
             guard let self = self else { return }
@@ -48,13 +49,14 @@ final class RoomListViewModel: LayoverViewModel {
                     room.participants.append(user)
                     room.participantIDs.insert(user.id)
                     self.rooms[index] = room
-                    self.logger.info("✅ Participant added. Total in room: \(room.participants.count)")
+                    self.logger.info(
+                        "✅ Participant added. Total in room: \(room.participants.count)")
                 } else {
                     self.logger.debug("⚠️ Participant already in room")
                 }
             }
         }
-        
+
         // Setup SharePlay session state change observer
         self.sharePlayService.addSessionStateObserver { [weak self] isActive in
             // Callback already runs on MainActor from SharePlayService
