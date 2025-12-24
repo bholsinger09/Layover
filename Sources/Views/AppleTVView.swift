@@ -6,6 +6,12 @@ import OSLog
 import AppKit
 #endif
 
+/// Constants for AppleTVView UI timing
+private enum UITiming {
+    static let messageDisplayDuration: UInt64 = 3_000_000_000  // 3 seconds
+    static let sessionCheckInterval: UInt64 = 2_000_000_000    // 2 seconds
+}
+
 /// View for Apple TV+ watching rooms
 struct AppleTVView: View {
     let room: Room
@@ -184,7 +190,7 @@ struct AppleTVView: View {
                     logger.info("✅ Updating UI to show SharePlay is active")
                     showJoinedMessage = true
                     Task {
-                        try? await Task.sleep(nanoseconds: 3_000_000_000)
+                        try? await Task.sleep(nanoseconds: UITiming.messageDisplayDuration)
                         showJoinedMessage = false
                     }
                 } else {

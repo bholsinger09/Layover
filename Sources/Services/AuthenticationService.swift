@@ -1,6 +1,7 @@
 import AuthenticationServices
 import Combine
 import Foundation
+import OSLog
 
 /// Protocol for authentication operations
 public protocol AuthenticationServiceProtocol: Sendable {
@@ -15,6 +16,7 @@ public protocol AuthenticationServiceProtocol: Sendable {
 @MainActor
 public final class AuthenticationService: NSObject, AuthenticationServiceProtocol, ObservableObject
 {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AuthenticationService")
 
     @Published public private(set) var currentUser: User?
 
@@ -61,6 +63,9 @@ public final class AuthenticationService: NSObject, AuthenticationServiceProtoco
         currentUser = user
         if let encoded = try? JSONEncoder().encode(user) {
             UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
+            logger.info("Stored user: \(user.username)")
+        } else {
+            logger.error("Failed to encode user for storage")
         }
     }
 
@@ -69,9 +74,11 @@ public final class AuthenticationService: NSObject, AuthenticationServiceProtoco
         guard let data = UserDefaults.standard.data(forKey: userDefaultsKey),
             let user = try? JSONDecoder().decode(User.self, from: data)
         else {
+            logger.debug("No stored user found or decode failed")
             return
         }
         currentUser = user
+        logger.info("Loaded stored user: \(user.username)")
     }
 
     /// Check credential state for a user

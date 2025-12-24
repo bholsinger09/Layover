@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 /// Service for managing rooms
 @MainActor
@@ -17,6 +18,7 @@ protocol RoomServiceProtocol: LayoverService {
 
 @MainActor
 final class RoomService: RoomServiceProtocol {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "RoomService")
     private(set) var rooms: [Room] = []
     private let defaults = NSUbiquitousKeyValueStore.default
     private let roomsKey = "layoverlounge.rooms"
