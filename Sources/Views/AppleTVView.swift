@@ -103,6 +103,25 @@ struct AppleTVView: View {
                 .padding()
                 .background(Color.blue.opacity(0.1))
             }
+            
+            // DEBUG: Test SharePlay messaging button
+            if isSharePlayActive {
+                Button {
+                    Task {
+                        await viewModel.testShareContent()
+                    }
+                } label: {
+                    Label("🧪 TEST: Share Test Content", systemImage: "paperplane.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.orange)
+                        .foregroundStyle(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
 
             if viewModel.sharePlayService.isSessionActive {
                 if let content = viewModel.currentContent {

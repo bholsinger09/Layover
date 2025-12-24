@@ -58,6 +58,26 @@ final class AppleTVViewModel: LayoverViewModel {
         logger.info("✅ onContentReceived callback setup complete")
         logger.info("   Callback is set: \(self.sharePlayService.onContentReceived != nil)")
     }
+    
+    // TEST FUNCTION: Send content without opening TV app
+    func testShareContent() async {
+        logger.info("🧪 TEST: Sending test content via SharePlay...")
+        let testContent = MediaContent(
+            title: "TEST_CONTENT_\(Date().timeIntervalSince1970)",
+            contentID: "test-\(UUID().uuidString)",
+            duration: 100,
+            contentType: .tvShow
+        )
+        
+        currentContent = testContent
+        
+        if sharePlayService.isSessionActive {
+            await sharePlayService.shareContent(testContent)
+            logger.info("🧪 TEST: Content shared!")
+        } else {
+            logger.error("🧪 TEST: SharePlay not active, cannot share")
+        }
+    }
 
     func loadContent(_ content: MediaContent) async {
         logger.info("🎬 ═══════════════════════════════════")
