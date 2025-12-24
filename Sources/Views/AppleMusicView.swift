@@ -4,12 +4,19 @@ import SwiftUI
 struct AppleMusicView: View {
     let room: Room
     let currentUser: User
+    let sharePlayService: SharePlayServiceProtocol
 
-    @State private var viewModel = AppleMusicViewModel(musicService: AppleMusicService())
+    @State private var viewModel: AppleMusicViewModel
     @State private var showingContentPicker = false
-    @State private var sharePlayService = SharePlayService()
     @State private var sharePlayStarted = false
     @State private var isSharePlayActive = false
+    
+    init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol) {
+        self.room = room
+        self.currentUser = currentUser
+        self.sharePlayService = sharePlayService
+        self._viewModel = State(initialValue: AppleMusicViewModel(musicService: AppleMusicService()))
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -205,7 +212,8 @@ struct MusicPickerView: View {
     NavigationStack {
         AppleMusicView(
             room: Room(name: "Music Session", hostID: UUID(), activityType: .appleMusic),
-            currentUser: User(username: "Test User")
+            currentUser: User(username: "Test User"),
+            sharePlayService: SharePlayService()
         )
     }
 }

@@ -273,9 +273,9 @@ public struct ContentView: View {
 
         switch room.activityType {
         case .appleTVPlus:
-            AppleTVView(room: room, currentUser: currentUser)
+            AppleTVView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService)
         case .appleMusic:
-            AppleMusicView(room: room, currentUser: currentUser)
+            AppleMusicView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService)
         case .texasHoldem:
             TexasHoldemView(room: room, currentUser: currentUser)
         case .chess:

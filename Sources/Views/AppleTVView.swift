@@ -16,12 +16,20 @@ private enum UITiming {
 struct AppleTVView: View {
     let room: Room
     let currentUser: User
+    let sharePlayService: SharePlayServiceProtocol
 
-    @State private var viewModel = AppleTVViewModel(
-        tvService: AppleTVService(),
-        sharePlayService: SharePlayService()
-    )
+    @State private var viewModel: AppleTVViewModel
     @State private var showingContentPicker = false
+    
+    init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol) {
+        self.room = room
+        self.currentUser = currentUser
+        self.sharePlayService = sharePlayService
+        self._viewModel = State(initialValue: AppleTVViewModel(
+            tvService: AppleTVService(),
+            sharePlayService: sharePlayService
+        ))
+    }
     @State private var sharePlayStarted = false
     @State private var sharePlayError: String?
     @State private var isSharePlayActive = false
@@ -432,7 +440,8 @@ struct ContentPickerView: View {
     NavigationStack {
         AppleTVView(
             room: Room(name: "Movie Night", hostID: UUID(), activityType: .appleTVPlus),
-            currentUser: User(username: "Test User")
+            currentUser: User(username: "Test User"),
+            sharePlayService: SharePlayService()
         )
     }
 }
