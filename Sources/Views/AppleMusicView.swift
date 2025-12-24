@@ -9,11 +9,12 @@ struct AppleMusicView: View {
     @State private var showingContentPicker = false
     @State private var sharePlayService = SharePlayService()
     @State private var sharePlayStarted = false
+    @State private var isSharePlayActive = false
 
     var body: some View {
         VStack(spacing: 0) {
             // SharePlay prompt banner
-            if !sharePlayStarted && !sharePlayService.isSessionActive {
+            if !isSharePlayActive {
                 VStack(spacing: 12) {
                     Button {
                         Task {
@@ -68,6 +69,14 @@ struct AppleMusicView: View {
                     showingContentPicker = false
                 }
             })
+        }
+        .onAppear {
+            // Listen for session state changes BEFORE checking initial state
+            sharePlayService.addSessionStateObserver { isActive in
+                // Callback already runs on MainActor from SharePlayService
+                isSharePlayActive = isActive
+                sharePlayStarted = isActive
+            }
         }
         .task {
             if !viewModel.isAuthorized {
@@ -143,8 +152,17 @@ struct AppleMusicView: View {
 
         do {
             try await sharePlayService.startActivity(activity)
-            sharePlayStarted = true
-            print("✅ SharePlay started successfully")
+            
+            // Update state on main actor to trigger UI updates
+            await MainActor.run {
+                sharePlayStarted = true
+                isSharePlayActive = sharePlayService.isSessionActive
+                print("✅ SharePlay started successfully, session active: \(isSharePlayActive)")
+            }
+            
+            // Share the room data with other participants
+            print("📤 Sending room data to SharePlay participants...")
+            await sharePlayService.shareRoom(room)
         } catch {
             print("❌ Failed to start SharePlay: \(error)")
         }

@@ -172,9 +172,30 @@ struct AppleTVView: View {
         .onAppear {
             logger.info("🎬 AppleTVView appeared for room: \(room.name)")
             
-            // Set initial state from current session
+            // Listen for session state changes BEFORE checking initial state
+            viewModel.sharePlayService.addSessionStateObserver { isActive in
+                // Callback already runs on MainActor from SharePlayService
+                logger.info("🔄 SharePlay state changed callback received: \(isActive)")
+                isSharePlayActive = isActive
+                sharePlayStarted = isActive
+                
+                // Show joined message when session becomes active
+                if isActive {
+                    logger.info("✅ Updating UI to show SharePlay is active")
+                    showJoinedMessage = true
+                    Task {
+                        try? await Task.sleep(nanoseconds: 3_000_000_000)
+                        showJoinedMessage = false
+                    }
+                } else {
+                    logger.info("❌ Updating UI to show SharePlay is inactive")
+                }
+            }
+            
+            // Now check initial state after setting up callback
             isSharePlayActive = viewModel.sharePlayService.isSessionActive
-            logger.info("🎬 SharePlay active on appear: \(isSharePlayActive)")
+            sharePlayStarted = isSharePlayActive
+            logger.info("🎬 Initial SharePlay state on appear: \(isSharePlayActive)")
             
             // If SharePlay is already active when we appear, show the joined message
             if isSharePlayActive {
@@ -184,26 +205,6 @@ struct AppleTVView: View {
                 Task {
                     try? await Task.sleep(nanoseconds: 3_000_000_000)
                     showJoinedMessage = false
-                }
-            }
-            
-            // Listen for session state changes
-            viewModel.sharePlayService.onSessionStateChanged = { [weak viewModel] isActive in
-                logger.info("🔄 SharePlay state changed: \(isActive)")
-                Task { @MainActor in
-                    isSharePlayActive = isActive
-                    // Show joined message when session becomes active
-                    if isActive {
-                        showJoinedMessage = true
-                        Task {
-                            try? await Task.sleep(nanoseconds: 3_000_000_000)
-                            showJoinedMessage = false
-                        }
-                    }
-                    // Also double-check the actual state
-                    if let vm = viewModel {
-                        isSharePlayActive = vm.sharePlayService.isSessionActive
-                    }
                 }
             }
             
@@ -270,9 +271,14 @@ struct AppleTVView: View {
 
         do {
             try await viewModel.sharePlayService.startActivity(activity)
-            sharePlayStarted = true
-            sharePlayError = nil
-            logger.info("✅ SharePlay started successfully")
+            
+            // Update state on main actor to trigger UI updates
+            await MainActor.run {
+                sharePlayStarted = true
+                sharePlayError = nil
+                isSharePlayActive = viewModel.sharePlayService.isSessionActive
+                logger.info("✅ SharePlay started successfully, session active: \(isSharePlayActive)")
+            }
             
             // Share the room data with other participants
             logger.info("📤 Sending room data to SharePlay participants...")
@@ -285,13 +291,17 @@ struct AppleTVView: View {
             }
         } catch let error as SharePlayError {
             logger.error("❌ Failed to start SharePlay: \(error.localizedDescription)")
-            sharePlayError = error.localizedDescription
-            if let suggestion = error.recoverySuggestion {
-                sharePlayError = "\(error.localizedDescription)\n\(suggestion)"
+            await MainActor.run {
+                sharePlayError = error.localizedDescription
+                if let suggestion = error.recoverySuggestion {
+                    sharePlayError = "\(error.localizedDescription)\n\(suggestion)"
+                }
             }
         } catch {
             logger.error("❌ Failed to start SharePlay: \(error.localizedDescription)")
-            sharePlayError = "Failed to start SharePlay: \(error.localizedDescription)"
+            await MainActor.run {
+                sharePlayError = "Failed to start SharePlay: \(error.localizedDescription)"
+            }
         }
     }
 }

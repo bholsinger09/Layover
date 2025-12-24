@@ -12,50 +12,53 @@ final class RoomListViewModel: LayoverViewModel {
     private(set) var isLoading = false
     var errorMessage: String?
     var onRoomReceivedForNavigation: ((Room) -> Void)?
+    private(set) var isSharePlayActive = false
 
-    var isSharePlayActive: Bool {
-        sharePlayService.isSessionActive
-    }
-
-    nonisolated init(
+    init(
         roomService: RoomServiceProtocol,
         sharePlayService: SharePlayServiceProtocol
     ) {
         self.roomService = roomService
         self.sharePlayService = sharePlayService
+        
+        // Setup SharePlay callbacks synchronously
+        self.sharePlayService.onRoomReceived = { [weak self] room in
+            guard let self = self else { return }
+            print("📥 SharePlay: Received room '\(room.name)' from participant")
+            // Add room from SharePlay participant if not already in list
+            if !self.rooms.contains(where: { $0.id == room.id }) {
+                self.rooms.append(room)
+                print("✅ Room added to list. Total rooms: \(self.rooms.count)")
+                // Trigger navigation callback
+                self.onRoomReceivedForNavigation?(room)
+            } else {
+                print("⚠️ Room already exists in list")
+            }
+        }
 
-        Task { @MainActor in
-            // Setup SharePlay callbacks
-            self.sharePlayService.onRoomReceived = { [weak self] room in
-                guard let self = self else { return }
-                print("📥 SharePlay: Received room '\(room.name)' from participant")
-                // Add room from SharePlay participant if not already in list
-                if !self.rooms.contains(where: { $0.id == room.id }) {
-                    self.rooms.append(room)
-                    print("✅ Room added to list. Total rooms: \(self.rooms.count)")
-                    // Trigger navigation callback
-                    self.onRoomReceivedForNavigation?(room)
+        self.sharePlayService.onParticipantJoined = { [weak self] user, roomID in
+            guard let self = self else { return }
+            print("👤 SharePlay: User '\(user.username)' joined room")
+            // Add participant to room
+            if let index = self.rooms.firstIndex(where: { $0.id == roomID }) {
+                var room = self.rooms[index]
+                if !room.participants.contains(where: { $0.id == user.id }) {
+                    room.participants.append(user)
+                    room.participantIDs.insert(user.id)
+                    self.rooms[index] = room
+                    print("✅ Participant added. Total in room: \(room.participants.count)")
                 } else {
-                    print("⚠️ Room already exists in list")
+                    print("⚠️ Participant already in room")
                 }
             }
-
-            self.sharePlayService.onParticipantJoined = { [weak self] user, roomID in
-                guard let self = self else { return }
-                print("👤 SharePlay: User '\(user.username)' joined room")
-                // Add participant to room
-                if let index = self.rooms.firstIndex(where: { $0.id == roomID }) {
-                    var room = self.rooms[index]
-                    if !room.participants.contains(where: { $0.id == user.id }) {
-                        room.participants.append(user)
-                        room.participantIDs.insert(user.id)
-                        self.rooms[index] = room
-                        print("✅ Participant added. Total in room: \(room.participants.count)")
-                    } else {
-                        print("⚠️ Participant already in room")
-                    }
-                }
-            }
+        }
+        
+        // Setup SharePlay session state change observer
+        self.sharePlayService.addSessionStateObserver { [weak self] isActive in
+            // Callback already runs on MainActor from SharePlayService
+            guard let self = self else { return }
+            print("🔄 RoomListViewModel: SharePlay session state changed to \(isActive)")
+            self.isSharePlayActive = isActive
         }
     }
 

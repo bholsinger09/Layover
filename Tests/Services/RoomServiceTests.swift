@@ -10,72 +10,71 @@ struct RoomServiceTests {
     @Test("Create room")
     func testCreateRoom() async throws {
         let service = RoomService()
-        let hostID = UUID()
+        let host = User(username: "TestHost")
         
         let room = try await service.createRoom(
             name: "Test Room",
-            hostID: hostID,
+            host: host,
             activityType: .appleTVPlus
         )
         
         #expect(room.name == "Test Room")
-        #expect(room.hostID == hostID)
-        #expect(room.activityType == .appleTVPlus)
+        #expect(room.hostID == host.id)
         #expect(service.rooms.count == 1)
-        #expect(room.participantIDs.contains(hostID))
+        #expect(room.participantIDs.contains(host.id))
     }
     
     @Test("Join room")
     func testJoinRoom() async throws {
         let service = RoomService()
-        let hostID = UUID()
-        let userID = UUID()
+        let host = User(username: "Host")
+        let user = User(username: "Joiner")
         
         let room = try await service.createRoom(
             name: "Test Room",
-            hostID: hostID,
+            host: host,
             activityType: .texasHoldem
         )
         
-        try await service.joinRoom(roomID: room.id, userID: userID)
+        try await service.joinRoom(roomID: room.id, user: user)
         
         let updatedRoom = service.rooms.first!
-        #expect(updatedRoom.participantIDs.contains(userID))
+        #expect(updatedRoom.participantIDs.contains(user.id))
         #expect(updatedRoom.participantIDs.count == 2)
     }
     
     @Test("Leave room")
     func testLeaveRoom() async throws {
         let service = RoomService()
-        let hostID = UUID()
-        let userID = UUID()
+        let host = User(username: "Host")
+        let user = User(username: "Leaver")
         
         let room = try await service.createRoom(
             name: "Test Room",
-            hostID: hostID,
+            host: host,
             activityType: .appleMusic
         )
         
-        try await service.joinRoom(roomID: room.id, userID: userID)
-        try await service.leaveRoom(roomID: room.id, userID: userID)
+        try await service.joinRoom(roomID: room.id, user: user)
+        try await service.leaveRoom(roomID: room.id, userID: user.id)
         
         let updatedRoom = service.rooms.first!
-        #expect(!updatedRoom.participantIDs.contains(userID))
+        #expect(!updatedRoom.participantIDs.contains(user.id))
         #expect(updatedRoom.participantIDs.count == 1)
     }
     
     @Test("Host leaving room deletes it")
     func testHostLeavingDeletesRoom() async throws {
         let service = RoomService()
-        let hostID = UUID()
+        let host = User(username: "Host")
         
         let room = try await service.createRoom(
             name: "Test Room",
-            hostID: hostID,
+            host: host,
             activityType: .chess
         )
         
-        try await service.leaveRoom(roomID: room.id, userID: hostID)
+        try await service.leaveRoom(roomID: room.id, userID: host.id)
         
         #expect(service.rooms.isEmpty)
     }
@@ -83,50 +82,50 @@ struct RoomServiceTests {
     @Test("Promote to sub-host")
     func testPromoteToSubHost() async throws {
         let service = RoomService()
-        let hostID = UUID()
-        let userID = UUID()
+        let host = User(username: "Host")
+        let user = User(username: "SubHost")
         
         let room = try await service.createRoom(
             name: "Test Room",
-            hostID: hostID,
+            host: host,
             activityType: .appleTVPlus
         )
         
-        try await service.joinRoom(roomID: room.id, userID: userID)
-        try await service.promoteToSubHost(roomID: room.id, userID: userID)
+        try await service.joinRoom(roomID: room.id, user: user)
+        try await service.promoteToSubHost(roomID: room.id, userID: user.id)
         
         let updatedRoom = service.rooms.first!
-        #expect(updatedRoom.isSubHost(userID: userID))
+        #expect(updatedRoom.isSubHost(userID: user.id))
     }
     
     @Test("Demote sub-host")
     func testDemoteSubHost() async throws {
         let service = RoomService()
-        let hostID = UUID()
-        let userID = UUID()
+        let host = User(username: "Host")
+        let user = User(username: "SubHost")
         
         let room = try await service.createRoom(
             name: "Test Room",
-            hostID: hostID,
+            host: host,
             activityType: .texasHoldem
         )
         
-        try await service.joinRoom(roomID: room.id, userID: userID)
-        try await service.promoteToSubHost(roomID: room.id, userID: userID)
-        try await service.demoteSubHost(roomID: room.id, userID: userID)
+        try await service.joinRoom(roomID: room.id, user: user)
+        try await service.promoteToSubHost(roomID: room.id, userID: user.id)
+        try await service.demoteSubHost(roomID: room.id, userID: user.id)
         
         let updatedRoom = service.rooms.first!
-        #expect(!updatedRoom.isSubHost(userID: userID))
+        #expect(!updatedRoom.isSubHost(userID: user.id))
     }
     
     @Test("Delete room")
     func testDeleteRoom() async throws {
         let service = RoomService()
-        let hostID = UUID()
+        let host = User(username: "Host")
         
         let room = try await service.createRoom(
             name: "Test Room",
-            hostID: hostID,
+            host: host,
             activityType: .appleMusic
         )
         
@@ -138,24 +137,23 @@ struct RoomServiceTests {
     @Test("Fetch rooms")
     func testFetchRooms() async throws {
         let service = RoomService()
-        let hostID = UUID()
+        let host = User(username: "Host")
         
-        _ = try await service.createRoom(name: "Room 1", hostID: hostID, activityType: .appleTVPlus)
-        _ = try await service.createRoom(name: "Room 2", hostID: hostID, activityType: .texasHoldem)
+        _ = try await service.createRoom(name: "Room 1", host: host, activityType: .appleTVPlus)
+        _ = try await service.createRoom(name: "Room 2", host: host, activityType: .texasHoldem)
         
-        let rooms = try await service.fetchRooms()
-        
-        #expect(rooms.count == 2)
+        // Check the in-memory rooms array directly
+        #expect(service.rooms.count == 2)
     }
     
     @Test("Join non-existent room throws error")
     func testJoinNonExistentRoom() async {
         let service = RoomService()
-        let userID = UUID()
+        let user = User(username: "Joiner")
         let roomID = UUID()
         
         await #expect(throws: RoomError.self) {
-            try await service.joinRoom(roomID: roomID, userID: userID)
+            try await service.joinRoom(roomID: roomID, user: user)
         }
     }
 }

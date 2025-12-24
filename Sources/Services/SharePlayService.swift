@@ -11,8 +11,8 @@ protocol SharePlayServiceProtocol: LayoverService {
     var onRoomReceived: ((Room) -> Void)? { get set }
     var onParticipantJoined: ((User, UUID) -> Void)? { get set }
     var onContentReceived: ((MediaContent) -> Void)? { get set }
-    var onSessionStateChanged: ((Bool) -> Void)? { get set }
-
+    
+    func addSessionStateObserver(_ observer: @escaping (Bool) -> Void)
     func startActivity(_ activity: LayoverActivity) async throws
     func leaveSession() async
     func setupPlaybackCoordinator(player: AVPlayer) async throws
@@ -35,7 +35,19 @@ final class SharePlayService: SharePlayServiceProtocol {
     var onRoomReceived: ((Room) -> Void)?
     var onParticipantJoined: ((User, UUID) -> Void)?
     var onContentReceived: ((MediaContent) -> Void)?
-    var onSessionStateChanged: ((Bool) -> Void)?
+    private var sessionStateObservers: [(Bool) -> Void] = []
+    
+    func addSessionStateObserver(_ observer: @escaping (Bool) -> Void) {
+        sessionStateObservers.append(observer)
+        // Immediately call with current state
+        observer(isSessionActive)
+    }
+    
+    private func notifySessionStateObservers(_ isActive: Bool) {
+        for observer in sessionStateObservers {
+            observer(isActive)
+        }
+    }
     
     var isSessionActive: Bool {
         currentSession != nil
@@ -67,8 +79,11 @@ final class SharePlayService: SharePlayServiceProtocol {
         session.join()
         logger.info("✅ SharePlay: Joined session automatically")
         
-        // Notify that session is now active
-        onSessionStateChanged?(true)
+        // Notify that session is now active - ensure callback runs on MainActor
+        await MainActor.run {
+            logger.info("📢 SharePlay: Notifying UI of session state change (active)")
+            notifySessionStateObservers(true)
+        }
 
         // Setup message listener
         setupMessageListener()
@@ -82,7 +97,10 @@ final class SharePlayService: SharePlayServiceProtocol {
                     messageTask?.cancel()
                     sessionTask?.cancel()
                     logger.warning("❌ SharePlay: Session invalidated")
-                    onSessionStateChanged?(false)
+                    await MainActor.run {
+                        logger.info("📢 SharePlay: Notifying UI of session state change (inactive)")
+                        notifySessionStateObservers(false)
+                    }
                 }
             }
         }
@@ -128,7 +146,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         playbackCoordinator = nil
         messageTask?.cancel()
         sessionTask?.cancel()
-        onSessionStateChanged?(false)
+        notifySessionStateObservers(false)
     }
 
     private func setupMessageListener() {
