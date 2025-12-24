@@ -214,13 +214,10 @@ struct AppleTVView: View {
                 }
             }
             
-            // Listen for content selected by other participants
-            viewModel.sharePlayService.onContentReceived = { content in
-                logger.info("📺 Received content from other participant: \(content.title)")
-                logger.info("📺 Opening Apple TV app to join synchronized playback...")
-                Task {
-                    await viewModel.loadContent(content)
-                }
+            // Content received callback is set up in ViewModel init
+            // Just show notification when content is received
+            if viewModel.currentContent != nil {
+                logger.info("📺 Content is loaded: \(viewModel.currentContent?.title ?? "unknown")")
             }
             
             // Periodically check session state in case callback was missed

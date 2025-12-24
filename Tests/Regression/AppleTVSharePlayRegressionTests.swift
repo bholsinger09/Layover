@@ -24,6 +24,7 @@ struct AppleTVSharePlayRegressionTests {
         private var sessionStateObservers: [(Bool) -> Void] = []
         private var sharedContent: [MediaContent] = []
         private var activatedActivities: [LayoverActivity] = []
+        var shouldSimulateRemoteParticipant = true // Set to false for single-device tests
         
         func addSessionStateObserver(_ observer: @escaping (Bool) -> Void) {
             sessionStateObservers.append(observer)
@@ -44,8 +45,11 @@ struct AppleTVSharePlayRegressionTests {
         
         func shareContent(_ content: MediaContent) async {
             sharedContent.append(content)
-            // Simulate receiving content on other device
-            onContentReceived?(content)
+            // Simulate receiving content on other device(s)
+            // Only trigger if simulating remote participants
+            if shouldSimulateRemoteParticipant {
+                onContentReceived?(content)
+            }
         }
         
         func shareRoom(_ room: Room) async {}
@@ -290,6 +294,7 @@ struct AppleTVSharePlayRegressionTests {
     @Test("Content sharing requires active SharePlay session")
     func testContentSharingRequiresActiveSession() async throws {
         let sharePlayService = MockSharePlayService()
+        sharePlayService.shouldSimulateRemoteParticipant = false
         let tvService = MockAppleTVService()
         
         let viewModel = AppleTVViewModel(
@@ -483,6 +488,7 @@ struct AppleTVSharePlayRegressionTests {
     @Test("SharePlay activity type matches Apple TV content")
     func testActivityTypeMatchesContent() async throws {
         let sharePlayService = MockSharePlayService()
+        sharePlayService.shouldSimulateRemoteParticipant = false
         let tvService = MockAppleTVService()
         
         let viewModel = AppleTVViewModel(
@@ -518,6 +524,7 @@ struct AppleTVSharePlayRegressionTests {
     @Test("Content sharing handles nil content gracefully")
     func testHandlesNilContentGracefully() async throws {
         let sharePlayService = MockSharePlayService()
+        sharePlayService.shouldSimulateRemoteParticipant = false
         let tvService = MockAppleTVService()
         
         let viewModel = AppleTVViewModel(
@@ -541,6 +548,7 @@ struct AppleTVSharePlayRegressionTests {
     @Test("SharePlay session state is consistent across content changes")
     func testSessionStateConsistentAcrossContentChanges() async throws {
         let sharePlayService = MockSharePlayService()
+        sharePlayService.shouldSimulateRemoteParticipant = false // Don't trigger callback for own content
         let tvService = MockAppleTVService()
         
         let viewModel = AppleTVViewModel(

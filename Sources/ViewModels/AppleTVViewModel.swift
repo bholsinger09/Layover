@@ -10,6 +10,7 @@ final class AppleTVViewModel: LayoverViewModel {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVViewModel")
     private let tvService: AppleTVServiceProtocol
     let sharePlayService: SharePlayServiceProtocol
+    private var isLoadingFromSharePlay = false
 
     private(set) var currentContent: MediaContent?
     private(set) var isPlaying = false
@@ -25,30 +26,48 @@ final class AppleTVViewModel: LayoverViewModel {
     ) {
         self.tvService = tvService
         self.sharePlayService = sharePlayService
+        
+        // Set up callback to receive content from other participants
+        self.sharePlayService.onContentReceived = { [weak self] content in
+            Task { @MainActor in
+                guard let self = self else { return }
+                self.logger.info("📺 Received content from SharePlay: \(content.title)")
+                self.isLoadingFromSharePlay = true
+                await self.loadContent(content)
+                self.isLoadingFromSharePlay = false
+            }
+        }
     }
 
     func loadContent(_ content: MediaContent) async {
+        logger.info("🎬 Loading content: \(content.title)")
         isLoading = true
         errorMessage = nil
+        
+        // Update current content immediately so UI reflects it
+        currentContent = content
 
         do {
             // Open content in Apple TV app
             // When SharePlay is active, the TV app will automatically join the session
             // and sync playback across all participants
             try await tvService.openInTVApp(content)
-            currentContent = content
-            print("✅ Opened content in Apple TV app: \(content.title)")
+            logger.info("✅ Opened content in Apple TV app: \(content.title)")
             
             // Share the content selection with other participants
-            if sharePlayService.isSessionActive {
-                print("📤 Sharing content '\(content.title)' with SharePlay participants...")
+            // But only if we're not already loading content from SharePlay (prevent loop)
+            if sharePlayService.isSessionActive && !isLoadingFromSharePlay {
+                logger.info("📤 Sharing content '\(content.title)' with SharePlay participants...")
                 await sharePlayService.shareContent(content)
+                logger.info("✅ Content shared successfully")
+            } else if isLoadingFromSharePlay {
+                logger.info("📥 Content received from SharePlay, not re-sharing")
             } else {
-                print("⚠️ SharePlay not active, content not shared")
+                logger.warning("⚠️ SharePlay not active, content not shared")
             }
         } catch {
             errorMessage = error.localizedDescription
-            print("❌ Failed to open content in TV app: \(error)")
+            logger.error("❌ Failed to open content in TV app: \(error.localizedDescription)")
         }
 
         isLoading = false
