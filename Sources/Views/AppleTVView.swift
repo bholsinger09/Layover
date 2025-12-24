@@ -62,8 +62,10 @@ struct AppleTVView: View {
                 .background(Color.green.opacity(0.1))
             }
 
-            // SharePlay prompt banner - only show if no active session
-            if !isSharePlayActive {
+            // SharePlay prompt banner - hide when:
+            // 1. Content has been selected OR
+            // 2. SharePlay session is active (participant joined)
+            if viewModel.currentContent == nil && !isSharePlayActive {
                 VStack(spacing: 12) {
                     HStack {
                         Image(systemName: "shareplay")
@@ -105,24 +107,6 @@ struct AppleTVView: View {
                 }
                 .padding()
                 .background(Color.blue.opacity(0.1))
-            } else if !viewModel.sharePlayService.isSessionHost {
-                // Show info for participants
-                VStack(spacing: 8) {
-                    HStack {
-                        Image(systemName: "person.2.fill")
-                            .foregroundStyle(.green)
-                        Text("Connected to SharePlay session")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                    }
-                    Text("You joined an existing session. Waiting for host to share content.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.leading)
-                }
-                .padding()
-                .background(Color.green.opacity(0.05))
             }
             
             // DEBUG: Test SharePlay messaging button - only for host
@@ -148,47 +132,21 @@ struct AppleTVView: View {
             if viewModel.sharePlayService.isSessionActive {
                 if let content = viewModel.currentContent {
                     ContentUnavailableView {
-                        Label("Content Selected", systemImage: "tv.fill")
+                        Label("Ready to Watch", systemImage: "popcorn.fill")
                     } description: {
-                        VStack(spacing: 12) {
+                        VStack(spacing: 16) {
                             Text(content.title)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+
+                            Text("Sit back, relax, and enjoy!")
                                 .font(.headline)
-
-                            Divider()
-
-                            VStack(spacing: 8) {
-                                Text("To watch together with synchronized playback:")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    HStack {
-                                        Text("1.")
-                                            .fontWeight(.bold)
-                                        Text("Open the Apple TV app manually")
-                                    }
-                                    HStack {
-                                        Text("2.")
-                                            .fontWeight(.bold)
-                                        Text("Find \"\(content.title)\"")
-                                    }
-                                    HStack {
-                                        Text("3.")
-                                            .fontWeight(.bold)
-                                        Text("Start playing and tap the SharePlay button")
-                                    }
-                                }
-                                .font(.caption)
                                 .foregroundStyle(.secondary)
-                                .padding(.vertical, 4)
-
-                                Text(
-                                    "The Apple TV app will handle synchronized playback automatically during your FaceTime call."
-                                )
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            
+                            Text("Open the Apple TV app to start watching together")
+                                .font(.subheadline)
+                                .foregroundStyle(.tertiary)
                                 .multilineTextAlignment(.center)
-                            }
 
                             Button {
                                 Task {
@@ -196,11 +154,11 @@ struct AppleTVView: View {
                                 }
                             } label: {
                                 Label("Open Apple TV App", systemImage: "tv.fill")
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 12)
                                     .background(Color.blue)
                                     .foregroundStyle(.white)
-                                    .cornerRadius(8)
+                                    .cornerRadius(10)
                             }
                             .buttonStyle(.plain)
                         }
@@ -242,9 +200,9 @@ struct AppleTVView: View {
                 logger.info("🔄 SharePlay state changed callback received: \(isActive)")
                 logger.info("   Is session host: \(viewModel.sharePlayService.isSessionHost)")
                 isSharePlayActive = isActive
-                sharePlayStarted = isActive
-
+                // Once SharePlay becomes active, mark as started and never reset
                 if isActive {
+                    sharePlayStarted = true
                     logger.info("✅ Updating UI to show SharePlay is active")
                 } else {
                     logger.info("❌ Updating UI to show SharePlay is inactive")
@@ -266,12 +224,20 @@ struct AppleTVView: View {
             // Periodically check session state in case callback was missed
             Task {
                 while !Task.isCancelled {
-                    try? await Task.sleep(nanoseconds: 2_000_000_000)  // Check every 2 seconds
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)  // Check every 1 second
                     let currentState = viewModel.sharePlayService.isSessionActive
+                    logger.debug("🔍 Polling - Session Active: \(currentState), UI State: \(isSharePlayActive), Host: \(viewModel.sharePlayService.isSessionHost)")
                     if currentState != isSharePlayActive {
                         logger.warning(
-                            "⚠️ Session state mismatch detected - updating to: \(currentState)")
-                        isSharePlayActive = currentState
+                            "⚠️ Session state mismatch detected! Updating isSharePlayActive from \(isSharePlayActive) to: \(currentState)")
+                        logger.warning("   Is session host: \(viewModel.sharePlayService.isSessionHost)")
+                        await MainActor.run {
+                            isSharePlayActive = currentState
+                            // Don't reset sharePlayStarted to false - once started, keep it true
+                            if currentState {
+                                sharePlayStarted = true
+                            }
+                        }
                     }
                 }
             }

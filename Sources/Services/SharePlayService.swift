@@ -76,15 +76,25 @@ final class SharePlayService: SharePlayServiceProtocol {
 
     private func handleSession(_ session: GroupSession<LayoverActivity>) async {
         logger.info("🔗 SharePlay: Session received!")
-        logger.info("   This device is JOINING an existing session (not the host)")
-        isSessionHost = false  // This device joined via invitation
+        
+        // Only mark as participant if we don't already have a session (i.e., we're not the host)
+        if currentSession == nil {
+            logger.info("   This device is JOINING an existing session (not the host)")
+            isSessionHost = false  // This device joined via invitation
+        } else {
+            logger.info("   This is our OWN session - already marked as HOST, not changing role")
+        }
         
         currentSession = session
         messenger = GroupSessionMessenger(session: session)
 
         // Automatically join the session
         session.join()
-        logger.info("✅ SharePlay: Joined session automatically as PARTICIPANT")
+        if isSessionHost {
+            logger.info("✅ SharePlay: Host joined own session")
+        } else {
+            logger.info("✅ SharePlay: Joined session automatically as PARTICIPANT")
+        }
 
         // Notify that session is now active - ensure callback runs on MainActor
         await MainActor.run {
