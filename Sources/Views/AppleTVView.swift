@@ -105,6 +105,24 @@ struct AppleTVView: View {
                 }
                 .padding()
                 .background(Color.blue.opacity(0.1))
+            } else if !viewModel.sharePlayService.isSessionHost {
+                // Show info for participants
+                VStack(spacing: 8) {
+                    HStack {
+                        Image(systemName: "person.2.fill")
+                            .foregroundStyle(.green)
+                        Text("Connected to SharePlay session")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    Text("You joined an existing session. Waiting for host to share content.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                }
+                .padding()
+                .background(Color.green.opacity(0.05))
             }
             
             // DEBUG: Test SharePlay messaging button - only for host
