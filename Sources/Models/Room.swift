@@ -1,5 +1,12 @@
 import Foundation
 
+/// Constants for room configuration
+enum RoomConstants {
+    static let defaultMaxParticipants = 20
+    static let minParticipants = 2
+    static let maxPossibleParticipants = 100
+}
+
 /// Types of activities available in a room
 enum RoomActivityType: String, Codable, Sendable {
     case appleTVPlus = "tv_plus"
@@ -30,7 +37,7 @@ struct Room: LayoverModel {
         participantIDs: Set<UUID> = [],
         participants: [User] = [],
         activityType: RoomActivityType,
-        maxParticipants: Int = 20,
+        maxParticipants: Int = RoomConstants.defaultMaxParticipants,
         isPrivate: Bool = false,
         createdAt: Date = Date(),
         metadata: [String: String] = [:]

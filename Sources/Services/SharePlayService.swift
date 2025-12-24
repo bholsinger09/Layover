@@ -198,16 +198,16 @@ final class SharePlayService: SharePlayServiceProtocol {
 
     func shareUserJoined(_ user: User, roomID: UUID) async {
         guard let messenger = messenger else {
-            print("⚠️ SharePlay: No messenger available to share user joined")
+            logger.warning("⚠️ SharePlay: No messenger available to share user joined")
             return
         }
 
         do {
-            print("📤 SharePlay: Sending user '\(user.username)' joined")
+            logger.info("📤 SharePlay: Sending user '\(user.username)' joined")
             try await messenger.send(SharePlayMessage.userJoined(user, roomID))
-            print("✅ SharePlay: User joined sent successfully")
+            logger.info("✅ SharePlay: User joined sent successfully")
         } catch {
-            print("❌ SharePlay: Failed to share user joined: \(error)")
+            logger.error("❌ SharePlay: Failed to share user joined: \(error.localizedDescription)")
         }
     }
     

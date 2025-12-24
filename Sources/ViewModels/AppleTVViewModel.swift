@@ -1,11 +1,13 @@
 import AVFoundation
 import Foundation
 import Observation
+import OSLog
 
 /// ViewModel for Apple TV+ viewing rooms
 @MainActor
 @Observable
 final class AppleTVViewModel: LayoverViewModel {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVViewModel")
     private let tvService: AppleTVServiceProtocol
     let sharePlayService: SharePlayServiceProtocol
 
@@ -78,7 +80,7 @@ final class AppleTVViewModel: LayoverViewModel {
         do {
             try await tvService.openInTVApp(content)
         } catch {
-            print("❌ Failed to open TV app: \(error)")
+            logger.error("❌ Failed to open TV app: \(error.localizedDescription)")
         }
     }
 }

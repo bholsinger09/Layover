@@ -1,5 +1,6 @@
 import Foundation
 import MusicKit
+import OSLog
 
 /// Service for managing Apple Music playback
 @MainActor
@@ -15,6 +16,7 @@ protocol AppleMusicServiceProtocol: LayoverService {
 
 @MainActor
 final class AppleMusicService: AppleMusicServiceProtocol {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleMusicService")
     private(set) var currentContent: MediaContent?
     private let musicPlayer = ApplicationMusicPlayer.shared
 
@@ -45,7 +47,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         do {
             try await musicPlayer.play()
         } catch {
-            print("Failed to play music: \(error)")
+            logger.error("Failed to play music: \(error.localizedDescription)")
         }
     }
 

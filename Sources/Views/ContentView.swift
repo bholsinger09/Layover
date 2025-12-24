@@ -96,15 +96,6 @@ public struct ContentView: View {
                             }
                         }
 
-                        Button("SharePlay Debug", systemImage: "info.circle") {
-                            print("SharePlay Active: \(viewModel.isSharePlayActive)")
-                            print(
-                                "Current Session: \(viewModel.sharePlayService.currentSession != nil)"
-                            )
-                            print("Rooms count: \(viewModel.rooms.count)")
-                            print("Current username: \(currentUsername)")
-                        }
-
                         Divider()
 
                         Button(role: .destructive) {

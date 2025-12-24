@@ -236,6 +236,14 @@ swift package update
 swift package generate-xcodeproj
 ```
 
+## Documentation
+
+- 📖 [API Reference](API.md) - Complete API documentation
+- 🛠 [Development Guide](DEVELOPMENT.md) - Detailed developer information
+- ✅ [Testing Guide](TESTING.md) - Testing practices and examples
+- 🧹 [Clean Code Standards](CLEAN_CODE.md) - Code quality guidelines
+- 📋 [Setup Guide](XCODE_SETUP.md) - Xcode-specific setup
+
 ## Troubleshooting
 
 ### "No such module 'GroupActivities'"

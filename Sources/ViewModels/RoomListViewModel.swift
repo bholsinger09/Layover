@@ -1,10 +1,12 @@
 import Foundation
 import Observation
+import OSLog
 
 /// ViewModel for managing rooms and room list
 @MainActor
 @Observable
 final class RoomListViewModel: LayoverViewModel {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "RoomListViewModel")
     private let roomService: RoomServiceProtocol
     let sharePlayService: SharePlayServiceProtocol
 
@@ -24,21 +26,21 @@ final class RoomListViewModel: LayoverViewModel {
         // Setup SharePlay callbacks synchronously
         self.sharePlayService.onRoomReceived = { [weak self] room in
             guard let self = self else { return }
-            print("📥 SharePlay: Received room '\(room.name)' from participant")
+            self.logger.info("📥 SharePlay: Received room '\(room.name)' from participant")
             // Add room from SharePlay participant if not already in list
             if !self.rooms.contains(where: { $0.id == room.id }) {
                 self.rooms.append(room)
-                print("✅ Room added to list. Total rooms: \(self.rooms.count)")
+                self.logger.info("✅ Room added to list. Total rooms: \(self.rooms.count)")
                 // Trigger navigation callback
                 self.onRoomReceivedForNavigation?(room)
             } else {
-                print("⚠️ Room already exists in list")
+                self.logger.debug("⚠️ Room already exists in list")
             }
         }
 
         self.sharePlayService.onParticipantJoined = { [weak self] user, roomID in
             guard let self = self else { return }
-            print("👤 SharePlay: User '\(user.username)' joined room")
+            self.logger.info("👤 SharePlay: User '\(user.username)' joined room")
             // Add participant to room
             if let index = self.rooms.firstIndex(where: { $0.id == roomID }) {
                 var room = self.rooms[index]
@@ -46,9 +48,9 @@ final class RoomListViewModel: LayoverViewModel {
                     room.participants.append(user)
                     room.participantIDs.insert(user.id)
                     self.rooms[index] = room
-                    print("✅ Participant added. Total in room: \(room.participants.count)")
+                    self.logger.info("✅ Participant added. Total in room: \(room.participants.count)")
                 } else {
-                    print("⚠️ Participant already in room")
+                    self.logger.debug("⚠️ Participant already in room")
                 }
             }
         }
@@ -57,7 +59,7 @@ final class RoomListViewModel: LayoverViewModel {
         self.sharePlayService.addSessionStateObserver { [weak self] isActive in
             // Callback already runs on MainActor from SharePlayService
             guard let self = self else { return }
-            print("🔄 RoomListViewModel: SharePlay session state changed to \(isActive)")
+            self.logger.info("🔄 RoomListViewModel: SharePlay session state changed to \(isActive)")
             self.isSharePlayActive = isActive
         }
     }
@@ -87,7 +89,7 @@ final class RoomListViewModel: LayoverViewModel {
             )
             rooms.append(room)
 
-            print("📤 SharePlay: Sharing room '\(name)' with participants")
+            logger.info("📤 SharePlay: Sharing room '\(name)' with participants")
             // Share room with SharePlay participants
             await sharePlayService.shareRoom(room)
         } catch {
@@ -165,7 +167,7 @@ final class RoomListViewModel: LayoverViewModel {
 
     func startSharePlayForRoom(_ room: Room) async {
         do {
-            print("🎬 SharePlay: Starting activity for room '\(room.name)'")
+            logger.info("🎬 SharePlay: Starting activity for room '\(room.name)'")
             let activity = LayoverActivity(
                 roomID: room.id,
                 activityType: room.activityType,
