@@ -14,6 +14,7 @@ public struct ContentView: View {
     @State private var sharePlayReceivedRoom: Room?
     @State private var libraryService = LibraryService()
     @State private var showingLibrary = false
+    @State private var showingProfile = false
 
     public init() {}
 
@@ -93,26 +94,8 @@ public struct ContentView: View {
                 }
 
                 ToolbarItem(placement: .navigation) {
-                    Menu {
-                        Label(currentUsername, systemImage: "person.circle.fill")
-
-                        Divider()
-
-                        Button("Clear All Rooms", systemImage: "trash.fill", role: .destructive) {
-                            Task {
-                                for room in viewModel.rooms {
-                                    await viewModel.deleteRoom(room)
-                                }
-                            }
-                        }
-
-                        Divider()
-
-                        Button(role: .destructive) {
-                            isAuthenticated = false
-                        } label: {
-                            Label("Sign Out", systemImage: "arrow.right.square")
-                        }
+                    Button {
+                        showingProfile = true
                     } label: {
                         VStack(spacing: 2) {
                             Image(systemName: "person.circle.fill")
@@ -150,6 +133,9 @@ public struct ContentView: View {
             }
             .sheet(isPresented: $showingLibrary) {
                 LibraryView(libraryService: libraryService)
+            }
+            .sheet(isPresented: $showingProfile) {
+                ProfileView(currentUsername: $currentUsername, isAuthenticated: $isAuthenticated)
             }
             .task {
                 await viewModel.loadRooms()
