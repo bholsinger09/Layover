@@ -55,6 +55,7 @@ struct LibraryView: View {
 struct MoviesTabView: View {
     let viewModel: LibraryViewModel
     @State private var searchText = ""
+    @State private var showSearchAlert = false
     
     var movieFavorites: [MediaContent] {
         let filtered = viewModel.favorites.filter { $0.contentType == .movie || $0.contentType == .tvShow }
@@ -176,22 +177,36 @@ struct MoviesTabView: View {
             }
             .padding(.vertical)
         }
-        .searchable(text: $searchText, prompt: "Search movies and TV shows")
+        .searchable(text: $searchText, prompt: "Search movies and TV shows") {
+            // Search suggestions could go here if needed
+        }
         .onSubmit(of: .search) {
+            print("🔍 SUBMIT TRIGGERED with query: '\(searchText)'")
             searchWeb(query: searchText, context: "movies tv shows")
+            showSearchAlert = true
+        }
+        .alert("Web Search", isPresented: $showSearchAlert) {
+            Button("OK") { }
+        } message: {
+            Text("Opening Google search for: '\(searchText)'")
         }
     }
     
     private func searchWeb(query: String, context: String) {
         guard !query.isEmpty else { return }
         let searchQuery = "\(query) \(context)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        if let url = URL(string: "https://www.google.com/search?q=\(searchQuery)") {
-            #if os(macOS)
-            NSWorkspace.shared.open(url)
-            #else
-            UIApplication.shared.open(url)
-            #endif
+        guard let url = URL(string: "https://www.google.com/search?q=\(searchQuery)") else {
+            print("❌ Failed to create URL for query: \(query)")
+            return
         }
+        
+        print("🔍 Opening web search: \(url.absoluteString)")
+        
+        #if os(macOS)
+        NSWorkspace.shared.open(url)
+        #else
+        UIApplication.shared.open(url)
+        #endif
     }
 }
 
@@ -352,7 +367,9 @@ struct MusicTabView: View {
             }
             .padding(.vertical)
         }
-        .searchable(text: $searchText, prompt: "Search music, artists, and playlists")
+        .searchable(text: $searchText, prompt: "Search music, artists, and playlists") {
+            // Search suggestions could go here if needed
+        }
         .onSubmit(of: .search) {
             searchWeb(query: searchText, context: "music")
         }
@@ -364,13 +381,18 @@ struct MusicTabView: View {
     private func searchWeb(query: String, context: String) {
         guard !query.isEmpty else { return }
         let searchQuery = "\(query) \(context)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        if let url = URL(string: "https://www.google.com/search?q=\(searchQuery)") {
-            #if os(macOS)
-            NSWorkspace.shared.open(url)
-            #else
-            UIApplication.shared.open(url)
-            #endif
+        guard let url = URL(string: "https://www.google.com/search?q=\(searchQuery)") else {
+            print("❌ Failed to create URL for query: \(query)")
+            return
         }
+        
+        print("🔍 Opening web search: \(url.absoluteString)")
+        
+        #if os(macOS)
+        NSWorkspace.shared.open(url)
+        #else
+        UIApplication.shared.open(url)
+        #endif
     }
 }
 
