@@ -220,8 +220,12 @@ struct MoviesTabView: View {
         .searchable(text: $searchText, prompt: "Search movies and TV shows") {
             if !searchText.isEmpty {
                 Button {
+                    let query = searchText
+                    print("🔍 Button clicked for query: \(query)")
                     Task {
-                        await viewModel.searchMoviesWithAI(query: searchText)
+                        print("🔍 Task started for query: \(query)")
+                        await viewModel.searchMoviesWithAI(query: query)
+                        print("🔍 Task completed for query: \(query)")
                     }
                 } label: {
                     Label("AI search for '\(searchText)'", systemImage: "sparkles")
@@ -449,8 +453,12 @@ struct MusicTabView: View {
         .searchable(text: $searchText, prompt: "Search music, artists, and playlists") {
             if !searchText.isEmpty {
                 Button {
+                    let query = searchText
+                    print("🎵 Button clicked for query: \(query)")
                     Task {
-                        await viewModel.searchMusicWithAI(query: searchText)
+                        print("🎵 Task started for query: \(query)")
+                        await viewModel.searchMusicWithAI(query: query)
+                        print("🎵 Task completed for query: \(query)")
                     }
                 } label: {
                     Label("AI search for '\(searchText)'", systemImage: "sparkles")

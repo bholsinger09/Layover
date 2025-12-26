@@ -20,7 +20,9 @@ final class AIRecommendationService: AIRecommendationServiceProtocol {
         
         // For now, return curated results based on query
         // TODO: Integrate with actual AI API (OpenAI, Claude, etc.)
-        return getCuratedMovieResults(for: query)
+        let results = getCuratedMovieResults(for: query)
+        logger.info("✅ AI found \(results.count) movie/TV results for query: \(query)")
+        return results
     }
     
     func searchMusic(query: String) async throws -> [MusicTrack] {
@@ -28,7 +30,9 @@ final class AIRecommendationService: AIRecommendationServiceProtocol {
         
         // For now, return curated results based on query
         // TODO: Integrate with actual AI API (OpenAI, Claude, etc.)
-        return getCuratedMusicResults(for: query)
+        let results = getCuratedMusicResults(for: query)
+        logger.info("✅ AI found \(results.count) music results for query: \(query)")
+        return results
     }
     
     // MARK: - Curated Results (Placeholder for AI)
