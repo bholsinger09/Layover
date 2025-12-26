@@ -12,100 +12,24 @@ struct LibraryView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Stats Overview Card
-                    if let stats = viewModel.stats {
-                        StatsCardView(stats: stats)
-                            .padding(.horizontal)
-                    }
-                    
-                    // Recommendations Section
-                    if !viewModel.recommendations.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Recommended for You")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .padding(.horizontal)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(viewModel.recommendations, id: \.contentID) { content in
-                                        ContentCardView(content: content, libraryViewModel: viewModel)
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                        }
-                    }
-                    
-                    // Favorites Section
-                    if !viewModel.favorites.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("My Favorites")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                Spacer()
-                                NavigationLink {
-                                    FavoritesListView(viewModel: viewModel)
-                                } label: {
-                                    Text("See All")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.blue)
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 16) {
-                                    ForEach(viewModel.favorites.prefix(10), id: \.contentID) { content in
-                                        ContentCardView(content: content, libraryViewModel: viewModel)
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                        }
-                    }
-                    
-                    // Recently Watched Section
-                    if !viewModel.recentlyWatched.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Recently Watched")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                Spacer()
-                                NavigationLink {
-                                    WatchHistoryView(viewModel: viewModel)
-                                } label: {
-                                    Text("See All")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.blue)
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                            VStack(spacing: 8) {
-                                ForEach(viewModel.recentlyWatched.prefix(5)) { item in
-                                    HistoryRowView(item: item, libraryViewModel: viewModel)
-                                        .padding(.horizontal)
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Empty State
-                    if viewModel.favorites.isEmpty && viewModel.recentlyWatched.isEmpty {
-                        ContentUnavailableView {
-                            Label("Your Library is Empty", systemImage: "books.vertical")
-                        } description: {
-                            Text("Start watching content and adding favorites to build your personal library")
-                        }
-                        .padding(.top, 60)
-                    }
+            VStack(spacing: 0) {
+                // Tab Picker
+                Picker("Content Type", selection: $selectedTab) {
+                    Text("Movies & TV").tag(0)
+                    Text("Music").tag(1)
                 }
-                .padding(.vertical)
+                .pickerStyle(.segmented)
+                .padding()
+                
+                // Content based on selected tab
+                TabView(selection: $selectedTab) {
+                    MoviesTabView(viewModel: viewModel)
+                        .tag(0)
+                    
+                    MusicTabView(viewModel: viewModel)
+                        .tag(1)
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
             }
             .navigationTitle("My Library")
             .toolbar {
@@ -118,6 +42,211 @@ struct LibraryView: View {
             .refreshable {
                 viewModel.loadLibraryData()
             }
+        }
+        #if os(macOS)
+        .frame(minWidth: 500, minHeight: 600)
+        #endif
+    }
+}
+
+/// Movies & TV Shows tab
+struct MoviesTabView: View {
+    let viewModel: LibraryViewModel
+    
+    var movieFavorites: [MediaContent] {
+        viewModel.favorites.filter { $0.contentType == .movie || $0.contentType == .tvShow }
+    }
+    
+    var movieHistory: [WatchHistoryItem] {
+        viewModel.recentlyWatched.filter { $0.content.contentType == .movie || $0.content.contentType == .tvShow }
+    }
+    
+    var movieRecommendations: [MediaContent] {
+        viewModel.recommendations.filter { $0.contentType == .movie || $0.contentType == .tvShow }
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Stats Overview Card
+                if let stats = viewModel.stats {
+                    StatsCardView(stats: stats)
+                        .padding(.horizontal)
+                }
+                
+                // Recommendations Section
+                if !movieRecommendations.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Recommended for You")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(movieRecommendations, id: \.contentID) { content in
+                                    ContentCardView(content: content, libraryViewModel: viewModel)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                }
+                
+                // Favorites Section
+                if !movieFavorites.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("My Favorites")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            Spacer()
+                            NavigationLink {
+                                FavoritesListView(viewModel: viewModel)
+                            } label: {
+                                Text("See All")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(movieFavorites.prefix(10), id: \.contentID) { content in
+                                    ContentCardView(content: content, libraryViewModel: viewModel)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                }
+                
+                // Recently Watched Section
+                if !movieHistory.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Recently Watched")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            Spacer()
+                            NavigationLink {
+                                WatchHistoryView(viewModel: viewModel)
+                            } label: {
+                                Text("See All")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        VStack(spacing: 8) {
+                            ForEach(movieHistory.prefix(5)) { item in
+                                HistoryRowView(item: item, libraryViewModel: viewModel)
+                                    .padding(.horizontal)
+                            }
+                        }
+                    }
+                }
+                
+                // Empty State
+                if movieFavorites.isEmpty && movieHistory.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Movies or TV Shows Yet", systemImage: "tv")
+                    } description: {
+                        Text("Start watching content and adding favorites to build your library")
+                    }
+                    .padding(.top, 60)
+                }
+            }
+            .padding(.vertical)
+        }
+    }
+}
+
+/// Music tab
+struct MusicTabView: View {
+    let viewModel: LibraryViewModel
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Music Stats
+                if let stats = viewModel.stats {
+                    VStack(spacing: 16) {
+                        HStack(spacing: 20) {
+                            StatItemView(
+                                icon: "music.note",
+                                value: "\(stats.totalFavorites)",
+                                label: "Favorites"
+                            )
+                            
+                            Divider()
+                            
+                            StatItemView(
+                                icon: "play.circle.fill",
+                                value: "0",
+                                label: "Playlists"
+                            )
+                            
+                            Divider()
+                            
+                            StatItemView(
+                                icon: "headphones",
+                                value: "0h",
+                                label: "Listen Time"
+                            )
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .padding()
+                    .background(.quaternary)
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
+                
+                // Coming Soon Message
+                ContentUnavailableView {
+                    Label("Music Library Coming Soon", systemImage: "music.note.list")
+                } description: {
+                    VStack(spacing: 12) {
+                        Text("Apple Music integration is being developed")
+                            .font(.subheadline)
+                        
+                        Text("Soon you'll be able to:")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .padding(.top, 8)
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("Save favorite songs and albums")
+                            }
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("View listening history")
+                            }
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("Get personalized recommendations")
+                            }
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("Create and share playlists")
+                            }
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.top, 40)
+            }
+            .padding(.vertical)
         }
     }
 }
