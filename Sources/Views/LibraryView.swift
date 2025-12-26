@@ -159,7 +159,7 @@ struct StatsCardView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(.quaternary)
         .cornerRadius(12)
     }
 }
@@ -293,7 +293,7 @@ struct HistoryRowView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(.quaternary)
         .cornerRadius(8)
     }
 }
@@ -340,7 +340,9 @@ struct FavoritesListView: View {
             }
         }
         .navigationTitle("Favorites")
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 
@@ -395,7 +397,9 @@ struct WatchHistoryView: View {
             }
         }
         .navigationTitle("Watch History")
+        #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 

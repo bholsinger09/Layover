@@ -24,12 +24,12 @@ final class LibraryViewModel {
         isLoading = true
         logger.info("📚 Loading library data...")
         
-        favorites = libraryService.library.favorites
-        recentlyWatched = libraryService.library.recentlyWatched
-        stats = libraryService.getStats()
-        recommendations = libraryService.getRecommendations()
+        self.favorites = libraryService.library.favorites
+        self.recentlyWatched = libraryService.library.recentlyWatched
+        self.stats = libraryService.getStats()
+        self.recommendations = libraryService.getRecommendations()
         
-        logger.info("✅ Loaded \(favorites.count) favorites, \(recentlyWatched.count) recent items")
+        logger.info("✅ Loaded \(self.favorites.count) favorites, \(self.recentlyWatched.count) recent items")
         isLoading = false
     }
     
