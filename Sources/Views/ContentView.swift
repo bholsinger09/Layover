@@ -147,16 +147,6 @@ public struct ContentView: View {
                     navigationPath.append(room)
                 }
             }
-            .onChange(of: viewModel.rooms) { oldValue, newValue in
-                // Auto-navigate to SharePlay received rooms
-                if let lastRoom = newValue.last,
-                    !oldValue.contains(where: { $0.id == lastRoom.id })
-                {
-                    print("🚀 Auto-navigating to SharePlay room: \(lastRoom.name)")
-                    sharePlayReceivedRoom = lastRoom
-                    navigationPath.append(lastRoom)
-                }
-            }
             .navigationDestination(for: Room.self) { room in
                 roomDetailView(for: room)
             }
