@@ -12,6 +12,8 @@ public struct ContentView: View {
     @State private var editingRoom: Room?
     @State private var navigationPath = NavigationPath()
     @State private var sharePlayReceivedRoom: Room?
+    @State private var libraryService = LibraryService()
+    @State private var showingLibrary = false
 
     public init() {}
 
@@ -61,6 +63,14 @@ public struct ContentView: View {
                         showingCreateRoom = true
                     } label: {
                         Label("Create Room", systemImage: "plus")
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingLibrary = true
+                    } label: {
+                        Label("My Library", systemImage: "books.vertical")
                     }
                 }
 
@@ -137,6 +147,9 @@ public struct ContentView: View {
                         maxParticipants: maxParticipants
                     )
                 }
+            }
+            .sheet(isPresented: $showingLibrary) {
+                LibraryView(libraryService: libraryService)
             }
             .task {
                 await viewModel.loadRooms()
@@ -273,7 +286,7 @@ public struct ContentView: View {
 
         switch room.activityType {
         case .appleTVPlus:
-            AppleTVView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService)
+            AppleTVView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService, libraryService: libraryService)
         case .appleMusic:
             AppleMusicView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService)
         case .texasHoldem:

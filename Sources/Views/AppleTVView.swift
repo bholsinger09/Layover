@@ -17,14 +17,16 @@ struct AppleTVView: View {
     let room: Room
     let currentUser: User
     let sharePlayService: SharePlayServiceProtocol
+    let libraryService: LibraryServiceProtocol
 
     @State private var viewModel: AppleTVViewModel
     @State private var showingContentPicker = false
     
-    init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol) {
+    init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol, libraryService: LibraryServiceProtocol) {
         self.room = room
         self.currentUser = currentUser
         self.sharePlayService = sharePlayService
+        self.libraryService = libraryService
         self._viewModel = State(initialValue: AppleTVViewModel(
             tvService: AppleTVService(),
             sharePlayService: sharePlayService
@@ -149,20 +151,32 @@ struct AppleTVView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.tertiary)
                                 .multilineTextAlignment(.center)
-
-                            Button {
-                                Task {
-                                    await viewModel.openContentInTVApp(content)
+                            
+                            HStack(spacing: 12) {
+                                Button {
+                                    Task {
+                                        await libraryService.toggleFavorite(content)
+                                    }
+                                } label: {
+                                    Label(
+                                        libraryService.isFavorite(content) ? "Favorited" : "Add to Favorites",
+                                        systemImage: libraryService.isFavorite(content) ? "heart.fill" : "heart"
+                                    )
+                                    .foregroundStyle(libraryService.isFavorite(content) ? .red : .blue)
                                 }
-                            } label: {
-                                Label("Open Apple TV App", systemImage: "tv.fill")
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 12)
-                                    .background(Color.blue)
-                                    .foregroundStyle(.white)
-                                    .cornerRadius(10)
+                                .buttonStyle(.bordered)
+                                
+                                Button {
+                                    Task {
+                                        await viewModel.openContentInTVApp(content)
+                                        // Track in watch history when opening
+                                        await libraryService.addToWatchHistory(content, duration: 0, completed: false)
+                                    }
+                                } label: {
+                                    Label("Open Apple TV App", systemImage: "tv.fill")
+                                }
+                                .buttonStyle(.borderedProminent)
                             }
-                            .buttonStyle(.plain)
                         }
                         .padding()
                     }
@@ -264,6 +278,7 @@ struct AppleTVView: View {
         .sheet(isPresented: $showingContentPicker) {
             ContentPickerView(
                 sharePlayActive: isSharePlayActive,
+                libraryService: libraryService,
                 onSelect: { content in
                     Task {
                         await viewModel.loadContent(content)
@@ -333,6 +348,7 @@ struct AppleTVView: View {
 /// Content picker with real Apple TV+ shows
 struct ContentPickerView: View {
     let sharePlayActive: Bool
+    let libraryService: LibraryServiceProtocol
     let onSelect: (MediaContent) -> Void
     @Environment(\.dismiss) private var dismiss
 
@@ -448,7 +464,8 @@ struct ContentPickerView: View {
         AppleTVView(
             room: Room(name: "Movie Night", hostID: UUID(), activityType: .appleTVPlus),
             currentUser: User(username: "Test User"),
-            sharePlayService: SharePlayService()
+            sharePlayService: SharePlayService(),
+            libraryService: LibraryService()
         )
     }
 }
