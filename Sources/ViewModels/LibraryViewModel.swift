@@ -8,6 +8,7 @@ import Observation
 final class LibraryViewModel {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "LibraryViewModel")
     private let libraryService: LibraryServiceProtocol
+    private let aiService: AIRecommendationServiceProtocol
     
     private(set) var favorites: [MediaContent] = []
     private(set) var recentlyWatched: [WatchHistoryItem] = []
@@ -22,8 +23,14 @@ final class LibraryViewModel {
     private(set) var musicHistory: [MusicHistoryItem] = []
     private(set) var musicRecommendations: [MusicTrack] = []
     
-    init(libraryService: LibraryServiceProtocol) {
+    // AI Search Results
+    private(set) var aiMovieResults: [MediaContent] = []
+    private(set) var aiMusicResults: [MusicTrack] = []
+    private(set) var isSearching = false
+    
+    init(libraryService: LibraryServiceProtocol, aiService: AIRecommendationServiceProtocol? = nil) {
         self.libraryService = libraryService
+        self.aiService = aiService ?? AIRecommendationService()
         loadLibraryData()
     }
     
@@ -119,5 +126,52 @@ final class LibraryViewModel {
     func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
         await libraryService.removeTrackFromPlaylist(track, playlist: playlist)
         loadLibraryData()
+    }
+    
+    // MARK: - AI Search Functions
+    
+    func searchMoviesWithAI(query: String) async {
+        guard !query.isEmpty else {
+            aiMovieResults = []
+            return
+        }
+        
+        isSearching = true
+        logger.info("🤖 Searching movies with AI: \(query)")
+        
+        do {
+            self.aiMovieResults = try await aiService.searchMoviesAndTV(query: query)
+            logger.info("✅ AI found \(self.aiMovieResults.count) movie/TV results")
+        } catch {
+            logger.error("❌ AI search failed: \(error.localizedDescription)")
+            self.aiMovieResults = []
+        }
+        
+        isSearching = false
+    }
+    
+    func searchMusicWithAI(query: String) async {
+        guard !query.isEmpty else {
+            aiMusicResults = []
+            return
+        }
+        
+        isSearching = true
+        logger.info("🤖 Searching music with AI: \(query)")
+        
+        do {
+            self.aiMusicResults = try await aiService.searchMusic(query: query)
+            logger.info("✅ AI found \(self.aiMusicResults.count) music results")
+        } catch {
+            logger.error("❌ AI search failed: \(error.localizedDescription)")
+            self.aiMusicResults = []
+        }
+        
+        isSearching = false
+    }
+    
+    func clearAIResults() {
+        aiMovieResults = []
+        aiMusicResults = []
     }
 }

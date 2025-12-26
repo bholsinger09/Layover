@@ -84,6 +84,46 @@ struct MoviesTabView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
+                // AI Search Results Section
+                if !viewModel.aiMovieResults.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("AI Search Results")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            
+                            Spacer()
+                            
+                            Button("Clear") {
+                                viewModel.clearAIResults()
+                                searchText = ""
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(.blue)
+                        }
+                        .padding(.horizontal)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(viewModel.aiMovieResults, id: \.contentID) { content in
+                                    ContentCardView(content: content, libraryViewModel: viewModel)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                }
+                
+                // Loading indicator
+                if viewModel.isSearching {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                        Text("Searching with AI...")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                }
+                
                 // Stats Overview Card
                 if let stats = viewModel.stats {
                     StatsCardView(stats: stats)
@@ -180,9 +220,11 @@ struct MoviesTabView: View {
         .searchable(text: $searchText, prompt: "Search movies and TV shows") {
             if !searchText.isEmpty {
                 Button {
-                    searchWeb(query: searchText, context: "movies tv shows")
+                    Task {
+                        await viewModel.searchMoviesWithAI(query: searchText)
+                    }
                 } label: {
-                    Label("Search web for '\(searchText)'", systemImage: "magnifyingglass")
+                    Label("AI search for '\(searchText)'", systemImage: "sparkles")
                 }
             }
         }
@@ -262,6 +304,42 @@ struct MusicTabView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
+                // AI Search Results Section
+                if !viewModel.aiMusicResults.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("AI Search Results")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            
+                            Spacer()
+                            
+                            Button("Clear") {
+                                viewModel.clearAIResults()
+                                searchText = ""
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(.blue)
+                        }
+                        .padding(.horizontal)
+                        
+                        ForEach(viewModel.aiMusicResults) { track in
+                            MusicTrackRow(track: track, viewModel: viewModel)
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                
+                // Loading indicator
+                if viewModel.isSearching {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                        Text("Searching with AI...")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                }
+                
                 // Music Stats Card
                 MusicStatsCard(viewModel: viewModel)
                 
@@ -371,9 +449,11 @@ struct MusicTabView: View {
         .searchable(text: $searchText, prompt: "Search music, artists, and playlists") {
             if !searchText.isEmpty {
                 Button {
-                    searchWeb(query: searchText, context: "music")
+                    Task {
+                        await viewModel.searchMusicWithAI(query: searchText)
+                    }
                 } label: {
-                    Label("Search web for '\(searchText)'", systemImage: "magnifyingglass")
+                    Label("AI search for '\(searchText)'", systemImage: "sparkles")
                 }
             }
         }
