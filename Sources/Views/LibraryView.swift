@@ -4,6 +4,7 @@ import SwiftUI
 struct LibraryView: View {
     @State private var viewModel: LibraryViewModel
     @State private var selectedTab = 0
+    @Environment(\.dismiss) private var dismiss
     
     init(libraryService: LibraryServiceProtocol) {
         self._viewModel = State(initialValue: LibraryViewModel(libraryService: libraryService))
@@ -107,6 +108,13 @@ struct LibraryView: View {
                 .padding(.vertical)
             }
             .navigationTitle("My Library")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
             .refreshable {
                 viewModel.loadLibraryData()
             }
