@@ -177,6 +177,21 @@ struct MoviesTabView: View {
             .padding(.vertical)
         }
         .searchable(text: $searchText, prompt: "Search movies and TV shows")
+        .onSubmit(of: .search) {
+            searchWeb(query: searchText, context: "movies tv shows")
+        }
+    }
+    
+    private func searchWeb(query: String, context: String) {
+        guard !query.isEmpty else { return }
+        let searchQuery = "\(query) \(context)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "https://www.google.com/search?q=\(searchQuery)") {
+            #if os(macOS)
+            NSWorkspace.shared.open(url)
+            #else
+            UIApplication.shared.open(url)
+            #endif
+        }
     }
 }
 
@@ -338,8 +353,23 @@ struct MusicTabView: View {
             .padding(.vertical)
         }
         .searchable(text: $searchText, prompt: "Search music, artists, and playlists")
+        .onSubmit(of: .search) {
+            searchWeb(query: searchText, context: "music")
+        }
         .sheet(isPresented: $showCreatePlaylist) {
             CreatePlaylistView(viewModel: viewModel)
+        }
+    }
+    
+    private func searchWeb(query: String, context: String) {
+        guard !query.isEmpty else { return }
+        let searchQuery = "\(query) \(context)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "https://www.google.com/search?q=\(searchQuery)") {
+            #if os(macOS)
+            NSWorkspace.shared.open(url)
+            #else
+            UIApplication.shared.open(url)
+            #endif
         }
     }
 }
