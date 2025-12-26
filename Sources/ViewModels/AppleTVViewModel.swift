@@ -12,6 +12,7 @@ final class AppleTVViewModel: LayoverViewModel {
     private let tvService: AppleTVServiceProtocol
     let sharePlayService: SharePlayServiceProtocol
     private var isLoadingFromSharePlay = false
+    var onTVAppOpened: (() -> Void)?
 
     private(set) var currentContent: MediaContent?
     private(set) var isPlaying = false
@@ -103,6 +104,10 @@ final class AppleTVViewModel: LayoverViewModel {
             logger.info("📱 Opening content in TV app...")
             try await tvService.openInTVApp(content)
             logger.info("✅ Opened content in Apple TV app: \(content.title)")
+            
+            // Notify that TV app window has opened
+            logger.info("📺 Notifying that TV app window has opened...")
+            onTVAppOpened?()
 
             // Share the content selection with other participants
             // But only if we're not already loading content from SharePlay (prevent loop)

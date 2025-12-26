@@ -34,6 +34,7 @@ struct AppleTVView: View {
     @State private var sharePlayError: String?
     @State private var isSharePlayActive = false
     @State private var showJoinedMessage = false
+    @State private var tvAppWindowOpened = false
 
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVView")
 
@@ -64,8 +65,9 @@ struct AppleTVView: View {
 
             // SharePlay prompt banner - hide when:
             // 1. Content has been selected OR
-            // 2. SharePlay session is active (participant joined)
-            if viewModel.currentContent == nil && !isSharePlayActive {
+            // 2. SharePlay has been started (even if session state changes) OR
+            // 3. TV app window has been opened
+            if viewModel.currentContent == nil && !sharePlayStarted && !tvAppWindowOpened {
                 VStack(spacing: 12) {
                     HStack {
                         Image(systemName: "shareplay")
@@ -173,10 +175,10 @@ struct AppleTVView: View {
                 }
             } else {
                 ContentUnavailableView(
-                    "Start SharePlay First",
-                    systemImage: "shareplay",
+                    "Enjoy Watching",
+                    systemImage: "popcorn.fill",
                     description: Text(
-                        "You need to be in a FaceTime call and start SharePlay before selecting content"
+                        "Sit back, relax, and enjoy your content together"
                     )
                 )
             }
@@ -215,10 +217,18 @@ struct AppleTVView: View {
             logger.info("🎬 Initial SharePlay state on appear: \(isSharePlayActive)")
             logger.info("   Is session host: \(viewModel.sharePlayService.isSessionHost)")
 
+            // Set up callback to detect when TV app opens
+            viewModel.onTVAppOpened = {
+                logger.info("📺 TV App opened - hiding SharePlay button")
+                tvAppWindowOpened = true
+            }
+            
             // Content received callback is set up in ViewModel init
             // Just show notification when content is received
             if viewModel.currentContent != nil {
                 logger.info("📺 Content is loaded: \(viewModel.currentContent?.title ?? "unknown")")
+                // If content is already loaded, TV app may have already opened
+                tvAppWindowOpened = true
             }
 
             // Periodically check session state in case callback was missed
