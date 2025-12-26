@@ -23,7 +23,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.social-networking</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>14.0</string>
+	<string>15.0</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>LayoverLounge needs access to Apple Music to let you listen to music together with friends during SharePlay sessions.</string>
 </dict>
