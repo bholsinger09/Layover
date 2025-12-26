@@ -15,6 +15,13 @@ final class LibraryViewModel {
     private(set) var recommendations: [MediaContent] = []
     private(set) var isLoading = false
     
+    // Music Library
+    private(set) var favoriteTracks: [MusicTrack] = []
+    private(set) var favoriteAlbums: [MusicAlbum] = []
+    private(set) var playlists: [MusicPlaylist] = []
+    private(set) var musicHistory: [MusicHistoryItem] = []
+    private(set) var musicRecommendations: [MusicTrack] = []
+    
     init(libraryService: LibraryServiceProtocol) {
         self.libraryService = libraryService
         loadLibraryData()
@@ -24,12 +31,20 @@ final class LibraryViewModel {
         isLoading = true
         logger.info("📚 Loading library data...")
         
+        // Video library
         self.favorites = libraryService.library.favorites
         self.recentlyWatched = libraryService.library.recentlyWatched
         self.stats = libraryService.getStats()
         self.recommendations = libraryService.getRecommendations()
         
-        logger.info("✅ Loaded \(self.favorites.count) favorites, \(self.recentlyWatched.count) recent items")
+        // Music library
+        self.favoriteTracks = libraryService.musicLibrary.favoriteTracks
+        self.favoriteAlbums = libraryService.musicLibrary.favoriteAlbums
+        self.playlists = libraryService.musicLibrary.playlists
+        self.musicHistory = libraryService.musicLibrary.recentlyPlayed
+        self.musicRecommendations = libraryService.getMusicRecommendations()
+        
+        logger.info("✅ Loaded \(self.favorites.count) favorites, \(self.favoriteTracks.count) favorite tracks")
         isLoading = false
     }
     
@@ -63,5 +78,46 @@ final class LibraryViewModel {
     func clearHistory() async {
         // This would need to be implemented in the service
         logger.warning("⚠️ Clear history not yet implemented")
+    }
+    
+    // MARK: - Music Functions
+    
+    func toggleFavorite(_ track: MusicTrack) async {
+        await libraryService.toggleFavorite(track)
+        loadLibraryData()
+    }
+    
+    func toggleFavorite(_ album: MusicAlbum) async {
+        await libraryService.toggleFavorite(album)
+        loadLibraryData()
+    }
+    
+    func isFavorite(_ track: MusicTrack) -> Bool {
+        libraryService.isFavorite(track)
+    }
+    
+    func isFavorite(_ album: MusicAlbum) -> Bool {
+        libraryService.isFavorite(album)
+    }
+    
+    func createPlaylist(name: String, description: String? = nil) async -> MusicPlaylist {
+        let playlist = await libraryService.createPlaylist(name: name, description: description)
+        loadLibraryData()
+        return playlist
+    }
+    
+    func deletePlaylist(_ playlist: MusicPlaylist) async {
+        await libraryService.deletePlaylist(playlist)
+        loadLibraryData()
+    }
+    
+    func addTrackToPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+        await libraryService.addTrackToPlaylist(track, playlist: playlist)
+        loadLibraryData()
+    }
+    
+    func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+        await libraryService.removeTrackFromPlaylist(track, playlist: playlist)
+        loadLibraryData()
     }
 }

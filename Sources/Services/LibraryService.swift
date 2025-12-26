@@ -5,6 +5,7 @@ import OSLog
 @MainActor
 protocol LibraryServiceProtocol: LayoverService {
     var library: UserLibrary { get }
+    var musicLibrary: UserMusicLibrary { get }
     
     func addToFavorites(_ content: MediaContent) async
     func removeFromFavorites(_ content: MediaContent) async
@@ -13,6 +14,22 @@ protocol LibraryServiceProtocol: LayoverService {
     func addToWatchHistory(_ content: MediaContent, duration: TimeInterval, completed: Bool) async
     func getStats() -> LibraryStats
     func getRecommendations() -> [MediaContent]
+    
+    // Music library functions
+    func addToFavorites(_ track: MusicTrack) async
+    func removeFromFavorites(_ track: MusicTrack) async
+    func toggleFavorite(_ track: MusicTrack) async
+    func isFavorite(_ track: MusicTrack) -> Bool
+    func addToFavorites(_ album: MusicAlbum) async
+    func removeFromFavorites(_ album: MusicAlbum) async
+    func toggleFavorite(_ album: MusicAlbum) async
+    func isFavorite(_ album: MusicAlbum) -> Bool
+    func createPlaylist(name: String, description: String?) async -> MusicPlaylist
+    func deletePlaylist(_ playlist: MusicPlaylist) async
+    func addTrackToPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async
+    func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async
+    func addToListeningHistory(_ track: MusicTrack, duration: TimeInterval, completed: Bool) async
+    func getMusicRecommendations() -> [MusicTrack]
 }
 
 @MainActor
@@ -20,8 +37,10 @@ final class LibraryService: LibraryServiceProtocol {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "LibraryService")
     private let userDefaults = UserDefaults.standard
     private let libraryKey = "userLibrary"
+    private let musicLibraryKey = "userMusicLibrary"
     
     private(set) var library: UserLibrary
+    private(set) var musicLibrary: UserMusicLibrary
     
     init(userID: UUID = UUID()) {
         // Load existing library or create new one
@@ -32,6 +51,16 @@ final class LibraryService: LibraryServiceProtocol {
         } else {
             self.library = UserLibrary(userID: userID)
             logger.info("📚 Created new library for user \(userID)")
+        }
+        
+        // Load music library
+        if let data = userDefaults.data(forKey: musicLibraryKey),
+           let decoded = try? JSONDecoder().decode(UserMusicLibrary.self, from: data) {
+            self.musicLibrary = decoded
+            logger.info("🎵 Loaded existing music library with \(decoded.favoriteTracks.count) favorite tracks")
+        } else {
+            self.musicLibrary = UserMusicLibrary(userID: userID)
+            logger.info("🎵 Created new music library for user \(userID)")
         }
     }
     
@@ -112,6 +141,127 @@ final class LibraryService: LibraryServiceProtocol {
         } catch {
             logger.error("❌ Failed to save library: \(error.localizedDescription)")
         }
+    }
+    
+    private func saveMusicLibrary() async {
+        do {
+            let encoded = try JSONEncoder().encode(musicLibrary)
+            userDefaults.set(encoded, forKey: musicLibraryKey)
+            logger.debug("💾 Music library saved successfully")
+        } catch {
+            logger.error("❌ Failed to save music library: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Music Library Functions
+    
+    func addToFavorites(_ track: MusicTrack) async {
+        musicLibrary.addToFavorites(track)
+        await saveMusicLibrary()
+        logger.info("⭐ Added '\(track.title)' to favorite tracks")
+    }
+    
+    func removeFromFavorites(_ track: MusicTrack) async {
+        musicLibrary.removeFromFavorites(track)
+        await saveMusicLibrary()
+        logger.info("⭐ Removed '\(track.title)' from favorite tracks")
+    }
+    
+    func toggleFavorite(_ track: MusicTrack) async {
+        if isFavorite(track) {
+            await removeFromFavorites(track)
+        } else {
+            await addToFavorites(track)
+        }
+    }
+    
+    func isFavorite(_ track: MusicTrack) -> Bool {
+        musicLibrary.isFavorite(track)
+    }
+    
+    func addToFavorites(_ album: MusicAlbum) async {
+        musicLibrary.addToFavorites(album)
+        await saveMusicLibrary()
+        logger.info("⭐ Added '\(album.title)' to favorite albums")
+    }
+    
+    func removeFromFavorites(_ album: MusicAlbum) async {
+        musicLibrary.removeFromFavorites(album)
+        await saveMusicLibrary()
+        logger.info("⭐ Removed '\(album.title)' from favorite albums")
+    }
+    
+    func toggleFavorite(_ album: MusicAlbum) async {
+        if isFavorite(album) {
+            await removeFromFavorites(album)
+        } else {
+            await addToFavorites(album)
+        }
+    }
+    
+    func isFavorite(_ album: MusicAlbum) -> Bool {
+        musicLibrary.isFavorite(album)
+    }
+    
+    func createPlaylist(name: String, description: String?) async -> MusicPlaylist {
+        let playlist = MusicPlaylist(name: name, description: description)
+        musicLibrary.addPlaylist(playlist)
+        await saveMusicLibrary()
+        logger.info("📝 Created playlist '\(name)'")
+        return playlist
+    }
+    
+    func deletePlaylist(_ playlist: MusicPlaylist) async {
+        musicLibrary.removePlaylist(playlist)
+        await saveMusicLibrary()
+        logger.info("🗑️ Deleted playlist '\(playlist.name)'")
+    }
+    
+    func addTrackToPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+        var updatedPlaylist = playlist
+        if !updatedPlaylist.tracks.contains(where: { $0.id == track.id }) {
+            updatedPlaylist.tracks.append(track)
+            musicLibrary.updatePlaylist(updatedPlaylist)
+            await saveMusicLibrary()
+            logger.info("➕ Added '\(track.title)' to playlist '\(playlist.name)'")
+        }
+    }
+    
+    func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+        var updatedPlaylist = playlist
+        updatedPlaylist.tracks.removeAll { $0.id == track.id }
+        musicLibrary.updatePlaylist(updatedPlaylist)
+        await saveMusicLibrary()
+        logger.info("➖ Removed '\(track.title)' from playlist '\(playlist.name)'")
+    }
+    
+    func addToListeningHistory(_ track: MusicTrack, duration: TimeInterval, completed: Bool) async {
+        let item = MusicHistoryItem(track: track, playedAt: Date(), listenDuration: duration, completed: completed)
+        musicLibrary.addToHistory(item)
+        await saveMusicLibrary()
+        logger.info("🎵 Added '\(track.title)' to listening history")
+    }
+    
+    func getMusicRecommendations() -> [MusicTrack] {
+        // Simple recommendation: return sample tracks not in favorites
+        let sampleTracks = getSampleMusicTracks()
+        let favoriteIDs = Set(musicLibrary.favoriteTracks.map { $0.id })
+        return sampleTracks.filter { !favoriteIDs.contains($0.id) }
+    }
+    
+    private func getSampleMusicTracks() -> [MusicTrack] {
+        [
+            MusicTrack(title: "Anti-Hero", artist: "Taylor Swift", album: "Midnights", duration: 200),
+            MusicTrack(title: "Flowers", artist: "Miley Cyrus", album: "Endless Summer Vacation", duration: 200),
+            MusicTrack(title: "As It Was", artist: "Harry Styles", album: "Harry's House", duration: 167),
+            MusicTrack(title: "Cruel Summer", artist: "Taylor Swift", album: "Lover", duration: 178),
+            MusicTrack(title: "Vampire", artist: "Olivia Rodrigo", album: "GUTS", duration: 219),
+            MusicTrack(title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", duration: 200),
+            MusicTrack(title: "Levitating", artist: "Dua Lipa", album: "Future Nostalgia", duration: 203),
+            MusicTrack(title: "good 4 u", artist: "Olivia Rodrigo", album: "SOUR", duration: 178),
+            MusicTrack(title: "Heat Waves", artist: "Glass Animals", album: "Dreamland", duration: 239),
+            MusicTrack(title: "Stay", artist: "The Kid LAROI & Justin Bieber", album: "Stay", duration: 141),
+        ]
     }
     
     /// Sample content for recommendations

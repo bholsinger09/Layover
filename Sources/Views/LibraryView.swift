@@ -169,87 +169,505 @@ struct MoviesTabView: View {
 /// Music tab
 struct MusicTabView: View {
     let viewModel: LibraryViewModel
+    @State private var showCreatePlaylist = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Music Stats
-                if let stats = viewModel.stats {
-                    VStack(spacing: 16) {
-                        HStack(spacing: 20) {
-                            StatItemView(
-                                icon: "music.note",
-                                value: "\(stats.totalFavorites)",
-                                label: "Favorites"
-                            )
-                            
-                            Divider()
-                            
-                            StatItemView(
-                                icon: "play.circle.fill",
-                                value: "0",
-                                label: "Playlists"
-                            )
-                            
-                            Divider()
-                            
-                            StatItemView(
-                                icon: "headphones",
-                                value: "0h",
-                                label: "Listen Time"
-                            )
+                // Music Stats Card
+                MusicStatsCard(viewModel: viewModel)
+                
+                // Recommendations Section
+                if !viewModel.musicRecommendations.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Recommended for You")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(viewModel.musicRecommendations) { track in
+                                    MusicTrackCard(track: track, viewModel: viewModel)
+                                }
+                            }
+                            .padding(.horizontal)
                         }
-                        .frame(maxWidth: .infinity)
                     }
-                    .padding()
-                    .background(.quaternary)
-                    .cornerRadius(12)
-                    .padding(.horizontal)
                 }
                 
-                // Coming Soon Message
-                ContentUnavailableView {
-                    Label("Music Library Coming Soon", systemImage: "music.note.list")
-                } description: {
-                    VStack(spacing: 12) {
-                        Text("Apple Music integration is being developed")
-                            .font(.subheadline)
+                // Favorite Tracks Section
+                if !viewModel.favoriteTracks.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Favorite Tracks")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
                         
-                        Text("Soon you'll be able to:")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .padding(.top, 8)
-                        
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
-                                Text("Save favorite songs and albums")
-                            }
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
-                                Text("View listening history")
-                            }
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
-                                Text("Get personalized recommendations")
-                            }
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
-                                Text("Create and share playlists")
-                            }
+                        ForEach(viewModel.favoriteTracks) { track in
+                            MusicTrackRow(track: track, viewModel: viewModel)
                         }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
                     }
                 }
-                .padding(.top, 40)
+                
+                // Playlists Section
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("My Playlists")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Spacer()
+                        
+                        Button {
+                            showCreatePlaylist = true
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(.blue)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    if viewModel.playlists.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "music.note.list")
+                                .font(.largeTitle)
+                                .foregroundStyle(.secondary)
+                            Text("No playlists yet")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                            Text("Tap + to create your first playlist")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 32)
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        ForEach(viewModel.playlists) { playlist in
+                            PlaylistRow(playlist: playlist, viewModel: viewModel)
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                
+                // Recently Played Section
+                if !viewModel.musicHistory.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Recently Played")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
+                        
+                        ForEach(viewModel.musicHistory) { item in
+                            HistoryTrackRow(historyItem: item, viewModel: viewModel)
+                        }
+                        .padding(.horizontal)
+                    }
+                }
             }
             .padding(.vertical)
         }
+        .sheet(isPresented: $showCreatePlaylist) {
+            CreatePlaylistView(viewModel: viewModel)
+        }
+    }
+}
+
+/// Music stats overview card
+struct MusicStatsCard: View {
+    let viewModel: LibraryViewModel
+    
+    private var listenTime: String {
+        let library = viewModel.favoriteTracks.first?.album
+        // Calculate listen time from history
+        let totalSeconds = viewModel.musicHistory.reduce(0.0) { $0 + $1.listenDuration }
+        let hours = Int(totalSeconds) / 3600
+        let minutes = (Int(totalSeconds) % 3600) / 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        } else {
+            return "\(minutes)m"
+        }
+    }
+    
+    private var topArtists: [String] {
+        let artistCounts = viewModel.musicHistory.reduce(into: [String: Int]()) { counts, item in
+            counts[item.track.artist, default: 0] += 1
+        }
+        return artistCounts.sorted { $0.value > $1.value }.prefix(3).map { $0.key }
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 20) {
+                StatItemView(
+                    icon: "music.note",
+                    value: "\(viewModel.favoriteTracks.count)",
+                    label: "Favorite Songs"
+                )
+                
+                Divider()
+                
+                StatItemView(
+                    icon: "play.circle.fill",
+                    value: "\(viewModel.playlists.count)",
+                    label: "Playlists"
+                )
+                
+                Divider()
+                
+                StatItemView(
+                    icon: "headphones",
+                    value: listenTime,
+                    label: "Listen Time"
+                )
+            }
+            .frame(maxWidth: .infinity)
+            
+            // Top Artists
+            if !topArtists.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Top Artists")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                    
+                    HStack(spacing: 8) {
+                        ForEach(topArtists, id: \.self) { artist in
+                            Text(artist)
+                                .font(.caption2)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(.blue.opacity(0.2))
+                                .foregroundStyle(.blue)
+                                .cornerRadius(8)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding()
+        .background(.quaternary)
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+}
+
+/// Music track card for horizontal scrolling
+struct MusicTrackCard: View {
+    let track: MusicTrack
+    let viewModel: LibraryViewModel
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Artwork placeholder
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.blue.gradient)
+                .frame(width: 140, height: 140)
+                .overlay {
+                    Image(systemName: "music.note")
+                        .font(.largeTitle)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(track.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                
+                Text(track.artist)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            
+            Button {
+                Task {
+                    await viewModel.toggleFavorite(track)
+                }
+            } label: {
+                Image(systemName: viewModel.isFavorite(track) ? "heart.fill" : "heart")
+                    .foregroundStyle(viewModel.isFavorite(track) ? .red : .secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(width: 140)
+    }
+}
+
+/// Music track row for lists
+struct MusicTrackRow: View {
+    let track: MusicTrack
+    let viewModel: LibraryViewModel
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Artwork
+            RoundedRectangle(cornerRadius: 6)
+                .fill(.blue.gradient)
+                .frame(width: 50, height: 50)
+                .overlay {
+                    Image(systemName: "music.note")
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(track.title)
+                    .font(.body)
+                    .fontWeight(.medium)
+                
+                Text(track.artist)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            Text(track.formattedDuration)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+            
+            Button {
+                Task {
+                    await viewModel.toggleFavorite(track)
+                }
+            } label: {
+                Image(systemName: viewModel.isFavorite(track) ? "heart.fill" : "heart")
+                    .foregroundStyle(viewModel.isFavorite(track) ? .red : .secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+/// Playlist row
+struct PlaylistRow: View {
+    let playlist: MusicPlaylist
+    let viewModel: LibraryViewModel
+    @State private var showDetail = false
+    
+    var body: some View {
+        Button {
+            showDetail = true
+        } label: {
+            HStack(spacing: 12) {
+                // Playlist icon
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(.purple.gradient)
+                    .frame(width: 50, height: 50)
+                    .overlay {
+                        Image(systemName: "music.note.list")
+                            .foregroundStyle(.white)
+                    }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(playlist.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                    
+                    Text("\(playlist.tracks.count) songs • \(playlist.formattedDuration)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .buttonStyle(.plain)
+        .padding(.vertical, 4)
+        .sheet(isPresented: $showDetail) {
+            PlaylistDetailView(playlist: playlist, viewModel: viewModel)
+        }
+    }
+}
+
+/// History track row
+struct HistoryTrackRow: View {
+    let historyItem: MusicHistoryItem
+    let viewModel: LibraryViewModel
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Artwork
+            RoundedRectangle(cornerRadius: 6)
+                .fill(.blue.gradient)
+                .frame(width: 50, height: 50)
+                .overlay {
+                    Image(systemName: "music.note")
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(historyItem.track.title)
+                    .font(.body)
+                    .fontWeight(.medium)
+                
+                HStack(spacing: 8) {
+                    Text(historyItem.track.artist)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Text("•")
+                        .foregroundStyle(.tertiary)
+                    
+                    Text(historyItem.formattedDate)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            Spacer()
+            
+            if historyItem.completed {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+/// Create playlist sheet
+struct CreatePlaylistView: View {
+    let viewModel: LibraryViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var playlistName = ""
+    @State private var playlistDescription = ""
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Playlist Name", text: $playlistName)
+                    TextField("Description (optional)", text: $playlistDescription, axis: .vertical)
+                        .lineLimit(3...6)
+                }
+            }
+            .navigationTitle("New Playlist")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") {
+                        Task {
+                            await viewModel.createPlaylist(
+                                name: playlistName.isEmpty ? "Untitled Playlist" : playlistName,
+                                description: playlistDescription.isEmpty ? nil : playlistDescription
+                            )
+                            dismiss()
+                        }
+                    }
+                }
+            }
+        }
+        #if os(macOS)
+        .frame(minWidth: 400, minHeight: 250)
+        #endif
+    }
+}
+
+/// Playlist detail view
+struct PlaylistDetailView: View {
+    let playlist: MusicPlaylist
+    let viewModel: LibraryViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var showDeleteConfirmation = false
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                if playlist.tracks.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Tracks", systemImage: "music.note")
+                    } description: {
+                        Text("This playlist is empty")
+                    }
+                } else {
+                    ForEach(playlist.tracks) { track in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(track.title)
+                                    .font(.body)
+                                Text(track.artist)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text(track.formattedDuration)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                            
+                            Button {
+                                Task {
+                                    await viewModel.removeTrackFromPlaylist(track, playlist: playlist)
+                                }
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+            .navigationTitle(playlist.name)
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .destructiveAction) {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+            }
+            .confirmationDialog(
+                "Delete Playlist",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete Playlist", role: .destructive) {
+                    Task {
+                        await viewModel.deletePlaylist(playlist)
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text("This will permanently delete '\(playlist.name)' and cannot be undone.")
+            }
+        }
+        #if os(macOS)
+        .frame(minWidth: 500, minHeight: 400)
+        #endif
     }
 }
 
