@@ -113,6 +113,9 @@ struct ProfileView: View {
                 Text("Enter your new username")
             }
         }
+        #if os(macOS)
+        .frame(minWidth: 500, minHeight: 600)
+        #endif
     }
 }
 
