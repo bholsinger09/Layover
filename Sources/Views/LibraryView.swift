@@ -54,17 +54,30 @@ struct LibraryView: View {
 /// Movies & TV Shows tab
 struct MoviesTabView: View {
     let viewModel: LibraryViewModel
+    @State private var searchText = ""
     
     var movieFavorites: [MediaContent] {
-        viewModel.favorites.filter { $0.contentType == .movie || $0.contentType == .tvShow }
+        let filtered = viewModel.favorites.filter { $0.contentType == .movie || $0.contentType == .tvShow }
+        if searchText.isEmpty {
+            return filtered
+        }
+        return filtered.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
     }
     
     var movieHistory: [WatchHistoryItem] {
-        viewModel.recentlyWatched.filter { $0.content.contentType == .movie || $0.content.contentType == .tvShow }
+        let filtered = viewModel.recentlyWatched.filter { $0.content.contentType == .movie || $0.content.contentType == .tvShow }
+        if searchText.isEmpty {
+            return filtered
+        }
+        return filtered.filter { $0.content.title.localizedCaseInsensitiveContains(searchText) }
     }
     
     var movieRecommendations: [MediaContent] {
-        viewModel.recommendations.filter { $0.contentType == .movie || $0.contentType == .tvShow }
+        let filtered = viewModel.recommendations.filter { $0.contentType == .movie || $0.contentType == .tvShow }
+        if searchText.isEmpty {
+            return filtered
+        }
+        return filtered.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
     }
     
     var body: some View {
@@ -163,6 +176,7 @@ struct MoviesTabView: View {
             }
             .padding(.vertical)
         }
+        .searchable(text: $searchText, prompt: "Search movies and TV shows")
     }
 }
 
@@ -170,6 +184,49 @@ struct MoviesTabView: View {
 struct MusicTabView: View {
     let viewModel: LibraryViewModel
     @State private var showCreatePlaylist = false
+    @State private var searchText = ""
+    
+    var filteredFavoriteTracks: [MusicTrack] {
+        if searchText.isEmpty {
+            return viewModel.favoriteTracks
+        }
+        return viewModel.favoriteTracks.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText) ||
+            $0.artist.localizedCaseInsensitiveContains(searchText) ||
+            $0.album.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    var filteredPlaylists: [MusicPlaylist] {
+        if searchText.isEmpty {
+            return viewModel.playlists
+        }
+        return viewModel.playlists.filter {
+            $0.name.localizedCaseInsensitiveContains(searchText) ||
+            ($0.description?.localizedCaseInsensitiveContains(searchText) ?? false)
+        }
+    }
+    
+    var filteredMusicHistory: [MusicHistoryItem] {
+        if searchText.isEmpty {
+            return viewModel.musicHistory
+        }
+        return viewModel.musicHistory.filter {
+            $0.track.title.localizedCaseInsensitiveContains(searchText) ||
+            $0.track.artist.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    var filteredRecommendations: [MusicTrack] {
+        if searchText.isEmpty {
+            return viewModel.musicRecommendations
+        }
+        return viewModel.musicRecommendations.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText) ||
+            $0.artist.localizedCaseInsensitiveContains(searchText) ||
+            $0.album.localizedCaseInsensitiveContains(searchText)
+        }
+    }
     
     var body: some View {
         ScrollView {
@@ -178,7 +235,7 @@ struct MusicTabView: View {
                 MusicStatsCard(viewModel: viewModel)
                 
                 // Recommendations Section
-                if !viewModel.musicRecommendations.isEmpty {
+                if !filteredRecommendations.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Recommended for You")
                             .font(.title2)
@@ -187,7 +244,7 @@ struct MusicTabView: View {
                         
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
-                                ForEach(viewModel.musicRecommendations) { track in
+                                ForEach(filteredRecommendations) { track in
                                     MusicTrackCard(track: track, viewModel: viewModel)
                                 }
                             }
@@ -197,14 +254,14 @@ struct MusicTabView: View {
                 }
                 
                 // Favorite Tracks Section
-                if !viewModel.favoriteTracks.isEmpty {
+                if !filteredFavoriteTracks.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Favorite Tracks")
                             .font(.title2)
                             .fontWeight(.bold)
                             .padding(.horizontal)
                         
-                        ForEach(viewModel.favoriteTracks) { track in
+                        ForEach(filteredFavoriteTracks) { track in
                             MusicTrackRow(track: track, viewModel: viewModel)
                         }
                         .padding(.horizontal)
@@ -244,8 +301,19 @@ struct MusicTabView: View {
                         }
                         .padding(.vertical, 32)
                         .frame(maxWidth: .infinity)
+                    } else if filteredPlaylists.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.largeTitle)
+                                .foregroundStyle(.secondary)
+                            Text("No matching playlists")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 32)
+                        .frame(maxWidth: .infinity)
                     } else {
-                        ForEach(viewModel.playlists) { playlist in
+                        ForEach(filteredPlaylists) { playlist in
                             PlaylistRow(playlist: playlist, viewModel: viewModel)
                         }
                         .padding(.horizontal)
@@ -253,14 +321,14 @@ struct MusicTabView: View {
                 }
                 
                 // Recently Played Section
-                if !viewModel.musicHistory.isEmpty {
+                if !filteredMusicHistory.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Recently Played")
                             .font(.title2)
                             .fontWeight(.bold)
                             .padding(.horizontal)
                         
-                        ForEach(viewModel.musicHistory) { item in
+                        ForEach(filteredMusicHistory) { item in
                             HistoryTrackRow(historyItem: item, viewModel: viewModel)
                         }
                         .padding(.horizontal)
@@ -269,6 +337,7 @@ struct MusicTabView: View {
             }
             .padding(.vertical)
         }
+        .searchable(text: $searchText, prompt: "Search music, artists, and playlists")
         .sheet(isPresented: $showCreatePlaylist) {
             CreatePlaylistView(viewModel: viewModel)
         }
