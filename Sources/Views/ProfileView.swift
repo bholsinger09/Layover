@@ -70,11 +70,15 @@ struct ProfileView: View {
                             .foregroundStyle(.secondary)
                     }
                     
-                    Link(destination: URL(string: "https://example.com/privacy")!) {
+                    NavigationLink {
+                        PrivacyPolicyView()
+                    } label: {
                         Label("Privacy Policy", systemImage: "hand.raised")
                     }
                     
-                    Link(destination: URL(string: "https://example.com/terms")!) {
+                    NavigationLink {
+                        TermsOfServiceView()
+                    } label: {
                         Label("Terms of Service", systemImage: "doc.text")
                     }
                 }
@@ -303,4 +307,193 @@ struct InfoRow: View {
         currentUsername: .constant("TestUser"),
         isAuthenticated: .constant(true)
     )
+}
+
+/// Privacy Policy view
+struct PrivacyPolicyView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Privacy Policy")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.bottom, 8)
+                
+                Text("Last updated: December 26, 2025")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                
+                Divider()
+                
+                Group {
+                    SectionHeader("Information We Collect")
+                    Text("LayoverLounge collects minimal information to provide you with the best experience:")
+                    BulletPoint("Username and email address (for authentication)")
+                    BulletPoint("Watch history and favorites (stored locally on your device)")
+                    BulletPoint("Room participation and SharePlay activity")
+                    BulletPoint("Usage analytics (anonymized)")
+                }
+                
+                Group {
+                    SectionHeader("How We Use Your Information")
+                    Text("We use your information to:")
+                    BulletPoint("Provide and maintain our services")
+                    BulletPoint("Personalize your experience with recommendations")
+                    BulletPoint("Enable SharePlay features and room collaboration")
+                    BulletPoint("Improve our app and develop new features")
+                    BulletPoint("Communicate with you about updates and changes")
+                }
+                
+                Group {
+                    SectionHeader("Data Storage")
+                    Text("Your personal data, including favorites and watch history, is stored locally on your device. We do not share this information with third parties.")
+                }
+                
+                Group {
+                    SectionHeader("SharePlay Data")
+                    Text("When using SharePlay features, certain information (room names, content selections) may be shared with other participants in your FaceTime call through Apple's GroupActivities framework.")
+                }
+                
+                Group {
+                    SectionHeader("Data Retention")
+                    Text("You can delete your account and all associated data at any time through the Account settings. Upon deletion, your data is immediately removed from your device. Some anonymized analytics may be retained for up to 30 days for security purposes.")
+                }
+                
+                Group {
+                    SectionHeader("Your Rights")
+                    Text("You have the right to:")
+                    BulletPoint("Access your personal data")
+                    BulletPoint("Correct inaccurate data")
+                    BulletPoint("Delete your account and all data")
+                    BulletPoint("Export your data")
+                }
+                
+                Group {
+                    SectionHeader("Contact Us")
+                    Text("If you have questions about this Privacy Policy, please contact us at privacy@layoverlounge.app")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Privacy Policy")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+    }
+}
+
+/// Terms of Service view
+struct TermsOfServiceView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Terms of Service")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.bottom, 8)
+                
+                Text("Last updated: December 26, 2025")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                
+                Divider()
+                
+                Group {
+                    SectionHeader("Acceptance of Terms")
+                    Text("By accessing and using LayoverLounge, you accept and agree to be bound by the terms and provision of this agreement.")
+                }
+                
+                Group {
+                    SectionHeader("Description of Service")
+                    Text("LayoverLounge is a social entertainment platform that enables users to watch Apple TV+ content and listen to Apple Music together via SharePlay during FaceTime calls.")
+                }
+                
+                Group {
+                    SectionHeader("User Accounts")
+                    Text("You are responsible for:")
+                    BulletPoint("Maintaining the confidentiality of your account")
+                    BulletPoint("All activities that occur under your account")
+                    BulletPoint("Ensuring your account information is accurate")
+                }
+                
+                Group {
+                    SectionHeader("Content and Conduct")
+                    Text("Users agree to:")
+                    BulletPoint("Use the service only for lawful purposes")
+                    BulletPoint("Respect other users' privacy and experience")
+                    BulletPoint("Not share inappropriate content in rooms")
+                    BulletPoint("Comply with Apple's terms for SharePlay, Apple TV+, and Apple Music")
+                }
+                
+                Group {
+                    SectionHeader("Third-Party Services")
+                    Text("LayoverLounge integrates with Apple services including SharePlay, Apple TV+, and Apple Music. Your use of these services is subject to Apple's terms and conditions. You must have valid subscriptions to access respective content.")
+                }
+                
+                Group {
+                    SectionHeader("Intellectual Property")
+                    Text("All content, features, and functionality of LayoverLounge are owned by the service provider and are protected by copyright, trademark, and other intellectual property laws.")
+                }
+                
+                Group {
+                    SectionHeader("Termination")
+                    Text("We reserve the right to terminate or suspend your account at any time for violations of these terms. You may delete your account at any time through the app settings.")
+                }
+                
+                Group {
+                    SectionHeader("Disclaimer")
+                    Text("LayoverLounge is provided 'as is' without warranties of any kind. We do not guarantee uninterrupted or error-free service.")
+                }
+                
+                Group {
+                    SectionHeader("Changes to Terms")
+                    Text("We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the modified terms.")
+                }
+                
+                Group {
+                    SectionHeader("Contact")
+                    Text("For questions about these Terms of Service, contact us at legal@layoverlounge.app")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Terms of Service")
+        #if !os(macOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+    }
+}
+
+// Helper views for formatting
+struct SectionHeader: View {
+    let text: String
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    
+    var body: some View {
+        Text(text)
+            .font(.title3)
+            .fontWeight(.semibold)
+            .padding(.top, 8)
+    }
+}
+
+struct BulletPoint: View {
+    let text: String
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text("•")
+            Text(text)
+        }
+        .padding(.leading, 8)
+    }
 }
