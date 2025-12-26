@@ -29,7 +29,9 @@ struct LibraryView: View {
                     MusicTabView(viewModel: viewModel)
                         .tag(1)
                 }
+                #if !os(macOS)
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                #endif
             }
             .navigationTitle("My Library")
             .toolbar {
