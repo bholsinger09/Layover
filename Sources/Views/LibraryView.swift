@@ -178,12 +178,13 @@ struct MoviesTabView: View {
             .padding(.vertical)
         }
         .searchable(text: $searchText, prompt: "Search movies and TV shows") {
-            // Search suggestions could go here if needed
-        }
-        .onSubmit(of: .search) {
-            print("🔍 SUBMIT TRIGGERED with query: '\(searchText)'")
-            searchWeb(query: searchText, context: "movies tv shows")
-            showSearchAlert = true
+            if !searchText.isEmpty {
+                Button {
+                    searchWeb(query: searchText, context: "movies tv shows")
+                } label: {
+                    Label("Search web for '\(searchText)'", systemImage: "magnifyingglass")
+                }
+            }
         }
         .alert("Web Search", isPresented: $showSearchAlert) {
             Button("OK") { }
@@ -368,10 +369,13 @@ struct MusicTabView: View {
             .padding(.vertical)
         }
         .searchable(text: $searchText, prompt: "Search music, artists, and playlists") {
-            // Search suggestions could go here if needed
-        }
-        .onSubmit(of: .search) {
-            searchWeb(query: searchText, context: "music")
+            if !searchText.isEmpty {
+                Button {
+                    searchWeb(query: searchText, context: "music")
+                } label: {
+                    Label("Search web for '\(searchText)'", systemImage: "magnifyingglass")
+                }
+            }
         }
         .sheet(isPresented: $showCreatePlaylist) {
             CreatePlaylistView(viewModel: viewModel)
