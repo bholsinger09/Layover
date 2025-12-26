@@ -91,6 +91,9 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
