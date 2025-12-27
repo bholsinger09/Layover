@@ -30,14 +30,21 @@ final class TexasHoldemViewModel: LayoverViewModel {
     }
     
     func setupSharePlayCallbacks() {
+        print("🔧 Setting up SharePlay callbacks...")
+        
         sharePlayService.onGameStarted = { [weak self] gameID, playerIDs in
+            print("📨 RECEIVED gameStarted message!")
+            print("   Game ID: \(gameID)")
+            print("   Player IDs: \(playerIDs)")
+            
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
+                print("   Current game: \(self.currentGame?.id.uuidString ?? "none")")
+                print("   Is host: \(self.sharePlayService.isHost)")
+                
                 // Participant receives game start notification - start the game locally
                 if !self.sharePlayService.isHost && self.currentGame == nil {
                     print("📱 Participant received game start message - starting game locally")
-                    print("   Game ID: \(gameID)")
-                    print("   Player IDs: \(playerIDs)")
                     
                     // Start the game with the same player IDs as the host
                     isLoading = true
@@ -52,6 +59,8 @@ final class TexasHoldemViewModel: LayoverViewModel {
                         print("❌ Participant failed to start game: \(error)")
                     }
                     isLoading = false
+                } else {
+                    print("ℹ️ Skipping game start - either host or game already exists")
                 }
             }
         }
@@ -76,6 +85,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
     }
 
     func startGame(roomID: UUID, players: [UUID]) async {
+        print("🎮 Starting game...")
+        print("   Room ID: \(roomID)")
+        print("   Players: \(players)")
+        print("   SharePlay active: \(sharePlayService.isSessionActive)")
+        print("   Is host: \(sharePlayService.isHost)")
+        
         isLoading = true
         errorMessage = nil
 
@@ -85,13 +100,21 @@ final class TexasHoldemViewModel: LayoverViewModel {
             try await gameService.dealCards()
             currentGame = gameService.currentGame
             
+            print("✅ Game started successfully")
+            print("   Game ID: \(game.id)")
+            
             // Broadcast game start to all participants
             if sharePlayService.isSessionActive {
+                print("📤 Broadcasting game start to SharePlay participants...")
                 await sharePlayService.sendMessage(.gameStarted(gameID: game.id, playerIDs: players))
                 await broadcastGameState()
+                print("✅ Game state broadcasted")
+            } else {
+                print("⚠️ SharePlay NOT active - cannot broadcast to other devices")
             }
         } catch {
             errorMessage = error.localizedDescription
+            print("❌ Failed to start game: \(error)")
         }
 
         isLoading = false

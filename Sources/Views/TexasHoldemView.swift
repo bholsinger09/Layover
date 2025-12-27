@@ -35,15 +35,22 @@ struct TexasHoldemView: View {
                 VStack(spacing: 12) {
                     Button {
                         Task {
+                            print("🔴 User tapped Start SharePlay button")
                             await startSharePlay()
+                            print("   SharePlay activation completed")
+                            print("   Session active: \(viewModel.sharePlayService.isSessionActive)")
+                            print("   Is host: \(viewModel.sharePlayService.isHost)")
+                            
                             // Auto-start game after SharePlay is initiated
                             if currentRoom.participantIDs.count >= 1 {
-                                try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds for SharePlay to connect
+                                print("   Waiting 3 seconds for SharePlay to fully connect...")
+                                try? await Task.sleep(nanoseconds: 3_000_000_000) // Wait 3 seconds for SharePlay to connect
                                 if viewModel.currentGame == nil {
                                     var playerIDs = Array(currentRoom.participantIDs)
                                     if playerIDs.count < 2 {
                                         playerIDs.append(UUID()) // Add AI if needed
                                     }
+                                    print("   Starting game with players: \(playerIDs)")
                                     await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                                 }
                             }
@@ -82,17 +89,27 @@ struct TexasHoldemView: View {
                 }
             }
             
-            // Auto-start game if both players are present and no game is active
-            // Only auto-start if SharePlay is active and we're the host (to avoid both devices starting independently)
-            if currentRoom.participantIDs.count >= 2 && viewModel.currentGame == nil && viewModel.sharePlayService.isHost {
+            // Auto-start game ONLY if we're the host and SharePlay is active
+            // This prevents participants from auto-starting their own game
+            if currentRoom.participantIDs.count >= 2 && 
+               viewModel.currentGame == nil && 
+               viewModel.sharePlayService.isSessionActive &&
+               viewModel.sharePlayService.isHost {
                 print("🎮 Auto-starting game as HOST with \(currentRoom.participantIDs.count) players")
+                print("   SharePlay session is active and we are the host")
                 Task {
-                    try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
+                    try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds for SharePlay to fully connect
                     if viewModel.currentGame == nil {
                         let playerIDs = Array(currentRoom.participantIDs)
                         await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                     }
                 }
+            } else {
+                print("ℹ️ Not auto-starting game:")
+                print("   Participants: \(currentRoom.participantIDs.count)")
+                print("   Has game: \(viewModel.currentGame != nil)")
+                print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
+                print("   Is host: \(viewModel.sharePlayService.isHost)")
             }
         }
         .onDisappear {
