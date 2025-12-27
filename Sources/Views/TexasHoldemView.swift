@@ -194,10 +194,44 @@ struct TexasHoldemView: View {
                 Text("Pot: $\(game.pot)")
                     .font(.title2)
                     .fontWeight(.bold)
+                    
+                // Turn indicator
+                if game.currentPlayerIndex < game.players.count {
+                    let currentPlayer = game.players[game.currentPlayerIndex]
+                    let isMyTurn = currentPlayer.id == currentUser.id
+                    Text(isMyTurn ? "Your Turn" : "Opponent's Turn")
+                        .font(.subheadline)
+                        .foregroundStyle(isMyTurn ? .green : .orange)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(isMyTurn ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
+                        .cornerRadius(8)
+                }
             }
             .padding()
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            
+            // Deck - Click to advance phase
+            if game.gamePhase != .ended && game.gamePhase != .showdown {
+                Button {
+                    Task {
+                        await advancePhase()
+                    }
+                } label: {
+                    VStack(spacing: 8) {
+                        Image(systemName: "square.stack.3d.up.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.blue)
+                        Text("Tap to deal")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(width: 100, height: 120)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
 
             // Community cards
             if !game.communityCards.isEmpty {
@@ -213,7 +247,7 @@ struct TexasHoldemView: View {
 
             // Controls
             if game.gamePhase != .ended {
-                gameControls
+                gameControls(phase: game.gamePhase, isMyTurn: game.players[game.currentPlayerIndex].id == currentUser.id)
             } else {
                 Button("End Game") {
                     Task {
@@ -224,6 +258,27 @@ struct TexasHoldemView: View {
             }
         }
         .padding()
+    }
+    
+    private func advancePhase() async {
+        guard let game = viewModel.currentGame else { return }
+        
+        switch game.gamePhase {
+        case .preFlop:
+            // Deal flop (3 cards)
+            await viewModel.dealFlop()
+        case .flop:
+            // Deal turn (1 card)
+            await viewModel.dealTurn()
+        case .turn:
+            // Deal river (1 card)
+            await viewModel.dealRiver()
+        case .river:
+            // Go to showdown
+            await viewModel.showdown()
+        default:
+            break
+        }
     }
 
     private func communityCardsView(_ cards: [PlayingCard]) -> some View {
@@ -261,23 +316,75 @@ struct TexasHoldemView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private var gameControls: some View {
-        HStack(spacing: 12) {
-            Button("Fold") {
-                Task {
-                    await viewModel.fold(playerID: currentUser.id)
-                }
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
+    private func gameControls(phase: TexasHoldemGame.GamePhase, isMyTurn: Bool) -> some View {
+        VStack(spacing: 12) {
+            if !isMyTurn {
+                Text("Waiting for opponent...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding()
+            } else {
+                // Actions based on phase
+                if phase == .preFlop || phase == .flop {
+                    // Preflop and Flop: Call or Fold only
+                    HStack(spacing: 12) {
+                        Button("Fold") {
+                            Task {
+                                await viewModel.fold(playerID: currentUser.id)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                        .frame(maxWidth: .infinity)
 
-            Button("Call") {
-                Task {
-                    await viewModel.call(playerID: currentUser.id)
+                        Button("Call") {
+                            Task {
+                                await viewModel.call(playerID: currentUser.id)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                    }
+                } else {
+                    // Turn and River: Call, Check, Raise, or Fold
+                    HStack(spacing: 12) {
+                        Button("Fold") {
+                            Task {
+                                await viewModel.fold(playerID: currentUser.id)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+
+                        Button("Check") {
+                            Task {
+                                await viewModel.check(playerID: currentUser.id)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    
+                    HStack(spacing: 12) {
+                        Button("Call") {
+                            Task {
+                                await viewModel.call(playerID: currentUser.id)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button("Raise") {
+                            Task {
+                                await viewModel.bet(playerID: currentUser.id, amount: betAmount)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                    }
                 }
             }
-            .buttonStyle(.bordered)
-            .tint(.blue)
+        }
+        .disabled(!isMyTurn)
+    }
 
             Button("Raise") {
                 Task {

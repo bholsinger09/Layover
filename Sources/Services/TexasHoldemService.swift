@@ -10,8 +10,13 @@ protocol TexasHoldemServiceProtocol: LayoverService {
     func bet(playerID: UUID, amount: Int) async throws
     func fold(playerID: UUID) async throws
     func call(playerID: UUID) async throws
+    func check(playerID: UUID) async throws
     func raise(playerID: UUID, amount: Int) async throws
     func nextPhase() async throws
+    func dealFlop() async throws
+    func dealTurn() async throws
+    func dealRiver() async throws
+    func showdown() async throws
     func endGame() async
 }
 
@@ -89,6 +94,9 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         game.players[playerIndex].isFolded = true
         currentGame = game
+        
+        // Advance to next player's turn
+        await advanceTurn()
     }
 
     func call(playerID: UUID) async throws {
@@ -102,6 +110,9 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         let callAmount = game.currentBet - player.currentBet
         try await bet(playerID: playerID, amount: callAmount)
+        
+        // Advance to next player's turn
+        await advanceTurn()
     }
 
     func raise(playerID: UUID, amount: Int) async throws {
@@ -149,6 +160,102 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
     func endGame() async {
         currentGame = nil
         deck = []
+    }
+    
+    func check(playerID: UUID) async throws {
+        guard let game = currentGame else {
+            throw GameError.noActiveGame
+        }
+        
+        guard let playerIndex = game.players.firstIndex(where: { $0.userID == playerID }) else {
+            throw GameError.playerNotFound
+        }
+        
+        // Check is allowed if no one has bet yet or if player has matched current bet
+        guard game.currentBet == game.players[playerIndex].currentBet else {
+            throw GameError.invalidMove
+        }
+        
+        // Move to next player
+        await advanceTurn()
+    }
+    
+    func dealFlop() async throws {
+        guard var game = currentGame else {
+            throw GameError.noActiveGame
+        }
+        
+        guard game.gamePhase == .preFlop else {
+            throw GameError.invalidMove
+        }
+        
+        // Deal the flop (3 cards)
+        game.communityCards = [deck.removeFirst(), deck.removeFirst(), deck.removeFirst()]
+        game.gamePhase = .flop
+        game.currentPlayerIndex = 0  // Reset to first player
+        
+        currentGame = game
+    }
+    
+    func dealTurn() async throws {
+        guard var game = currentGame else {
+            throw GameError.noActiveGame
+        }
+        
+        guard game.gamePhase == .flop else {
+            throw GameError.invalidMove
+        }
+        
+        // Deal the turn (1 card)
+        game.communityCards.append(deck.removeFirst())
+        game.gamePhase = .turn
+        game.currentPlayerIndex = 0  // Reset to first player
+        
+        currentGame = game
+    }
+    
+    func dealRiver() async throws {
+        guard var game = currentGame else {
+            throw GameError.noActiveGame
+        }
+        
+        guard game.gamePhase == .turn else {
+            throw GameError.invalidMove
+        }
+        
+        // Deal the river (1 card)
+        game.communityCards.append(deck.removeFirst())
+        game.gamePhase = .river
+        game.currentPlayerIndex = 0  // Reset to first player
+        
+        currentGame = game
+    }
+    
+    func showdown() async throws {
+        guard var game = currentGame else {
+            throw GameError.noActiveGame
+        }
+        
+        guard game.gamePhase == .river else {
+            throw GameError.invalidMove
+        }
+        
+        game.gamePhase = .showdown
+        currentGame = game
+    }
+    
+    private func advanceTurn() async {
+        guard var game = currentGame else { return }
+        
+        // Move to next player
+        game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.count
+        
+        // Skip folded players
+        while game.players[game.currentPlayerIndex].isFolded {
+            game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.count
+        }
+        
+        currentGame = game
     }
 
     private func createDeck() -> [PlayingCard] {

@@ -106,4 +106,59 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func getPlayer(for userID: UUID) -> TexasHoldemPlayer? {
         currentGame?.players.first { $0.userID == userID }
     }
+    
+    func check(playerID: UUID) async {
+        errorMessage = nil
+        
+        do {
+            try await gameService.check(playerID: playerID)
+            currentGame = gameService.currentGame
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func dealFlop() async {
+        errorMessage = nil
+        
+        do {
+            try await gameService.dealFlop()
+            currentGame = gameService.currentGame
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func dealTurn() async {
+        errorMessage = nil
+        
+        do {
+            try await gameService.dealTurn()
+            currentGame = gameService.currentGame
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func dealRiver() async {
+        errorMessage = nil
+        
+        do {
+            try await gameService.dealRiver()
+            currentGame = gameService.currentGame
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func showdown() async {
+        errorMessage = nil
+        
+        do {
+            try await gameService.showdown()
+            currentGame = gameService.currentGame
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
 }
