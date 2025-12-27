@@ -186,6 +186,11 @@ struct TexasHoldemView: View {
 
     private func gameView(_ game: TexasHoldemGame) -> some View {
         VStack(spacing: 20) {
+            // Opponent's hand (face down until showdown)
+            if let opponentPlayer = game.players.first(where: { $0.id != currentUser.id }) {
+                opponentHandView(opponentPlayer, showCards: game.gamePhase == .showdown || game.gamePhase == .ended)
+            }
+            
             // Game phase and pot
             VStack(spacing: 8) {
                 Text(game.gamePhase.rawValue.capitalized)
@@ -297,6 +302,52 @@ struct TexasHoldemView: View {
             HStack(spacing: 12) {
                 ForEach(player.hand) { card in
                     CardView(card: card)
+                }
+            }
+
+            HStack {
+                Text("Chips: $\(player.chips)")
+                    .font(.subheadline)
+
+                Spacer()
+
+                Text("Current Bet: $\(player.currentBet)")
+                    .font(.subheadline)
+            }
+            .foregroundStyle(.secondary)
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    
+    private func opponentHandView(_ player: TexasHoldemPlayer, showCards: Bool) -> some View {
+        VStack(spacing: 12) {
+            Text(showCards ? "Opponent's Hand" : "Opponent")
+                .font(.headline)
+
+            HStack(spacing: 12) {
+                if showCards {
+                    // Showdown - reveal opponent's cards
+                    ForEach(player.hand) { card in
+                        CardView(card: card)
+                    }
+                } else {
+                    // Show card backs (face down)
+                    ForEach(0..<2, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(LinearGradient(
+                                colors: [.blue, .blue.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 60, height: 84)
+                            .overlay {
+                                Image(systemName: "suit.spade.fill")
+                                    .font(.title)
+                                    .foregroundStyle(.white.opacity(0.3))
+                            }
+                    }
                 }
             }
 
