@@ -33,10 +33,25 @@ final class TexasHoldemViewModel: LayoverViewModel {
         sharePlayService.onGameStarted = { [weak self] gameID, playerIDs in
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                // Host already started the game, just update state
-                if !self.sharePlayService.isHost {
-                    // Participant receives game start notification
-                    await self.syncGameState()
+                // Participant receives game start notification - start the game locally
+                if !self.sharePlayService.isHost && self.currentGame == nil {
+                    print("📱 Participant received game start message - starting game locally")
+                    print("   Game ID: \(gameID)")
+                    print("   Player IDs: \(playerIDs)")
+                    
+                    // Start the game with the same player IDs as the host
+                    isLoading = true
+                    do {
+                        let game = try await gameService.startGame(roomID: UUID(), players: playerIDs)
+                        currentGame = game
+                        try await gameService.dealCards()
+                        currentGame = gameService.currentGame
+                        print("✅ Participant game started successfully")
+                    } catch {
+                        errorMessage = error.localizedDescription
+                        print("❌ Participant failed to start game: \(error)")
+                    }
+                    isLoading = false
                 }
             }
         }

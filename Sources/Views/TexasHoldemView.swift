@@ -83,8 +83,9 @@ struct TexasHoldemView: View {
             }
             
             // Auto-start game if both players are present and no game is active
-            if currentRoom.participantIDs.count >= 2 && viewModel.currentGame == nil {
-                print("🎮 Auto-starting game with \(currentRoom.participantIDs.count) players")
+            // Only auto-start if SharePlay is active and we're the host (to avoid both devices starting independently)
+            if currentRoom.participantIDs.count >= 2 && viewModel.currentGame == nil && viewModel.sharePlayService.isHost {
+                print("🎮 Auto-starting game as HOST with \(currentRoom.participantIDs.count) players")
                 Task {
                     try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
                     if viewModel.currentGame == nil {
