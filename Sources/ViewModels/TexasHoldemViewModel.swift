@@ -6,6 +6,7 @@ import Observation
 @Observable
 final class TexasHoldemViewModel: LayoverViewModel {
     private let gameService: TexasHoldemServiceProtocol
+    let sharePlayService: TexasHoldemSharePlayService
 
     private(set) var currentGame: TexasHoldemGame?
     private(set) var isLoading = false
@@ -23,8 +24,40 @@ final class TexasHoldemViewModel: LayoverViewModel {
         currentGame?.communityCards ?? []
     }
 
-    nonisolated init(gameService: TexasHoldemServiceProtocol) {
+    init(gameService: TexasHoldemServiceProtocol) {
         self.gameService = gameService
+        self.sharePlayService = TexasHoldemSharePlayService()
+    }
+    
+    func setupSharePlayCallbacks() {
+        sharePlayService.onGameStarted = { [weak self] gameID, playerIDs in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                // Host already started the game, just update state
+                if !self.sharePlayService.isHost {
+                    // Participant receives game start notification
+                    await self.syncGameState()
+                }
+            }
+        }
+        
+        sharePlayService.onGameStateUpdate = { [weak self] state in
+            Task { @MainActor [weak self] in
+                await self?.applyGameState(state)
+            }
+        }
+        
+        sharePlayService.onPlayerAction = { [weak self] action in
+            Task { @MainActor [weak self] in
+                await self?.handlePlayerAction(action)
+            }
+        }
+        
+        sharePlayService.onPhaseAdvanced = { [weak self] phase in
+            Task { @MainActor [weak self] in
+                await self?.syncGameState()
+            }
+        }
     }
 
     func startGame(roomID: UUID, players: [UUID]) async {
@@ -36,6 +69,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
             currentGame = game
             try await gameService.dealCards()
             currentGame = gameService.currentGame
+            
+            // Broadcast game start to all participants
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.gameStarted(gameID: game.id, playerIDs: players))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -49,6 +88,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.bet(playerID: playerID, amount: amount)
             currentGame = gameService.currentGame
+            
+            // Broadcast action to all participants
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.playerAction(.bet(playerID: playerID, amount: amount)))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -60,6 +105,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.fold(playerID: playerID)
             currentGame = gameService.currentGame
+            
+            // Broadcast action to all participants
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.playerAction(.fold(playerID: playerID)))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -71,6 +122,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.call(playerID: playerID)
             currentGame = gameService.currentGame
+            
+            // Broadcast action to all participants
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.playerAction(.call(playerID: playerID)))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -82,6 +139,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.raise(playerID: playerID, amount: amount)
             currentGame = gameService.currentGame
+            
+            // Broadcast action to all participants
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.playerAction(.raise(playerID: playerID, amount: amount)))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -113,6 +176,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.check(playerID: playerID)
             currentGame = gameService.currentGame
+            
+            // Broadcast action to all participants
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.playerAction(.check(playerID: playerID)))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -124,6 +193,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.dealFlop()
             currentGame = gameService.currentGame
+            
+            // Broadcast phase change
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.phaseAdvanced(.flop))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -135,6 +210,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.dealTurn()
             currentGame = gameService.currentGame
+            
+            // Broadcast phase change
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.phaseAdvanced(.turn))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -146,6 +227,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.dealRiver()
             currentGame = gameService.currentGame
+            
+            // Broadcast phase change
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.phaseAdvanced(.river))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -157,8 +244,119 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.showdown()
             currentGame = gameService.currentGame
+            
+            // Broadcast phase change
+            if sharePlayService.isSessionActive {
+                await sharePlayService.sendMessage(.phaseAdvanced(.showdown))
+                await broadcastGameState()
+            }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+    
+    // MARK: - SharePlay Methods
+    
+    func startSharePlay(roomID: UUID, roomName: String?) async throws {
+        guard let game = currentGame else {
+            throw TexasHoldemSharePlayError.unknown
+        }
+        
+        try await sharePlayService.startActivity(roomID: roomID, gameID: game.id, roomName: roomName)
+    }
+    
+    private func broadcastGameState() async {
+        guard let game = currentGame else { return }
+        
+        let state = TexasHoldemGameState(
+            gameID: game.id,
+            currentPlayerIndex: game.currentPlayerIndex,
+            pot: game.pot,
+            currentBet: game.currentBet,
+            phase: game.gamePhase.rawValue,
+            communityCards: game.communityCards.map { PlayingCardData(rank: $0.rank.rawValue, suit: $0.suit.rawValue) },
+            playerStates: game.players.map { player in
+                TexasHoldemGameState.PlayerState(
+                    id: player.userID,
+                    chips: player.chips,
+                    currentBet: player.currentBet,
+                    hasFolded: player.isFolded,
+                    cards: player.hand.map { PlayingCardData(rank: $0.rank.rawValue, suit: $0.suit.rawValue) }
+                )
+            }
+        )
+        
+        await sharePlayService.sendMessage(.gameStateUpdate(state))
+    }
+    
+    private func syncGameState() async {
+        // Request current game state from host
+        // In a real implementation, this would query the host for the latest state
+        // For now, we rely on broadcast updates
+    }
+    
+    private func applyGameState(_ state: TexasHoldemGameState) async {
+        // Update local game state from SharePlay message
+        guard var game = currentGame else { return }
+        
+        // Update basic game state
+        game.currentPlayerIndex = state.currentPlayerIndex
+        game.pot = state.pot
+        game.currentBet = state.currentBet
+        
+        // Update phase
+        if let phase = TexasHoldemGame.GamePhase(rawValue: state.phase) {
+            game.gamePhase = phase
+        }
+        
+        // Update community cards
+        game.communityCards = state.communityCards.compactMap { cardData in
+            guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
+                  let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
+                return nil
+            }
+            return PlayingCard(rank: rank, suit: suit)
+        }
+        
+        // Update player states
+        for playerState in state.playerStates {
+            if let index = game.players.firstIndex(where: { $0.userID == playerState.id }) {
+                game.players[index].chips = playerState.chips
+                game.players[index].currentBet = playerState.currentBet
+                game.players[index].isFolded = playerState.hasFolded
+                
+                // Only update hand if cards are visible (showdown)
+                if let cards = playerState.cards {
+                    game.players[index].hand = cards.compactMap { cardData in
+                        guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
+                              let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
+                            return nil
+                        }
+                        return PlayingCard(rank: rank, suit: suit)
+                    }
+                }
+            }
+        }
+        
+        currentGame = game
+    }
+    
+    private func handlePlayerAction(_ action: TexasHoldemMessage.PlayerAction) async {
+        switch action {
+        case .fold(let playerID):
+            await fold(playerID: playerID)
+            
+        case .check(let playerID):
+            await check(playerID: playerID)
+            
+        case .bet(let playerID, let amount):
+            await bet(playerID: playerID, amount: amount)
+            
+        case .call(let playerID):
+            await call(playerID: playerID)
+            
+        case .raise(let playerID, let amount):
+            await self.raise(playerID: playerID, amount: amount)
         }
     }
 }

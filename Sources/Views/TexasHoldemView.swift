@@ -7,7 +7,6 @@ struct TexasHoldemView: View {
 
     @State private var viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
     @State private var betAmount = 10
-    @State private var sharePlayService = SharePlayService()
     @State private var sharePlayStarted = false
     @State private var currentRoom: Room
     @State private var refreshTimer: Timer?
@@ -32,11 +31,22 @@ struct TexasHoldemView: View {
             .padding(.top, 8)
             
             // SharePlay prompt banner
-            if !sharePlayStarted && !sharePlayService.isSessionActive {
+            if !sharePlayStarted && !viewModel.sharePlayService.isSessionActive {
                 VStack(spacing: 12) {
                     Button {
                         Task {
                             await startSharePlay()
+                            // Auto-start game after SharePlay is initiated
+                            if currentRoom.participantIDs.count >= 1 {
+                                try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds for SharePlay to connect
+                                if viewModel.currentGame == nil {
+                                    var playerIDs = Array(currentRoom.participantIDs)
+                                    if playerIDs.count < 2 {
+                                        playerIDs.append(UUID()) // Add AI if needed
+                                    }
+                                    await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+                                }
+                            }
                         }
                     } label: {
                         Label("Start SharePlay to play together", systemImage: "shareplay")
@@ -62,10 +72,25 @@ struct TexasHoldemView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
         .task {
+            // Setup SharePlay callbacks
+            viewModel.setupSharePlayCallbacks()
+            
             // Periodically refresh room data to get updated participant list
             refreshTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
                 Task {
                     await refreshRoomData()
+                }
+            }
+            
+            // Auto-start game if both players are present and no game is active
+            if currentRoom.participantIDs.count >= 2 && viewModel.currentGame == nil {
+                print("🎮 Auto-starting game with \(currentRoom.participantIDs.count) players")
+                Task {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
+                    if viewModel.currentGame == nil {
+                        let playerIDs = Array(currentRoom.participantIDs)
+                        await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+                    }
                 }
             }
         }
@@ -85,7 +110,7 @@ struct TexasHoldemView: View {
     
     private func refreshRoomData() async {
         // Update participant count based on SharePlay if active
-        if sharePlayService.isSessionActive {
+        if viewModel.sharePlayService.isSessionActive {
             // SharePlay is active - assume multiple participants
             var updatedRoom = currentRoom
             
@@ -160,7 +185,7 @@ struct TexasHoldemView: View {
         print("🔍 Manually detecting players...")
         
         // Check if SharePlay/FaceTime is active
-        if sharePlayService.isSessionActive {
+        if viewModel.sharePlayService.isSessionActive {
             var updatedRoom = currentRoom
             
             // Add SharePlay participants
@@ -437,19 +462,14 @@ struct TexasHoldemView: View {
     }
 
     private func startSharePlay() async {
-        print("🃏 Starting SharePlay for Texas Hold'em room: \(room.name)")
-        let activity = LayoverActivity(
-            roomID: room.id,
-            activityType: .texasHoldem,
-            customMetadata: ["roomName": room.name]
-        )
-
+        print("🃏 Starting Texas Hold'em SharePlay for room: \(room.name)")
+        
         do {
-            try await sharePlayService.startActivity(activity)
+            try await viewModel.startSharePlay(roomID: room.id, roomName: room.name)
             sharePlayStarted = true
-            print("✅ SharePlay started successfully")
+            print("✅ Texas Hold'em SharePlay started successfully")
         } catch {
-            print("❌ Failed to start SharePlay: \(error)")
+            print("❌ Failed to start Texas Hold'em SharePlay: \(error)")
         }
     }
 }

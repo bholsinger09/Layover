@@ -1,0 +1,179 @@
+import Foundation
+import GroupActivities
+import OSLog
+
+/// Service for managing SharePlay sessions specifically for Texas Hold'em
+@MainActor
+@Observable
+final class TexasHoldemSharePlayService {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "TexasHoldemSharePlay")
+    
+    private(set) var currentSession: GroupSession<TexasHoldemActivity>?
+    private var messenger: GroupSessionMessenger?
+    private var sessionTask: Task<Void, Never>?
+    private var messageTask: Task<Void, Never>?
+    
+    var isSessionActive: Bool {
+        currentSession != nil
+    }
+    
+    var isHost: Bool = false
+    
+    // Callbacks
+    var onGameStarted: ((UUID, [UUID]) -> Void)?
+    var onGameStateUpdate: ((TexasHoldemGameState) -> Void)?
+    var onPlayerAction: ((TexasHoldemMessage.PlayerAction) -> Void)?
+    var onPhaseAdvanced: ((TexasHoldemMessage.GamePhase) -> Void)?
+    var onGameEnded: ((UUID?) -> Void)?
+    
+    init() {
+        setupSessionObserver()
+    }
+    
+    nonisolated deinit {
+        // Tasks will be automatically cancelled when the actor is deallocated
+    }
+    
+    private func setupSessionObserver() {
+        sessionTask = Task {
+            for await session in TexasHoldemActivity.sessions() {
+                await handleSession(session)
+            }
+        }
+    }
+    
+    private func handleSession(_ session: GroupSession<TexasHoldemActivity>) async {
+        logger.info("🃏 Texas Hold'em SharePlay: Session received")
+        
+        // Mark as host if we don't have a current session
+        if currentSession == nil {
+            isHost = false
+            logger.info("   Joining existing Texas Hold'em session")
+        }
+        
+        currentSession = session
+        messenger = GroupSessionMessenger(session: session)
+        
+        // Join the session
+        session.join()
+        logger.info("✅ Texas Hold'em SharePlay: Joined session")
+        
+        // Start listening for messages
+        setupMessageListener()
+    }
+    
+    private func setupMessageListener() {
+        guard let messenger = messenger else { return }
+        
+        messageTask?.cancel()
+        messageTask = Task {
+            for await (message, _) in messenger.messages(of: TexasHoldemMessage.self) {
+                await handleMessage(message)
+            }
+        }
+    }
+    
+    private func handleMessage(_ message: TexasHoldemMessage) async {
+        logger.info("📨 Received Texas Hold'em message: \(String(describing: message))")
+        
+        switch message {
+        case .gameStarted(let gameID, let playerIDs):
+            onGameStarted?(gameID, playerIDs)
+            
+        case .gameStateUpdate(let state):
+            onGameStateUpdate?(state)
+            
+        case .playerAction(let action):
+            onPlayerAction?(action)
+            
+        case .phaseAdvanced(let phase):
+            onPhaseAdvanced?(phase)
+            
+        case .gameEnded(let winnerID):
+            onGameEnded?(winnerID)
+        }
+    }
+    
+    // MARK: - Public Methods
+    
+    /// Start a new Texas Hold'em SharePlay session
+    func startActivity(roomID: UUID, gameID: UUID, roomName: String?) async throws {
+        logger.info("🎬 Starting Texas Hold'em SharePlay activity")
+        
+        let activity = TexasHoldemActivity(
+            roomID: roomID,
+            gameID: gameID,
+            roomName: roomName
+        )
+        
+        isHost = true
+        
+        switch await activity.prepareForActivation() {
+        case .activationPreferred:
+            do {
+                _ = try await activity.activate()
+                logger.info("✅ Texas Hold'em activity activated successfully")
+            } catch {
+                logger.error("❌ Failed to activate Texas Hold'em activity: \(error.localizedDescription)")
+                throw error
+            }
+            
+        case .activationDisabled:
+            logger.warning("⚠️ SharePlay is disabled")
+            throw TexasHoldemSharePlayError.sharePlayDisabled
+            
+        case .cancelled:
+            logger.info("ℹ️ User cancelled SharePlay activation")
+            throw TexasHoldemSharePlayError.userCancelled
+            
+        @unknown default:
+            logger.warning("⚠️ Unknown activation result")
+            throw TexasHoldemSharePlayError.unknown
+        }
+    }
+    
+    /// Send a message to all participants
+    func sendMessage(_ message: TexasHoldemMessage) async {
+        guard let messenger = messenger else {
+            logger.warning("⚠️ Cannot send message: no messenger available")
+            return
+        }
+        
+        do {
+            try await messenger.send(message)
+            logger.info("📤 Sent Texas Hold'em message: \(String(describing: message))")
+        } catch {
+            logger.error("❌ Failed to send message: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Leave the current SharePlay session
+    func leaveSession() async {
+        logger.info("👋 Leaving Texas Hold'em SharePlay session")
+        
+        messageTask?.cancel()
+        messageTask = nil
+        
+        currentSession?.leave()
+        currentSession = nil
+        messenger = nil
+        isHost = false
+    }
+}
+
+enum TexasHoldemSharePlayError: LocalizedError {
+    case sharePlayDisabled
+    case userCancelled
+    case unknown
+    
+    var errorDescription: String? {
+        switch self {
+        case .sharePlayDisabled:
+            return "SharePlay is disabled. Please enable it in Settings."
+        case .userCancelled:
+            return "SharePlay activation was cancelled."
+        case .unknown:
+            return "An unknown error occurred."
+        }
+    }
+}
