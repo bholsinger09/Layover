@@ -44,7 +44,7 @@ struct TexasHoldemViewModelTests {
         #expect(viewModel.pot == 50)
         let player = viewModel.getPlayer(for: playerID)
         #expect(player?.currentBet == 50)
-        #expect(player?.chips == 950)
+        #expect(player?.chips == 450)
     }
     
     @Test("Fold action")

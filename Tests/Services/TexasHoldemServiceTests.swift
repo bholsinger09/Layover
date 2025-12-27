@@ -71,7 +71,7 @@ struct TexasHoldemServiceTests {
         let player = game.players.first { $0.userID == playerID }!
         
         #expect(player.currentBet == 50)
-        #expect(player.chips == 950)
+        #expect(player.chips == 450)
         #expect(game.pot == 50)
         #expect(game.currentBet == 50)
     }

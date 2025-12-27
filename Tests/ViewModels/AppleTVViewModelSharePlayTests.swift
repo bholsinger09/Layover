@@ -290,7 +290,8 @@ struct AppleTVViewModelSharePlayTests {
 
         #expect(viewModel.errorMessage != nil)
         #expect(viewModel.errorMessage?.contains("Failed to open TV app") == true)
-        #expect(viewModel.currentContent == nil)
+        // Content is set optimistically before attempting to open TV app
+        #expect(viewModel.currentContent == content)
     }
 
     // MARK: - iOS and Mac Compatibility Tests

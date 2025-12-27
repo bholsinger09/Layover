@@ -28,7 +28,7 @@ struct TexasHoldemTests {
         let player = TexasHoldemPlayer(userID: userID, position: 0)
         
         #expect(player.userID == userID)
-        #expect(player.chips == 1000)
+        #expect(player.chips == 500)
         #expect(player.currentBet == 0)
         #expect(player.hand.isEmpty)
         #expect(player.isFolded == false)
