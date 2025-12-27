@@ -4,6 +4,7 @@ import SwiftUI
 struct LibraryView: View {
     @State private var viewModel: LibraryViewModel
     @State private var selectedTab = 0
+    @State private var searchText = ""
     @Environment(\.dismiss) private var dismiss
     
     init(libraryService: LibraryServiceProtocol) {
@@ -23,10 +24,10 @@ struct LibraryView: View {
                 
                 // Content based on selected tab
                 TabView(selection: $selectedTab) {
-                    MoviesTabView(viewModel: viewModel)
+                    MoviesTabView(viewModel: viewModel, searchText: $searchText)
                         .tag(0)
                     
-                    MusicTabView(viewModel: viewModel)
+                    MusicTabView(viewModel: viewModel, searchText: $searchText)
                         .tag(1)
                 }
                 #if !os(macOS)
@@ -34,12 +35,43 @@ struct LibraryView: View {
                 #endif
             }
             .navigationTitle("My Library")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
+            .searchable(text: $searchText, prompt: selectedTab == 0 ? "Search movies and TV shows" : "Search music, artists, and playlists")
+            .safeAreaInset(edge: .bottom) {
+                HStack(spacing: 12) {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("Done")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(.systemGray5))
+                            .foregroundStyle(.primary)
+                            .cornerRadius(12)
                     }
+                    
+                    Button {
+                        Task {
+                            if selectedTab == 0 {
+                                await viewModel.searchMoviesWithAI(query: searchText)
+                            } else {
+                                await viewModel.searchMusicWithAI(query: searchText)
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "sparkles")
+                            Text("AI Search")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(searchText.isEmpty)
                 }
+                .padding()
+                .background(.regularMaterial)
             }
             .refreshable {
                 viewModel.loadLibraryData()
@@ -54,7 +86,7 @@ struct LibraryView: View {
 /// Movies & TV Shows tab
 struct MoviesTabView: View {
     let viewModel: LibraryViewModel
-    @State private var searchText = ""
+    @Binding var searchText: String
     @State private var showSearchAlert = false
     
     var movieFavorites: [MediaContent] {
@@ -88,7 +120,7 @@ struct MoviesTabView: View {
                 if !viewModel.aiMovieResults.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("AI Search Results")
+                            Text("AI Search Results (\(viewModel.aiMovieResults.count))")
                                 .font(.title2)
                                 .fontWeight(.bold)
                             
@@ -112,6 +144,21 @@ struct MoviesTabView: View {
                             .padding(.horizontal)
                         }
                     }
+                } else if !searchText.isEmpty && !viewModel.isSearching {
+                    // Show message when search completed but no results
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+                        Text("Click the 'AI search' button below")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        Text("Results will appear here")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 32)
+                    .frame(maxWidth: .infinity)
                 }
                 
                 // Loading indicator
@@ -217,21 +264,6 @@ struct MoviesTabView: View {
             }
             .padding(.vertical)
         }
-        .searchable(text: $searchText, prompt: "Search movies and TV shows") {
-            if !searchText.isEmpty {
-                Button {
-                    let query = searchText
-                    print("🔍 Button clicked for query: \(query)")
-                    Task {
-                        print("🔍 Task started for query: \(query)")
-                        await viewModel.searchMoviesWithAI(query: query)
-                        print("🔍 Task completed for query: \(query)")
-                    }
-                } label: {
-                    Label("AI search for '\(searchText)'", systemImage: "sparkles")
-                }
-            }
-        }
         .alert("Web Search", isPresented: $showSearchAlert) {
             Button("OK") { }
         } message: {
@@ -260,8 +292,8 @@ struct MoviesTabView: View {
 /// Music tab
 struct MusicTabView: View {
     let viewModel: LibraryViewModel
+    @Binding var searchText: String
     @State private var showCreatePlaylist = false
-    @State private var searchText = ""
     
     var filteredFavoriteTracks: [MusicTrack] {
         if searchText.isEmpty {
@@ -312,7 +344,7 @@ struct MusicTabView: View {
                 if !viewModel.aiMusicResults.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("AI Search Results")
+                            Text("AI Search Results (\(viewModel.aiMusicResults.count))")
                                 .font(.title2)
                                 .fontWeight(.bold)
                             
@@ -332,6 +364,21 @@ struct MusicTabView: View {
                         }
                         .padding(.horizontal)
                     }
+                } else if !searchText.isEmpty && !viewModel.isSearching {
+                    // Show message when search completed but no results
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+                        Text("Click the 'AI search' button below")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                        Text("Results will appear here")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 32)
+                    .frame(maxWidth: .infinity)
                 }
                 
                 // Loading indicator
@@ -449,21 +496,6 @@ struct MusicTabView: View {
                 }
             }
             .padding(.vertical)
-        }
-        .searchable(text: $searchText, prompt: "Search music, artists, and playlists") {
-            if !searchText.isEmpty {
-                Button {
-                    let query = searchText
-                    print("🎵 Button clicked for query: \(query)")
-                    Task {
-                        print("🎵 Task started for query: \(query)")
-                        await viewModel.searchMusicWithAI(query: query)
-                        print("🎵 Task completed for query: \(query)")
-                    }
-                } label: {
-                    Label("AI search for '\(searchText)'", systemImage: "sparkles")
-                }
-            }
         }
         .sheet(isPresented: $showCreatePlaylist) {
             CreatePlaylistView(viewModel: viewModel)

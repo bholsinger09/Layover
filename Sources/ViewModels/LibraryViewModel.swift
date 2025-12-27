@@ -158,16 +158,22 @@ final class LibraryViewModel {
         
         isSearching = true
         logger.info("🤖 Searching music with AI: \(query)")
+        print("🔍 VIEWMODEL: Starting search for: \(query)")
         
         do {
-            self.aiMusicResults = try await aiService.searchMusic(query: query)
+            let results = try await aiService.searchMusic(query: query)
+            print("🔍 VIEWMODEL: Got \(results.count) results from service")
+            self.aiMusicResults = results
+            print("🔍 VIEWMODEL: aiMusicResults now has \(self.aiMusicResults.count) items")
             logger.info("✅ AI found \(self.aiMusicResults.count) music results")
         } catch {
+            print("🔍 VIEWMODEL: Error occurred: \(error)")
             logger.error("❌ AI search failed: \(error.localizedDescription)")
             self.aiMusicResults = []
         }
         
         isSearching = false
+        print("🔍 VIEWMODEL: Search complete, isSearching = false")
     }
     
     func clearAIResults() {

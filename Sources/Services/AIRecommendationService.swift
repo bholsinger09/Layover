@@ -27,10 +27,15 @@ final class AIRecommendationService: AIRecommendationServiceProtocol {
     
     func searchMusic(query: String) async throws -> [MusicTrack] {
         logger.info("🤖 AI searching music for: \(query)")
+        print("🔍 SERVICE: searchMusic called with query: \(query)")
         
         // For now, return curated results based on query
         // TODO: Integrate with actual AI API (OpenAI, Claude, etc.)
         let results = getCuratedMusicResults(for: query)
+        print("🔍 SERVICE: getCuratedMusicResults returned \(results.count) results")
+        for (index, track) in results.enumerated() {
+            print("🔍 SERVICE: Result \(index + 1): \(track.title) by \(track.artist)")
+        }
         logger.info("✅ AI found \(results.count) music results for query: \(query)")
         return results
     }
