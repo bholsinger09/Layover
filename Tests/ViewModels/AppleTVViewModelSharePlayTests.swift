@@ -58,6 +58,10 @@ struct AppleTVViewModelSharePlayTests {
         var sharedUsers: [(User, UUID)] = []
         var sharedContent: [MediaContent] = []
 
+        func addSessionStateObserver(_ observer: @escaping (Bool) -> Void) {
+            onSessionStateChanged = observer
+        }
+
         func startActivity(_ activity: LayoverActivity) async throws {
             activatedActivities.append(activity)
             isSessionActive = true
