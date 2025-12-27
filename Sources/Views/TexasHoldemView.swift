@@ -18,6 +18,7 @@ struct TexasHoldemView: View {
     }
 
     var body: some View {
+        let _ = print("🟢 TexasHoldemView body is rendering")
         VStack(spacing: 0) {
             // Participant count indicator
             HStack {
@@ -32,8 +33,10 @@ struct TexasHoldemView: View {
             
             // SharePlay prompt banner - only show if game hasn't started yet
             if !sharePlayStarted && !viewModel.sharePlayService.isSessionActive && viewModel.currentGame == nil {
+                let _ = print("🔵 SharePlay button IS showing (sharePlayStarted=\(!sharePlayStarted), sessionActive=\(!viewModel.sharePlayService.isSessionActive), noGame=\(viewModel.currentGame == nil))")
                 VStack(spacing: 12) {
                     Button {
+                        print("🔴🔴🔴 BUTTON TAP REGISTERED 🔴🔴🔴")
                         Task {
                             print("🔴 User tapped Start SharePlay button")
                             await startSharePlay()

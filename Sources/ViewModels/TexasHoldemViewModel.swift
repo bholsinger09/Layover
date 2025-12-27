@@ -296,11 +296,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
     // MARK: - SharePlay Methods
     
     func startSharePlay(roomID: UUID, roomName: String?) async throws {
-        guard let game = currentGame else {
-            throw TexasHoldemSharePlayError.unknown
-        }
-        
-        try await sharePlayService.startActivity(roomID: roomID, gameID: game.id, roomName: roomName)
+        print("📱 Activating SharePlay session...")
+        // Start SharePlay activity - game doesn't need to exist yet
+        // We'll use a temporary gameID and update when the actual game starts
+        let tempGameID = UUID()
+        try await sharePlayService.startActivity(roomID: roomID, gameID: tempGameID, roomName: roomName)
+        print("✅ SharePlay session activated successfully")
     }
     
     private func broadcastGameState() async {
