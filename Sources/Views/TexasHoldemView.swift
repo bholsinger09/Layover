@@ -437,22 +437,6 @@ struct TexasHoldemView: View {
         .disabled(!isMyTurn)
     }
 
-            Button("Raise") {
-                Task {
-                    await viewModel.raise(playerID: currentUser.id, amount: betAmount)
-                }
-            }
-            .buttonStyle(.borderedProminent)
-
-            Button("Next Phase") {
-                Task {
-                    await viewModel.nextPhase()
-                }
-            }
-            .buttonStyle(.bordered)
-        }
-    }
-
     private func startSharePlay() async {
         print("🃏 Starting SharePlay for Texas Hold'em room: \(room.name)")
         let activity = LayoverActivity(
