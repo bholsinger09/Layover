@@ -677,18 +677,16 @@ struct MusicTrackRow: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
             
-            Button {
-                Task {
-                    await viewModel.toggleFavorite(track)
+            Image(systemName: viewModel.isFavorite(track) ? "heart.fill" : "heart")
+                .foregroundStyle(viewModel.isFavorite(track) ? .red : .secondary)
+                .font(.title3)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    Task {
+                        await viewModel.toggleFavorite(track)
+                    }
                 }
-            } label: {
-                Image(systemName: viewModel.isFavorite(track) ? "heart.fill" : "heart")
-                    .foregroundStyle(viewModel.isFavorite(track) ? .red : .secondary)
-                    .font(.title3)
-            }
-            .buttonStyle(.plain)
-            .contentShape(Rectangle())
-            .frame(width: 44, height: 44)
         }
         .padding(.vertical, 4)
     }
