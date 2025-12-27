@@ -691,7 +691,6 @@ struct MusicTrackRow: View {
             .frame(width: 44, height: 44)
         }
         .padding(.vertical, 4)
-        .contentShape(Rectangle())
     }
 }
 
