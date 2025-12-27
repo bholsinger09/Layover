@@ -684,10 +684,14 @@ struct MusicTrackRow: View {
             } label: {
                 Image(systemName: viewModel.isFavorite(track) ? "heart.fill" : "heart")
                     .foregroundStyle(viewModel.isFavorite(track) ? .red : .secondary)
+                    .font(.title3)
             }
             .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .frame(width: 44, height: 44)
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
     }
 }
 

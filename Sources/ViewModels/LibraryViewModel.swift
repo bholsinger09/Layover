@@ -90,8 +90,16 @@ final class LibraryViewModel {
     // MARK: - Music Functions
     
     func toggleFavorite(_ track: MusicTrack) async {
+        let wasFavorite = libraryService.isFavorite(track)
+        logger.info("🎵 Toggling favorite for '\(track.title)' - currently favorite: \(wasFavorite)")
+        
         await libraryService.toggleFavorite(track)
+        
+        let isFavorite = libraryService.isFavorite(track)
+        logger.info("🎵 After toggle, '\(track.title)' is favorite: \(isFavorite)")
+        
         loadLibraryData()
+        logger.info("🎵 Reloaded library data - favoriteTracks count: \(self.favoriteTracks.count)")
     }
     
     func toggleFavorite(_ album: MusicAlbum) async {
@@ -100,7 +108,8 @@ final class LibraryViewModel {
     }
     
     func isFavorite(_ track: MusicTrack) -> Bool {
-        libraryService.isFavorite(track)
+        let result = libraryService.isFavorite(track)
+        return result
     }
     
     func isFavorite(_ album: MusicAlbum) -> Bool {
