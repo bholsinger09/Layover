@@ -44,7 +44,7 @@ struct LibraryView: View {
                         Text("Done")
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(.systemGray5))
+                            .background(Color.gray.opacity(0.2))
                             .foregroundStyle(.primary)
                             .cornerRadius(12)
                     }
