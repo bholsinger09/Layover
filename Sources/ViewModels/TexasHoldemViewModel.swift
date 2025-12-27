@@ -82,6 +82,10 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 await self?.syncGameState()
             }
         }
+        
+        // Start observing for SharePlay sessions AFTER callbacks are configured
+        sharePlayService.startObserving()
+        print("✅ SharePlay callbacks configured and observer started")
     }
 
     func startGame(roomID: UUID, players: [UUID]) async {

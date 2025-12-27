@@ -27,6 +27,12 @@ final class TexasHoldemSharePlayService {
     var onGameEnded: ((UUID?) -> Void)?
     
     init() {
+        // Don't start observer here - will be started when callbacks are configured
+        logger.info("🎯 TexasHoldemSharePlayService initialized")
+    }
+    
+    func startObserving() {
+        logger.info("🔍 Starting SharePlay session observer...")
         setupSessionObserver()
     }
     
@@ -63,13 +69,20 @@ final class TexasHoldemSharePlayService {
     }
     
     private func setupMessageListener() {
-        guard let messenger = messenger else { return }
+        guard let messenger = messenger else {
+            logger.warning("⚠️ Cannot setup message listener - messenger is nil")
+            return
+        }
         
+        logger.info("👂 Setting up message listener for Texas Hold'em messages...")
         messageTask?.cancel()
         messageTask = Task {
+            logger.info("🎧 Message listener task started - waiting for messages...")
             for await (message, _) in messenger.messages(of: TexasHoldemMessage.self) {
+                logger.info("📬 Message received in listener!")
                 await handleMessage(message)
             }
+            logger.info("🛑 Message listener task ended")
         }
     }
     
