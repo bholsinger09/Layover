@@ -30,8 +30,8 @@ struct TexasHoldemView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             
-            // SharePlay prompt banner
-            if !sharePlayStarted && !viewModel.sharePlayService.isSessionActive {
+            // SharePlay prompt banner - only show if game hasn't started yet
+            if !sharePlayStarted && !viewModel.sharePlayService.isSessionActive && viewModel.currentGame == nil {
                 VStack(spacing: 12) {
                     Button {
                         Task {
