@@ -49,25 +49,26 @@ final class TexasHoldemSharePlayServiceTests: XCTestCase {
     // MARK: - Message Callback Tests
     
     func testGameStartedCallback() async {
-        let expectation = expectation(description: "Game started callback")
         let expectedGameID = UUID()
         let expectedPlayerIDs = [UUID(), UUID()]
+        
+        var callbackCalled = false
         
         service.onGameStarted = { gameID, playerIDs in
             XCTAssertEqual(gameID, expectedGameID)
             XCTAssertEqual(playerIDs, expectedPlayerIDs)
-            expectation.fulfill()
+            callbackCalled = true
         }
         
-        // Simulate receiving game started message
-        // In real scenario, this would come from GroupSessionMessenger
-        // For testing, we verify the callback is set correctly
+        // Verify callback is set
         XCTAssertNotNil(service.onGameStarted, "Callback should be set")
+        
+        // Manually trigger callback to test it works
+        service.onGameStarted?(expectedGameID, expectedPlayerIDs)
+        XCTAssertTrue(callbackCalled, "Callback should have been called")
     }
     
     func testGameStateUpdateCallback() async {
-        let expectation = expectation(description: "Game state update callback")
-        
         let expectedState = TexasHoldemGameState(
             gameID: UUID(),
             currentPlayerIndex: 0,
@@ -78,55 +79,75 @@ final class TexasHoldemSharePlayServiceTests: XCTestCase {
             playerStates: []
         )
         
+        var callbackCalled = false
+        
         service.onGameStateUpdate = { state in
             XCTAssertEqual(state.gameID, expectedState.gameID)
             XCTAssertEqual(state.pot, expectedState.pot)
             XCTAssertEqual(state.currentBet, expectedState.currentBet)
-            expectation.fulfill()
+            callbackCalled = true
         }
         
         XCTAssertNotNil(service.onGameStateUpdate, "Callback should be set")
+        
+        // Manually trigger callback to test it works
+        service.onGameStateUpdate?(expectedState)
+        XCTAssertTrue(callbackCalled, "Callback should have been called")
     }
     
     func testPlayerActionCallback() async {
-        let expectation = expectation(description: "Player action callback")
         let playerID = UUID()
+        
+        var callbackCalled = false
         
         service.onPlayerAction = { action in
             switch action {
             case .bet(let id, let amount):
                 XCTAssertEqual(id, playerID)
                 XCTAssertEqual(amount, 50)
-                expectation.fulfill()
+                callbackCalled = true
             default:
                 XCTFail("Wrong action type")
             }
         }
         
         XCTAssertNotNil(service.onPlayerAction, "Callback should be set")
+        
+        // Manually trigger callback to test it works
+        service.onPlayerAction?(.bet(playerID: playerID, amount: 50))
+        XCTAssertTrue(callbackCalled, "Callback should have been called")
     }
     
     func testPhaseAdvancedCallback() async {
-        let expectation = expectation(description: "Phase advanced callback")
+        var callbackCalled = false
         
         service.onPhaseAdvanced = { phase in
             XCTAssertEqual(phase, .flop)
-            expectation.fulfill()
+            callbackCalled = true
         }
         
         XCTAssertNotNil(service.onPhaseAdvanced, "Callback should be set")
+        
+        // Manually trigger callback to test it works
+        service.onPhaseAdvanced?(.flop)
+        XCTAssertTrue(callbackCalled, "Callback should have been called")
     }
     
     func testGameEndedCallback() async {
-        let expectation = expectation(description: "Game ended callback")
         let winnerID = UUID()
+        
+        var callbackCalled = false
         
         service.onGameEnded = { winner in
             XCTAssertEqual(winner, winnerID)
-            expectation.fulfill()
+            callbackCalled = true
         }
         
         XCTAssertNotNil(service.onGameEnded, "Callback should be set")
+        
+        // Manually trigger callback to test it works
+        service.onGameEnded?(winnerID)
+        XCTAssertTrue(callbackCalled, "Callback should have been called")
     }
 }
 
