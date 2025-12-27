@@ -57,7 +57,7 @@ struct TexasHoldemPlayer: Identifiable, Codable, Hashable, Sendable {
     init(
         id: UUID = UUID(),
         userID: UUID,
-        chips: Int = 1000,
+        chips: Int = 500,
         currentBet: Int = 0,
         hand: [PlayingCard] = [],
         isFolded: Bool = false,

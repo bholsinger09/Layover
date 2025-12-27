@@ -132,12 +132,11 @@ struct TexasHoldemView: View {
                 Task {
                     var playerIDs = Array(currentRoom.participantIDs)
                     
-                    // For demo/testing: Add AI players if less than 2 players
+                    // Always add AI/computer player if less than 2 players
                     if playerIDs.count < 2 {
-                        // Add demo AI players
-                        for i in 0..<(2 - playerIDs.count) {
-                            playerIDs.append(UUID())
-                        }
+                        let aiPlayerID = UUID()
+                        playerIDs.append(aiPlayerID)
+                        print("🤖 Added AI player: \(aiPlayerID)")
                     }
                     
                     await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
@@ -146,7 +145,7 @@ struct TexasHoldemView: View {
             .buttonStyle(.borderedProminent)
 
             if currentRoom.participantIDs.count < 2 {
-                Text("Playing with AI players for demo")
+                Text("Playing against computer opponent")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
