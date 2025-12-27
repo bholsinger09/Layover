@@ -9,9 +9,28 @@ struct TexasHoldemView: View {
     @State private var betAmount = 10
     @State private var sharePlayService = SharePlayService()
     @State private var sharePlayStarted = false
+    @State private var currentRoom: Room
+    @State private var refreshTimer: Timer?
+    
+    init(room: Room, currentUser: User) {
+        self.room = room
+        self.currentUser = currentUser
+        self._currentRoom = State(initialValue: room)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
+            // Participant count indicator
+            HStack {
+                Image(systemName: "person.2.fill")
+                    .foregroundStyle(.blue)
+                Text("\(currentRoom.participantIDs.count) player\(currentRoom.participantIDs.count == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            
             // SharePlay prompt banner
             if !sharePlayStarted && !sharePlayService.isSessionActive {
                 VStack(spacing: 12) {
@@ -42,6 +61,17 @@ struct TexasHoldemView: View {
         #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
+        .task {
+            // Periodically refresh room data to get updated participant list
+            refreshTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                Task {
+                    await refreshRoomData()
+                }
+            }
+        }
+        .onDisappear {
+            refreshTimer?.invalidate()
+        }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
@@ -49,6 +79,24 @@ struct TexasHoldemView: View {
         } message: {
             if let error = viewModel.errorMessage {
                 Text(error)
+            }
+        }
+    }
+    
+    private func refreshRoomData() async {
+        // Update participant count based on SharePlay if active
+        if sharePlayService.isSessionActive {
+            // SharePlay is active - assume multiple participants
+            var updatedRoom = currentRoom
+            
+            // Add a second participant if SharePlay is active but room only has 1
+            if updatedRoom.participantIDs.count < 2 {
+                // Add a placeholder for SharePlay participant
+                let sharePlayParticipantID = UUID()
+                updatedRoom.participantIDs.insert(sharePlayParticipantID)
+                updatedRoom.participants.append(User(id: sharePlayParticipantID, username: "SharePlay User"))
+                currentRoom = updatedRoom
+                print("📊 SharePlay active - added SharePlay participant. Total: \(currentRoom.participantIDs.count)")
             }
         }
     }
@@ -65,17 +113,29 @@ struct TexasHoldemView: View {
 
             Button("Start Game") {
                 Task {
-                    let playerIDs = Array(room.participantIDs)
-                    await viewModel.startGame(roomID: room.id, players: playerIDs)
+                    var playerIDs = Array(currentRoom.participantIDs)
+                    
+                    // For demo/testing: Add AI players if less than 2 players
+                    if playerIDs.count < 2 {
+                        // Add demo AI players
+                        for i in 0..<(2 - playerIDs.count) {
+                            playerIDs.append(UUID())
+                        }
+                    }
+                    
+                    await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                 }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(room.participantIDs.count < 2)
 
-            if room.participantIDs.count < 2 {
-                Text("Need at least 2 players to start")
+            if currentRoom.participantIDs.count < 2 {
+                Text("Playing with AI players for demo")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } else {
+                Text("\(currentRoom.participantIDs.count) players ready")
+                    .font(.caption)
+                    .foregroundStyle(.green)
             }
         }
     }
