@@ -150,47 +150,53 @@ struct TexasHoldemView: View {
                 .font(.title)
                 .fontWeight(.bold)
             
-            // Detect Players Button
-            if currentRoom.participantIDs.count < 2 {
-                Button {
-                    Task {
-                        await detectPlayers()
-                    }
-                } label: {
-                    Label("Detect Players", systemImage: "person.2.badge.gearshape")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundStyle(.white)
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
-            }
-
-            Button("Start Game") {
-                Task {
-                    var playerIDs = Array(currentRoom.participantIDs)
-                    
-                    // Always add AI/computer player if less than 2 players
-                    if playerIDs.count < 2 {
-                        let aiPlayerID = UUID()
-                        playerIDs.append(aiPlayerID)
-                        print("🤖 Added AI player: \(aiPlayerID)")
-                    }
-                    
-                    await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
-                }
-            }
-            .buttonStyle(.borderedProminent)
-
-            if currentRoom.participantIDs.count < 2 {
-                Text("Playing against computer opponent")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            // Show loading state if checking for existing game
+            if viewModel.isLoading {
+                ProgressView("Checking for active game...")
+                    .padding()
             } else {
-                Text("\(currentRoom.participantIDs.count) players ready")
-                    .font(.caption)
-                    .foregroundStyle(.green)
+                // Detect Players Button
+                if currentRoom.participantIDs.count < 2 {
+                    Button {
+                        Task {
+                            await detectPlayers()
+                        }
+                    } label: {
+                        Label("Detect Players", systemImage: "person.2.badge.gearshape")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                }
+
+                Button("Start Game") {
+                    Task {
+                        var playerIDs = Array(currentRoom.participantIDs)
+                        
+                        // Always add AI/computer player if less than 2 players
+                        if playerIDs.count < 2 {
+                            let aiPlayerID = UUID()
+                            playerIDs.append(aiPlayerID)
+                            print("🤖 Added AI player: \(aiPlayerID)")
+                        }
+                        
+                        await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+
+                if currentRoom.participantIDs.count < 2 {
+                    Text("Playing against computer opponent")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("\(currentRoom.participantIDs.count) players ready")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                }
             }
         }
     }

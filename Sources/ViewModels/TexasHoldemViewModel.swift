@@ -451,7 +451,11 @@ final class TexasHoldemViewModel: LayoverViewModel {
         print("👀 Starting to watch for game updates in room: \(roomID)")
         
         Task {
-            while currentGame == nil {
+            isLoading = true
+            
+            // Check for existing game for a few seconds
+            var attempts = 0
+            while currentGame == nil && attempts < 3 {
                 // Check if a game has been created
                 if let game = roomService.getActiveGame(for: roomID) {
                     print("🎮 Found active game in iCloud!")
@@ -464,11 +468,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     break
                 }
                 
-                // Check every second
+                // Check every second, up to 3 attempts
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
+                attempts += 1
             }
             
-            // Once game is loaded, continue polling for updates
+            isLoading = false
+            print(currentGame == nil ? "ℹ️ No existing game found - ready to start new game" : "✅ Loaded existing game from iCloud")
+            
+            // Once game is loaded or determined not to exist, continue polling for updates
             while currentGame != nil {
                 if let updatedGame = roomService.getActiveGame(for: roomID),
                    updatedGame.id == currentGame?.id {
