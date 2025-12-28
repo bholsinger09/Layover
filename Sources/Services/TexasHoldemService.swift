@@ -6,6 +6,7 @@ protocol TexasHoldemServiceProtocol: LayoverService {
     var currentGame: TexasHoldemGame? { get }
 
     func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame
+    func loadGame(_ game: TexasHoldemGame)
     func dealCards() async throws
     func bet(playerID: UUID, amount: Int) async throws
     func fold(playerID: UUID) async throws
@@ -24,6 +25,19 @@ protocol TexasHoldemServiceProtocol: LayoverService {
 final class TexasHoldemService: TexasHoldemServiceProtocol {
     private(set) var currentGame: TexasHoldemGame?
     private var deck: [PlayingCard] = []
+    
+    func loadGame(_ game: TexasHoldemGame) {
+        currentGame = game
+        // Recreate deck based on cards already dealt
+        deck = createDeck()
+        // Remove dealt cards from deck
+        for player in game.players {
+            deck.removeAll { card in player.hand.contains(card) }
+        }
+        for card in game.communityCards {
+            deck.removeAll { $0 == card }
+        }
+    }
 
     func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame {
         guard players.count >= 2 && players.count <= 10 else {

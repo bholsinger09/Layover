@@ -450,7 +450,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func startWatchingForGameUpdates(roomID: UUID) {
         print("👀 Starting to watch for game updates in room: \(roomID)")
         
-        Task {
+        Task { @MainActor in
             isLoading = true
             
             // Check for existing game for a few seconds
@@ -460,11 +460,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 if let game = roomService.getActiveGame(for: roomID) {
                     print("🎮 Found active game in iCloud!")
                     currentGame = game
-                    
-                    // Update the game service with the synced game
-                    if let gameService = gameService as? TexasHoldemService {
-                        gameService.currentGame = game
-                    }
+                    gameService.loadGame(game)
                     break
                 }
                 
@@ -486,10 +482,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
                        updatedGame.gamePhase != currentGame?.gamePhase {
                         print("🔄 Game state updated from iCloud")
                         currentGame = updatedGame
-                        
-                        if let gameService = gameService as? TexasHoldemService {
-                            gameService.currentGame = updatedGame
-                        }
+                        gameService.loadGame(updatedGame)
                     }
                 }
                 
