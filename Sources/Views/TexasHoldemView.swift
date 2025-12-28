@@ -31,36 +31,6 @@ struct TexasHoldemView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             
-            // SharePlay prompt banner - only show if game hasn't started yet
-            if !sharePlayStarted && !viewModel.sharePlayService.isSessionActive && viewModel.currentGame == nil {
-                let _ = print("🔵 SharePlay button IS showing (sharePlayStarted=\(!sharePlayStarted), sessionActive=\(!viewModel.sharePlayService.isSessionActive), noGame=\(viewModel.currentGame == nil))")
-                VStack(spacing: 12) {
-                    Text("Both devices must start SharePlay")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                    
-                    Button {
-                        print("🔴🔴🔴 BUTTON TAP REGISTERED 🔴🔴🔴")
-                        Task {
-                            print("🔴 User tapped Start SharePlay button")
-                            await startSharePlay()
-                            print("   SharePlay activation completed")
-                            print("   Session active: \(viewModel.sharePlayService.isSessionActive)")
-                            print("   Is host: \(viewModel.sharePlayService.isHost)")
-                        }
-                    } label: {
-                        Label("Start SharePlay", systemImage: "shareplay")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.red)
-                            .foregroundStyle(.white)
-                            .cornerRadius(10)
-                    }
-                }
-                .padding()
-                .background(Color.red.opacity(0.1))
-            }
-
             if let game = viewModel.currentGame {
                 gameView(game)
             } else {
@@ -154,6 +124,9 @@ struct TexasHoldemView: View {
             if viewModel.isLoading {
                 ProgressView("Checking for active game...")
                     .padding()
+                Text("Game syncs automatically via iCloud")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             } else {
                 // Detect Players Button
                 if currentRoom.participantIDs.count < 2 {
@@ -193,9 +166,14 @@ struct TexasHoldemView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("\(currentRoom.participantIDs.count) players ready")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                    VStack(spacing: 4) {
+                        Text("\(currentRoom.participantIDs.count) players ready")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                        Text("Syncs automatically across devices")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
