@@ -269,6 +269,10 @@ final class TexasHoldemViewModel: LayoverViewModel {
     }
 
     func getPlayer(for userID: UUID) -> TexasHoldemPlayer? {
+        print("🔍 getPlayer looking for userID: \(userID)")
+        if let game = currentGame {
+            print("   Available players: \(game.players.map { $0.userID })")
+        }
         let player = currentGame?.players.first { $0.userID == userID }
         if let player = player {
             print("🃏 getPlayer for \(userID): found with \(player.hand.count) cards")
@@ -426,8 +430,8 @@ final class TexasHoldemViewModel: LayoverViewModel {
             game.gamePhase = phase
         }
         
-        // Update community cards
-        game.communityCards = state.communityCards.compactMap { cardData in
+        // Update community cards (but don't clear them if we already have cards and incoming is empty)
+        let incomingCards = state.communityCards.compactMap { cardData -> PlayingCard? in
             guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
                   let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
                 return nil
@@ -435,7 +439,13 @@ final class TexasHoldemViewModel: LayoverViewModel {
             return PlayingCard(rank: rank, suit: suit)
         }
         
-        print("✅ Applied \(game.communityCards.count) community cards")
+        // Only update if incoming has cards OR if we don't have any yet
+        if !incomingCards.isEmpty || game.communityCards.isEmpty {
+            game.communityCards = incomingCards
+            print("✅ Applied \(game.communityCards.count) community cards")
+        } else {
+            print("⚠️ Skipping community card update - keeping existing \(game.communityCards.count) cards")
+        }
         
         // Update player states (but DON'T overwrite own cards)
         for playerState in state.playerStates {

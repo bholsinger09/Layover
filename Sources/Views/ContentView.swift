@@ -9,6 +9,7 @@ public struct ContentView: View {
     )
     @State private var showingCreateRoom = false
     @State private var currentUsername = "User"
+    @State private var currentUserID = UUID() // Persistent user ID
     @State private var editingRoom: Room?
     @State private var navigationPath = NavigationPath()
     @State private var sharePlayReceivedRoom: Room?
@@ -109,9 +110,9 @@ public struct ContentView: View {
             }
             .sheet(isPresented: $showingCreateRoom) {
                 CreateRoomView(
-                    currentUser: User(id: UUID(), username: currentUsername),
+                    currentUser: User(id: currentUserID, username: currentUsername),
                     onCreate: { name, activityType in
-                        let host = User(id: UUID(), username: currentUsername)
+                        let host = User(id: currentUserID, username: currentUsername)
                         await viewModel.createRoom(
                             name: name,
                             host: host,
@@ -257,8 +258,9 @@ public struct ContentView: View {
 
     @ViewBuilder
     private func roomDetailView(for room: Room) -> some View {
-        let currentUser = User(id: UUID(), username: currentUsername)
+        let currentUser = User(id: currentUserID, username: currentUsername)
         let _ = print("🏠 Navigating to room: \(room.name), type: \(room.activityType)")
+        let _ = print("   Current user ID: \(currentUserID)")
 
         switch room.activityType {
         case .appleTVPlus:

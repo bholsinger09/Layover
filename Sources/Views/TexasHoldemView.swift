@@ -68,6 +68,15 @@ struct TexasHoldemView: View {
             // Setup SharePlay callbacks
             viewModel.setupSharePlayCallbacks()
             
+            // Add current user to room participants if not already there
+            if !currentRoom.participantIDs.contains(currentUser.id) {
+                var updatedRoom = currentRoom
+                updatedRoom.participantIDs.insert(currentUser.id)
+                updatedRoom.participants.append(currentUser)
+                currentRoom = updatedRoom
+                print("➕ Added current user to room participants: \(currentUser.id)")
+            }
+            
             // Start watching for game updates from iCloud
             viewModel.startWatchingForGameUpdates(roomID: currentRoom.id)
             
@@ -351,7 +360,7 @@ struct TexasHoldemView: View {
     private func gameView(_ game: TexasHoldemGame) -> some View {
         VStack(spacing: 20) {
             // Opponent's hand (face down until showdown)
-            if let opponentPlayer = game.players.first(where: { $0.id != currentUser.id }) {
+            if let opponentPlayer = game.players.first(where: { $0.userID != currentUser.id }) {
                 opponentHandView(opponentPlayer, showCards: game.gamePhase == .showdown || game.gamePhase == .ended)
             }
             
@@ -367,7 +376,7 @@ struct TexasHoldemView: View {
                 // Turn indicator
                 if game.currentPlayerIndex < game.players.count {
                     let currentPlayer = game.players[game.currentPlayerIndex]
-                    let isMyTurn = currentPlayer.id == currentUser.id
+                    let isMyTurn = currentPlayer.userID == currentUser.id
                     Text(isMyTurn ? "Your Turn" : "Opponent's Turn")
                         .font(.subheadline)
                         .foregroundStyle(isMyTurn ? .green : .orange)
@@ -416,7 +425,7 @@ struct TexasHoldemView: View {
 
             // Controls
             if game.gamePhase != .ended {
-                gameControls(phase: game.gamePhase, isMyTurn: game.players[game.currentPlayerIndex].id == currentUser.id)
+                gameControls(phase: game.gamePhase, isMyTurn: game.players[game.currentPlayerIndex].userID == currentUser.id)
             } else {
                 Button("End Game") {
                     Task {
