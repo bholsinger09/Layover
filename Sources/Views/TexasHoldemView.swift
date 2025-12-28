@@ -152,13 +152,7 @@ struct TexasHoldemView: View {
             print("   ⚠️ SharePlay not active, skipping update")
         }
     }
-                    logger.info("📊 ✅ Updated room participant count to: \(self.currentRoom.participantIDs.count)")
-                }
-            } else {
-                logger.info("   Participant count already correct")
-            }
-        } else {
-            logger.info
+
     private var startGameView: some View {
         VStack(spacing: 20) {
             Image(systemName: "suit.spade.fill")

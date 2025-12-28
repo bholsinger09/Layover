@@ -106,7 +106,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
             }
         }
         
-        sharePlayService.onParticipantCountChanged = { [weak self] count in
+        sharePlayService.onParticipantCountChanged = { count in
             print("👥 SharePlay participant count changed to: \(count)")
             // Trigger UI refresh - this will be picked up by TexasHoldemView's refreshRoomData
         }
