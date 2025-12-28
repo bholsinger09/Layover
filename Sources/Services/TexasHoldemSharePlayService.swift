@@ -36,6 +36,28 @@ final class TexasHoldemSharePlayService {
     func startObserving() {
         logger.info("🔍 Starting SharePlay session observer...")
         setupSessionObserver()
+        
+        // Also check for existing sessions immediately
+        Task {
+            await checkForExistingSessions()
+        }
+    }
+    
+    private func checkForExistingSessions() async {
+        logger.info("🔎 Checking for existing SharePlay sessions...")
+        
+        // Get all active sessions
+        let sessions = TexasHoldemActivity.sessions()
+        
+        // Check if there's already an active session
+        for await session in sessions {
+            logger.info("✨ Found existing SharePlay session!")
+            await handleSession(session)
+            // Only handle the first session
+            break
+        }
+        
+        logger.info("✅ Finished checking for existing sessions")
     }
     
     nonisolated deinit {
