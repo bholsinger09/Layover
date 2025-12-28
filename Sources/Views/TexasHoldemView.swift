@@ -457,7 +457,28 @@ struct TexasHoldemView: View {
 
             // Controls
             if game.gamePhase != .ended {
-                gameControls(phase: game.gamePhase, isMyTurn: game.players[game.currentPlayerIndex].userID == currentUser.id)
+                VStack(spacing: 12) {
+                    gameControls(phase: game.gamePhase, isMyTurn: game.players[game.currentPlayerIndex].userID == currentUser.id)
+                    
+                    // New Game button
+                    Button("Start New Game") {
+                        Task {
+                            await viewModel.endGame()
+                            
+                            var playerIDs = Array(currentRoom.participantIDs)
+                            if !playerIDs.contains(currentUser.id) {
+                                playerIDs.append(currentUser.id)
+                            }
+                            if playerIDs.count < 2 {
+                                playerIDs.append(UUID())
+                            }
+                            
+                            await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .font(.caption)
+                }
             } else {
                 Button("End Game") {
                     Task {
