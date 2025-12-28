@@ -31,6 +31,8 @@ final class TexasHoldemViewModel: LayoverViewModel {
     
     func setupSharePlayCallbacks() {
         print("🔧 Setting up SharePlay callbacks...")
+        print("   Current session active: \(sharePlayService.isSessionActive)")
+        print("   Is host: \(sharePlayService.isHost)")
         
         sharePlayService.onGameStarted = { [weak self] roomID, gameID, playerIDs in
             print("📨 RECEIVED gameStarted message!")
@@ -125,10 +127,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
             
             print("✅ Game started successfully")
             print("   Game ID: \(game.id)")
+            print("   Current game instance: \(currentGame != nil)")
             
             // Broadcast game start to all participants
             if sharePlayService.isSessionActive {
                 print("📤 Broadcasting game start to SharePlay participants...")
+                print("   Sending gameStarted message with roomID: \(roomID)")
                 await sharePlayService.sendMessage(.gameStarted(roomID: roomID, gameID: game.id, playerIDs: players))
                 // Wait a moment for participants to create their game instance
                 try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
