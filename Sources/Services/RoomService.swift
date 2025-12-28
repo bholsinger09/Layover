@@ -178,6 +178,7 @@ final class RoomService: RoomServiceProtocol {
     // MARK: - Game Sync Methods
     
     func saveGame(_ game: TexasHoldemGame) {
+        logger.info("💾 Saving game \(game.id) to iCloud...")
         games[game.id] = game
         saveGames()
         
@@ -185,21 +186,34 @@ final class RoomService: RoomServiceProtocol {
         if let index = rooms.firstIndex(where: { $0.id == game.roomID }) {
             rooms[index].activeGameID = game.id
             saveRooms()
+            logger.info("   ✅ Updated room \(game.roomID) activeGameID")
         }
         
-        logger.info("💾 Saved game \(game.id) to iCloud")
+        logger.info("   ✅ Game saved successfully. Total games: \(games.count)")
     }
     
     func getGame(gameID: UUID) -> TexasHoldemGame? {
-        return games[gameID]
+        logger.info("🔍 Looking for game: \(gameID)")
+        let game = games[gameID]
+        logger.info(game == nil ? "   ❌ Game not found" : "   ✅ Game found")
+        return game
     }
     
     func getActiveGame(for roomID: UUID) -> TexasHoldemGame? {
-        guard let room = rooms.first(where: { $0.id == roomID }),
-              let gameID = room.activeGameID else {
+        logger.info("🔍 Looking for active game in room: \(roomID)")
+        guard let room = rooms.first(where: { $0.id == roomID }) else {
+            logger.info("   ❌ Room not found")
             return nil
         }
-        return games[gameID]
+        
+        guard let gameID = room.activeGameID else {
+            logger.info("   ℹ️ Room has no active game")
+            return nil
+        }
+        
+        let game = games[gameID]
+        logger.info(game == nil ? "   ❌ Game \(gameID) not found in games dict" : "   ✅ Found active game \(gameID)")
+        return game
     }
     
     private func saveGames() {

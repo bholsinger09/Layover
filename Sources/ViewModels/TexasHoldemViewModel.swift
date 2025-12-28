@@ -453,9 +453,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
         Task { @MainActor in
             isLoading = true
             
-            // Check for existing game for a few seconds
+            // Check for existing game - keep checking for up to 10 seconds
             var attempts = 0
-            while currentGame == nil && attempts < 3 {
+            while currentGame == nil && attempts < 10 {
                 // Check if a game has been created
                 if let game = roomService.getActiveGame(for: roomID) {
                     print("🎮 Found active game in iCloud!")
@@ -464,25 +464,35 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     break
                 }
                 
-                // Check every second, up to 3 attempts
+                // Check every second, up to 10 attempts
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 attempts += 1
+                
+                if attempts % 3 == 0 {
+                    print("⏳ Still checking for game... attempt \(attempts)/10")
+                }
             }
             
             isLoading = false
-            print(currentGame == nil ? "ℹ️ No existing game found - ready to start new game" : "✅ Loaded existing game from iCloud")
+            print(currentGame == nil ? "ℹ️ No existing game found after 10 seconds - ready to start new game" : "✅ Loaded existing game from iCloud")
             
-            // Once game is loaded or determined not to exist, continue polling for updates
-            while currentGame != nil {
-                if let updatedGame = roomService.getActiveGame(for: roomID),
-                   updatedGame.id == currentGame?.id {
-                    // Only update if the game state has actually changed
-                    if updatedGame.currentPlayerIndex != currentGame?.currentPlayerIndex ||
-                       updatedGame.pot != currentGame?.pot ||
-                       updatedGame.gamePhase != currentGame?.gamePhase {
-                        print("🔄 Game state updated from iCloud")
-                        currentGame = updatedGame
-                        gameService.loadGame(updatedGame)
+            // Continue polling for updates while waiting for a game OR while a game is active
+            while true {
+                if let game = roomService.getActiveGame(for: roomID) {
+                    if currentGame == nil {
+                        // Game was just created - load it
+                        print("🆕 New game detected in iCloud!")
+                        currentGame = game
+                        gameService.loadGame(game)
+                    } else if game.id == currentGame?.id {
+                        // Update existing game if state changed
+                        if game.currentPlayerIndex != currentGame?.currentPlayerIndex ||
+                           game.pot != currentGame?.pot ||
+                           game.gamePhase != currentGame?.gamePhase {
+                            print("🔄 Game state updated from iCloud")
+                            currentGame = game
+                            gameService.loadGame(game)
+                        }
                     }
                 }
                 
