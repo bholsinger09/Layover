@@ -23,6 +23,9 @@ struct TexasHoldemView: View {
 
     var body: some View {
         let _ = print("🟢 TexasHoldemView body is rendering")
+        let _ = print("   Current room participant count: \(currentRoom.participantIDs.count)")
+        let _ = print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
+        let _ = print("   SharePlay participant count: \(viewModel.sharePlayService.participantCount)")
         VStack(spacing: 0) {
             // Participant count and SharePlay indicator
             HStack {
@@ -114,6 +117,11 @@ struct TexasHoldemView: View {
     }
     
     private func refreshRoomData() async {
+        print("🔄 refreshRoomData called")
+        print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
+        print("   SharePlay participant count: \(viewModel.sharePlayService.participantCount)")
+        print("   Current room participants: \(currentRoom.participantIDs.count)")
+        
         // Update participant count based on SharePlay if active
         if viewModel.sharePlayService.isSessionActive {
             // SharePlay is active - use actual participant count from session
@@ -131,9 +139,15 @@ struct TexasHoldemView: View {
             }
             
             if updatedRoom.participantIDs.count != currentRoom.participantIDs.count {
-                currentRoom = updatedRoom
-                print("📊 Updated room participant count to: \(currentRoom.participantIDs.count)")
+                await MainActor.run {
+                    currentRoom = updatedRoom
+                    print("📊 ✅ Updated room participant count to: \(currentRoom.participantIDs.count)")
+                }
+            } else {
+                print("   Participant count already correct")
             }
+        } else {
+            print("   SharePlay not active, skipping update")
         }
     }
 
