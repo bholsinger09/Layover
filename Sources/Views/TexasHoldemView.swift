@@ -1,8 +1,10 @@
 import SwiftUI
 import GroupActivities
+import OSLog
 
 /// View for Texas Hold'em game rooms
 struct TexasHoldemView: View {
+    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "TexasHoldemView")
     let room: Room
     let currentUser: User
 
@@ -22,10 +24,7 @@ struct TexasHoldemView: View {
     }
 
     var body: some View {
-        let _ = print("🟢 TexasHoldemView body is rendering")
-        let _ = print("   Current room participant count: \(currentRoom.participantIDs.count)")
-        let _ = print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
-        let _ = print("   SharePlay participant count: \(viewModel.sharePlayService.participantCount)")
+        let _ = logger.info("🟢 TexasHoldemView body rendering - Room: \(self.currentRoom.participantIDs.count) participants, SharePlay: \(self.viewModel.sharePlayService.isSessionActive ? "active" : "inactive"), SharePlay count: \(self.viewModel.sharePlayService.participantCount)")
         VStack(spacing: 0) {
             // Participant count and SharePlay indicator
             HStack {
@@ -120,7 +119,7 @@ struct TexasHoldemView: View {
         print("🔄 refreshRoomData called")
         print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
         print("   SharePlay participant count: \(viewModel.sharePlayService.participantCount)")
-        print("   Current room participants: \(currentRoom.participantIDs.count)")
+        logger.info("🔄 refreshRoomData - SharePlay: \(self.viewModel.sharePlayService.isSessionActive ? "active" : "inactive"), SharePlay count: \(self.viewModel.sharePlayService.participantCount), Room count: \(self.currentRoom.participantIDs.count)")
         
         // Update participant count based on SharePlay if active
         if viewModel.sharePlayService.isSessionActive {
@@ -128,29 +127,26 @@ struct TexasHoldemView: View {
             var updatedRoom = currentRoom
             let sharePlayParticipantCount = viewModel.sharePlayService.participantCount
             
-            print("📊 SharePlay active with \(sharePlayParticipantCount) participants")
+            logger.info("📊 SharePlay active with \(sharePlayParticipantCount) participants")
             
             // Ensure room has the correct number of participants
             while updatedRoom.participantIDs.count < sharePlayParticipantCount {
                 let sharePlayParticipantID = UUID()
                 updatedRoom.participantIDs.insert(sharePlayParticipantID)
                 updatedRoom.participants.append(User(id: sharePlayParticipantID, username: "SharePlay User \(updatedRoom.participantIDs.count)"))
-                print("   Added SharePlay participant \(updatedRoom.participantIDs.count)")
+                logger.info("   Added SharePlay participant \(updatedRoom.participantIDs.count)")
             }
             
             if updatedRoom.participantIDs.count != currentRoom.participantIDs.count {
                 await MainActor.run {
                     currentRoom = updatedRoom
-                    print("📊 ✅ Updated room participant count to: \(currentRoom.participantIDs.count)")
+                    logger.info("📊 ✅ Updated room participant count to: \(self.currentRoom.participantIDs.count)")
                 }
             } else {
-                print("   Participant count already correct")
+                logger.info("   Participant count already correct")
             }
         } else {
-            print("   SharePlay not active, skipping update")
-        }
-    }
-
+            logger.info
     private var startGameView: some View {
         VStack(spacing: 20) {
             Image(systemName: "suit.spade.fill")
