@@ -431,7 +431,6 @@ final class TexasHoldemViewModel: LayoverViewModel {
         await sharePlayService.sendMessage(.gameStateUpdate(state))
         print("✅ Game state broadcast complete")
     }
-    }
     
     private func syncGameState() async {
         // Request current game state from host
