@@ -268,6 +268,11 @@ final class TexasHoldemViewModel: LayoverViewModel {
     }
 
     func endGame() async {
+        if let game = currentGame {
+            // Clear game from iCloud
+            roomService.deleteGame(game)
+            print("🗑️ Deleted game from iCloud: \(game.id)")
+        }
         await gameService.endGame()
         currentGame = nil
     }

@@ -240,6 +240,12 @@ struct TexasHoldemView: View {
 
                 Button("Start Game") {
                     Task {
+                        // First, end any existing game to ensure clean start
+                        if viewModel.currentGame != nil {
+                            await viewModel.endGame()
+                            print("🧹 Cleared existing game before starting new one")
+                        }
+                        
                         var playerIDs = Array(currentRoom.participantIDs)
                         
                         // Ensure current user is in the player list

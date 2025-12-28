@@ -19,6 +19,7 @@ protocol RoomServiceProtocol: LayoverService {
     func saveGame(_ game: TexasHoldemGame)
     func getGame(gameID: UUID) -> TexasHoldemGame?
     func getActiveGame(for roomID: UUID) -> TexasHoldemGame?
+    func deleteGame(_ game: TexasHoldemGame)
 }
 
 @MainActor
@@ -222,6 +223,21 @@ final class RoomService: RoomServiceProtocol {
             logger.info("   ✅ Found active game \(gameID)")
         }
         return game
+    }
+    
+    func deleteGame(_ game: TexasHoldemGame) {
+        logger.info("🗑️ Deleting game: \(game.id)")
+        games.removeValue(forKey: game.id)
+        
+        // Also clear the activeGameID from the room
+        if let roomIndex = rooms.firstIndex(where: { $0.id == game.roomID }) {
+            rooms[roomIndex].activeGameID = nil
+            logger.info("   Cleared activeGameID from room")
+        }
+        
+        saveGames()
+        saveRooms()
+        logger.info("   ✅ Game deleted")
     }
     
     private func saveGames() {
