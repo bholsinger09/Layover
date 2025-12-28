@@ -20,7 +20,7 @@ final class TexasHoldemSharePlayService {
     var isHost: Bool = false
     
     // Callbacks
-    var onGameStarted: ((UUID, [UUID]) -> Void)?
+    var onGameStarted: ((UUID, UUID, [UUID]) -> Void)?
     var onGameStateUpdate: ((TexasHoldemGameState) -> Void)?
     var onPlayerAction: ((TexasHoldemMessage.PlayerAction) -> Void)?
     var onPhaseAdvanced: ((TexasHoldemMessage.GamePhase) -> Void)?
@@ -90,8 +90,8 @@ final class TexasHoldemSharePlayService {
         logger.info("📨 Received Texas Hold'em message: \(String(describing: message))")
         
         switch message {
-        case .gameStarted(let gameID, let playerIDs):
-            onGameStarted?(gameID, playerIDs)
+        case .gameStarted(let roomID, let gameID, let playerIDs):
+            onGameStarted?(roomID, gameID, playerIDs)
             
         case .gameStateUpdate(let state):
             onGameStateUpdate?(state)

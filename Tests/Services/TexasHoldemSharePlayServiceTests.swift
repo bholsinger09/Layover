@@ -49,12 +49,14 @@ final class TexasHoldemSharePlayServiceTests: XCTestCase {
     // MARK: - Message Callback Tests
     
     func testGameStartedCallback() async {
+        let expectedRoomID = UUID()
         let expectedGameID = UUID()
         let expectedPlayerIDs = [UUID(), UUID()]
         
         var callbackCalled = false
         
-        service.onGameStarted = { gameID, playerIDs in
+        service.onGameStarted = { roomID, gameID, playerIDs in
+            XCTAssertEqual(roomID, expectedRoomID)
             XCTAssertEqual(gameID, expectedGameID)
             XCTAssertEqual(playerIDs, expectedPlayerIDs)
             callbackCalled = true
@@ -64,7 +66,7 @@ final class TexasHoldemSharePlayServiceTests: XCTestCase {
         XCTAssertNotNil(service.onGameStarted, "Callback should be set")
         
         // Manually trigger callback to test it works
-        service.onGameStarted?(expectedGameID, expectedPlayerIDs)
+        service.onGameStarted?(expectedRoomID, expectedGameID, expectedPlayerIDs)
         XCTAssertTrue(callbackCalled, "Callback should have been called")
     }
     
@@ -158,14 +160,16 @@ final class TexasHoldemMessageTests: XCTestCase {
     let decoder = JSONDecoder()
     
     func testGameStartedMessageEncoding() throws {
+        let roomID = UUID()
         let gameID = UUID()
         let playerIDs = [UUID(), UUID()]
-        let message = TexasHoldemMessage.gameStarted(gameID: gameID, playerIDs: playerIDs)
+        let message = TexasHoldemMessage.gameStarted(roomID: roomID, gameID: gameID, playerIDs: playerIDs)
         
         let data = try encoder.encode(message)
         let decoded = try decoder.decode(TexasHoldemMessage.self, from: data)
         
-        if case .gameStarted(let decodedGameID, let decodedPlayerIDs) = decoded {
+        if case .gameStarted(let decodedRoomID, let decodedGameID, let decodedPlayerIDs) = decoded {
+            XCTAssertEqual(decodedRoomID, roomID)
             XCTAssertEqual(decodedGameID, gameID)
             XCTAssertEqual(decodedPlayerIDs, playerIDs)
         } else {
@@ -435,7 +439,7 @@ final class TexasHoldemActivityTests: XCTestCase {
     }
     
     func testActivityIdentifier() {
-        let activity = TexasHoldemActivity(
+        _ = TexasHoldemActivity(
             roomID: UUID(),
             gameID: UUID(),
             roomName: nil

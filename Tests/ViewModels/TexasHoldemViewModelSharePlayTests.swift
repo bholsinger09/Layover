@@ -301,17 +301,20 @@ final class TexasHoldemViewModelSharePlayTests: XCTestCase {
         viewModel2.setupSharePlayCallbacks()
         
         // Simulate Device 2 receiving game start message
+        var receivedRoomID: UUID?
         var receivedGameID: UUID?
         var receivedPlayerIDs: [UUID]?
         
-        viewModel2.sharePlayService.onGameStarted = { gameID, playerIDs in
+        viewModel2.sharePlayService.onGameStarted = { roomID, gameID, playerIDs in
+            receivedRoomID = roomID
             receivedGameID = gameID
             receivedPlayerIDs = playerIDs
         }
         
         // Manually trigger callback (in production, comes from SharePlay)
-        viewModel2.sharePlayService.onGameStarted?(viewModel.currentGame!.id, [player1ID, player2ID])
+        viewModel2.sharePlayService.onGameStarted?(roomID, viewModel.currentGame!.id, [player1ID, player2ID])
         
+        XCTAssertEqual(receivedRoomID, roomID)
         XCTAssertEqual(receivedGameID, viewModel.currentGame!.id)
         XCTAssertEqual(receivedPlayerIDs, [player1ID, player2ID])
         

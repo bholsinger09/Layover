@@ -28,7 +28,7 @@ struct TexasHoldemActivity: GroupActivity {
 
 /// Messages that can be sent between participants in a Texas Hold'em game
 enum TexasHoldemMessage: Codable {
-    case gameStarted(gameID: UUID, playerIDs: [UUID])
+    case gameStarted(roomID: UUID, gameID: UUID, playerIDs: [UUID])
     case gameStateUpdate(TexasHoldemGameState)
     case playerAction(PlayerAction)
     case phaseAdvanced(GamePhase)

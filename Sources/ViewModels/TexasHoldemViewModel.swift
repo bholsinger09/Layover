@@ -32,8 +32,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func setupSharePlayCallbacks() {
         print("🔧 Setting up SharePlay callbacks...")
         
-        sharePlayService.onGameStarted = { [weak self] gameID, playerIDs in
+        sharePlayService.onGameStarted = { [weak self] roomID, gameID, playerIDs in
             print("📨 RECEIVED gameStarted message!")
+            print("   Room ID: \(roomID)")
             print("   Game ID: \(gameID)")
             print("   Player IDs: \(playerIDs)")
             
@@ -45,15 +46,17 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 // Participant receives game start notification - start the game locally
                 if !self.sharePlayService.isHost && self.currentGame == nil {
                     print("📱 Participant received game start message - starting game locally")
+                    print("   Using roomID: \(roomID)")
                     
-                    // Start the game with the same player IDs as the host
+                    // Start the game with the same roomID and player IDs as the host
                     isLoading = true
                     do {
-                        let game = try await gameService.startGame(roomID: UUID(), players: playerIDs)
+                        let game = try await gameService.startGame(roomID: roomID, players: playerIDs)
                         currentGame = game
                         try await gameService.dealCards()
                         currentGame = gameService.currentGame
                         print("✅ Participant game started successfully")
+                        print("   Game ID: \(game.id)")
                     } catch {
                         errorMessage = error.localizedDescription
                         print("❌ Participant failed to start game: \(error)")
@@ -110,7 +113,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
             // Broadcast game start to all participants
             if sharePlayService.isSessionActive {
                 print("📤 Broadcasting game start to SharePlay participants...")
-                await sharePlayService.sendMessage(.gameStarted(gameID: game.id, playerIDs: players))
+                await sharePlayService.sendMessage(.gameStarted(roomID: roomID, gameID: game.id, playerIDs: players))
+                // Wait a moment for participants to create their game instance
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                 await broadcastGameState()
                 print("✅ Game state broadcasted")
             } else {
