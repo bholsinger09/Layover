@@ -7,6 +7,7 @@ import Observation
 final class TexasHoldemViewModel: LayoverViewModel {
     private let gameService: TexasHoldemServiceProtocol
     let sharePlayService: TexasHoldemSharePlayService
+    private let roomService: RoomServiceProtocol
 
     private(set) var currentGame: TexasHoldemGame?
     private(set) var isLoading = false
@@ -24,9 +25,10 @@ final class TexasHoldemViewModel: LayoverViewModel {
         currentGame?.communityCards ?? []
     }
 
-    init(gameService: TexasHoldemServiceProtocol) {
+    init(gameService: TexasHoldemServiceProtocol, roomService: RoomServiceProtocol? = nil) {
         self.gameService = gameService
         self.sharePlayService = TexasHoldemSharePlayService()
+        self.roomService = roomService ?? RoomService()
     }
     
     func setupSharePlayCallbacks() {
@@ -129,6 +131,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
             print("   Game ID: \(game.id)")
             print("   Current game instance: \(currentGame != nil)")
             
+            // Save game to iCloud for cross-device sync
+            if let currentGame = currentGame {
+                roomService.saveGame(currentGame)
+                print("💾 Saved game to iCloud")
+            }
+            
             // Broadcast game start to all participants
             if sharePlayService.isSessionActive {
                 print("📤 Broadcasting game start to SharePlay participants...")
@@ -155,6 +163,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.bet(playerID: playerID, amount: amount)
             currentGame = gameService.currentGame
+            saveGameState()
             
             // Broadcast action to all participants
             if sharePlayService.isSessionActive {
@@ -172,6 +181,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.fold(playerID: playerID)
             currentGame = gameService.currentGame
+            saveGameState()
             
             // Broadcast action to all participants
             if sharePlayService.isSessionActive {
@@ -189,6 +199,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         do {
             try await gameService.call(playerID: playerID)
             currentGame = gameService.currentGame
+            saveGameState()
             
             // Broadcast action to all participants
             if sharePlayService.isSessionActive {
@@ -425,6 +436,58 @@ final class TexasHoldemViewModel: LayoverViewModel {
             
         case .raise(let playerID, let amount):
             await self.raise(playerID: playerID, amount: amount)
+        }
+    }
+    
+    // MARK: - iCloud Sync Methods
+    
+    private func saveGameState() {
+        guard let game = currentGame else { return }
+        roomService.saveGame(game)
+        print("💾 Saved game state to iCloud")
+    }
+    
+    func startWatchingForGameUpdates(roomID: UUID) {
+        print("👀 Starting to watch for game updates in room: \(roomID)")
+        
+        Task {
+            while currentGame == nil {
+                // Check if a game has been created
+                if let game = roomService.getActiveGame(for: roomID) {
+                    print("🎮 Found active game in iCloud!")
+                    currentGame = game
+                    
+                    // Update the game service with the synced game
+                    if let gameService = gameService as? TexasHoldemService {
+                        gameService.currentGame = game
+                    }
+                    break
+                }
+                
+                // Check every second
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+            
+            // Once game is loaded, continue polling for updates
+            while currentGame != nil {
+                if let updatedGame = roomService.getActiveGame(for: roomID),
+                   updatedGame.id == currentGame?.id {
+                    // Only update if the game state has actually changed
+                    if updatedGame.currentPlayerIndex != currentGame?.currentPlayerIndex ||
+                       updatedGame.pot != currentGame?.pot ||
+                       updatedGame.gamePhase != currentGame?.gamePhase {
+                        print("🔄 Game state updated from iCloud")
+                        currentGame = updatedGame
+                        
+                        if let gameService = gameService as? TexasHoldemService {
+                            gameService.currentGame = updatedGame
+                        }
+                    }
+                }
+                
+                // Poll every 2 seconds
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+            }
         }
     }
 }

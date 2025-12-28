@@ -14,6 +14,11 @@ protocol RoomServiceProtocol: LayoverService {
     func demoteSubHost(roomID: UUID, userID: UUID) async throws
     func deleteRoom(roomID: UUID) async throws
     func fetchRooms() async throws -> [Room]
+    
+    // Game sync methods
+    func saveGame(_ game: TexasHoldemGame)
+    func getGame(gameID: UUID) -> TexasHoldemGame?
+    func getActiveGame(for roomID: UUID) -> TexasHoldemGame?
 }
 
 @MainActor

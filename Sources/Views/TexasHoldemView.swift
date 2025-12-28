@@ -75,6 +75,9 @@ struct TexasHoldemView: View {
             // Setup SharePlay callbacks
             viewModel.setupSharePlayCallbacks()
             
+            // Start watching for game updates from iCloud
+            viewModel.startWatchingForGameUpdates(roomID: currentRoom.id)
+            
             // Periodically refresh room data to get updated participant list
             refreshTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
                 Task {
