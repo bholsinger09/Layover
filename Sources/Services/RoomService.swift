@@ -22,9 +22,12 @@ final class RoomService: RoomServiceProtocol {
     private(set) var rooms: [Room] = []
     private let defaults = NSUbiquitousKeyValueStore.default
     private let roomsKey = "layoverlounge.rooms"
+    private let gamesKey = "layoverlounge.games"
+    private(set) var games: [UUID: TexasHoldemGame] = [:] // gameID -> game
 
     init() {
         loadRooms()
+        loadGames()
         // Observe changes from other devices
         NotificationCenter.default.addObserver(
             self,
@@ -36,6 +39,7 @@ final class RoomService: RoomServiceProtocol {
 
     @objc private func cloudDataChanged() {
         loadRooms()
+        loadGames()
     }
 
     private func loadRooms() {
@@ -46,6 +50,17 @@ final class RoomService: RoomServiceProtocol {
             return
         }
         rooms = decoded
+    }
+    
+    private func loadGames() {
+        guard let data = defaults.data(forKey: gamesKey),
+            let decoded = try? JSONDecoder().decode([UUID: TexasHoldemGame].self, from: data)
+        else {
+            self.games = [:]
+            return
+        }
+        self.games = decoded
+        logger.info("📥 Loaded \(self.games.count) games from iCloud")
     }
 
     private func saveRooms() {
@@ -153,6 +168,42 @@ final class RoomService: RoomServiceProtocol {
     func fetchRooms() async throws -> [Room] {
         loadRooms()
         return rooms
+    }
+    
+    // MARK: - Game Sync Methods
+    
+    func saveGame(_ game: TexasHoldemGame) {
+        games[game.id] = game
+        saveGames()
+        
+        // Update room's active game
+        if let index = rooms.firstIndex(where: { $0.id == game.roomID }) {
+            rooms[index].activeGameID = game.id
+            saveRooms()
+        }
+        
+        logger.info("💾 Saved game \(game.id) to iCloud")
+    }
+    
+    func getGame(gameID: UUID) -> TexasHoldemGame? {
+        return games[gameID]
+    }
+    
+    func getActiveGame(for roomID: UUID) -> TexasHoldemGame? {
+        guard let room = rooms.first(where: { $0.id == roomID }),
+              let gameID = room.activeGameID else {
+            return nil
+        }
+        return games[gameID]
+    }
+    
+    private func saveGames() {
+        guard let encoded = try? JSONEncoder().encode(games) else {
+            logger.error("Failed to encode games")
+            return
+        }
+        defaults.set(encoded, forKey: gamesKey)
+        defaults.synchronize()
     }
 }
 

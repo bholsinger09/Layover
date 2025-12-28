@@ -28,6 +28,7 @@ struct Room: LayoverModel {
     var isPrivate: Bool
     var createdAt: Date
     var metadata: [String: String]
+    var activeGameID: UUID? // Track active Texas Hold'em game
 
     init(
         id: UUID = UUID(),
@@ -40,7 +41,8 @@ struct Room: LayoverModel {
         maxParticipants: Int = RoomConstants.defaultMaxParticipants,
         isPrivate: Bool = false,
         createdAt: Date = Date(),
-        metadata: [String: String] = [:]
+        metadata: [String: String] = [:],
+        activeGameID: UUID? = nil
     ) {
         self.id = id
         self.name = name
@@ -53,6 +55,7 @@ struct Room: LayoverModel {
         self.isPrivate = isPrivate
         self.createdAt = createdAt
         self.metadata = metadata
+        self.activeGameID = activeGameID
     }
 
     var isHost: Bool {
