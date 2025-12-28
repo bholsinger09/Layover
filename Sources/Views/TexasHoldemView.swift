@@ -242,6 +242,12 @@ struct TexasHoldemView: View {
                     Task {
                         var playerIDs = Array(currentRoom.participantIDs)
                         
+                        // Ensure current user is in the player list
+                        if !playerIDs.contains(currentUser.id) {
+                            playerIDs.append(currentUser.id)
+                            print("➕ Added current user to player list: \(currentUser.id)")
+                        }
+                        
                         // Always add AI/computer player if less than 2 players
                         if playerIDs.count < 2 {
                             let aiPlayerID = UUID()
@@ -249,6 +255,7 @@ struct TexasHoldemView: View {
                             print("🤖 Added AI player: \(aiPlayerID)")
                         }
                         
+                        print("🎮 Starting game with player IDs: \(playerIDs)")
                         await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                     }
                 }
@@ -421,6 +428,17 @@ struct TexasHoldemView: View {
             // Player's hand
             if let player = viewModel.getPlayer(for: currentUser.id) {
                 playerHandView(player)
+            } else {
+                // Fallback: if we can't find by currentUser.id, show the second player (participant)
+                // or first player (host) depending on who we are
+                if let game = viewModel.currentGame, game.players.count >= 2 {
+                    let fallbackPlayer = viewModel.sharePlayService.isHost ? game.players[0] : game.players[1]
+                    playerHandView(fallbackPlayer)
+                    let _ = print("⚠️ Using fallback player for display: \(fallbackPlayer.userID)")
+                } else if let game = viewModel.currentGame, let firstPlayer = game.players.first {
+                    playerHandView(firstPlayer)
+                    let _ = print("⚠️ Using first player as fallback: \(firstPlayer.userID)")
+                }
             }
 
             // Controls

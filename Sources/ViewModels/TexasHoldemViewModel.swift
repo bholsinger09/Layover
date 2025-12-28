@@ -50,7 +50,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
             print("📨 RECEIVED gameStarted message!")
             print("   Room ID: \(roomID)")
             print("   Game ID: \(gameID)")
-            print("   Player IDs: \(playerIDs)")
+            print("   Player IDs from host: \(playerIDs)")
             
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
@@ -62,7 +62,8 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     print("📱 Participant received game start message - starting game locally")
                     print("   Using roomID: \(roomID)")
                     
-                    // Start the game with the same roomID and player IDs as the host
+                    // Use the same player IDs from the host
+                    // This ensures both devices have the same player list
                     isLoading = true
                     do {
                         let game = try await gameService.startGame(roomID: roomID, players: playerIDs)
@@ -71,6 +72,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
                         currentGame = gameService.currentGame
                         print("✅ Participant game started successfully")
                         print("   Game ID: \(game.id)")
+                        print("   Players in game: \(game.players.map { $0.userID })")
                     } catch {
                         errorMessage = error.localizedDescription
                         print("❌ Participant failed to start game: \(error)")
