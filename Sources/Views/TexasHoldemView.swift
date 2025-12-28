@@ -116,17 +116,23 @@ struct TexasHoldemView: View {
     private func refreshRoomData() async {
         // Update participant count based on SharePlay if active
         if viewModel.sharePlayService.isSessionActive {
-            // SharePlay is active - assume multiple participants
+            // SharePlay is active - use actual participant count from session
             var updatedRoom = currentRoom
+            let sharePlayParticipantCount = viewModel.sharePlayService.participantCount
             
-            // Add a second participant if SharePlay is active but room only has 1
-            if updatedRoom.participantIDs.count < 2 {
-                // Add a placeholder for SharePlay participant
+            print("📊 SharePlay active with \(sharePlayParticipantCount) participants")
+            
+            // Ensure room has the correct number of participants
+            while updatedRoom.participantIDs.count < sharePlayParticipantCount {
                 let sharePlayParticipantID = UUID()
                 updatedRoom.participantIDs.insert(sharePlayParticipantID)
-                updatedRoom.participants.append(User(id: sharePlayParticipantID, username: "SharePlay User"))
+                updatedRoom.participants.append(User(id: sharePlayParticipantID, username: "SharePlay User \(updatedRoom.participantIDs.count)"))
+                print("   Added SharePlay participant \(updatedRoom.participantIDs.count)")
+            }
+            
+            if updatedRoom.participantIDs.count != currentRoom.participantIDs.count {
                 currentRoom = updatedRoom
-                print("📊 SharePlay active - added SharePlay participant. Total: \(currentRoom.participantIDs.count)")
+                print("📊 Updated room participant count to: \(currentRoom.participantIDs.count)")
             }
         }
     }

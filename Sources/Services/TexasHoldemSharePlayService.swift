@@ -18,6 +18,10 @@ final class TexasHoldemSharePlayService {
         currentSession != nil
     }
     
+    var participantCount: Int {
+        currentSession?.activeParticipants.count ?? 0
+    }
+    
     var isHost: Bool = false
     
     // Callbacks
@@ -27,6 +31,7 @@ final class TexasHoldemSharePlayService {
     var onPhaseAdvanced: ((TexasHoldemMessage.GamePhase) -> Void)?
     var onGameEnded: ((UUID?) -> Void)?
     var onParticipantJoined: (() -> Void)?
+    var onParticipantCountChanged: ((Int) -> Void)?
     
     init() {
         // Don't start observer here - will be started when callbacks are configured
@@ -103,9 +108,15 @@ final class TexasHoldemSharePlayService {
             var previousCount = session.activeParticipants.count
             logger.info("👥 Monitoring participants - initial count: \(previousCount)")
             
+            // Notify initial count
+            onParticipantCountChanged?(previousCount)
+            
             for await participants in session.$activeParticipants.values {
                 let currentCount = participants.count
                 logger.info("👥 Participant count changed: \(previousCount) -> \(currentCount)")
+                
+                // Notify of count change
+                onParticipantCountChanged?(currentCount)
                 
                 // If a new participant joined (count increased), notify host to re-broadcast
                 if currentCount > previousCount && isHost {

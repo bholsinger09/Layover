@@ -106,6 +106,11 @@ final class TexasHoldemViewModel: LayoverViewModel {
             }
         }
         
+        sharePlayService.onParticipantCountChanged = { [weak self] count in
+            print("👥 SharePlay participant count changed to: \(count)")
+            // Trigger UI refresh - this will be picked up by TexasHoldemView's refreshRoomData
+        }
+        
         // Start observing for SharePlay sessions AFTER callbacks are configured
         sharePlayService.startObserving()
         print("✅ SharePlay callbacks configured and observer started")
