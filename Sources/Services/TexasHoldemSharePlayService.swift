@@ -15,10 +15,7 @@ final class TexasHoldemSharePlayService {
     private var participantsTask: Task<Void, Never>?
     
     private(set) var participantCount: Int = 0
-    
-    var isSessionActive: Bool {
-        currentSession != nil
-    }
+    private(set) var isSessionActive: Bool = false
     
     var isHost: Bool = false
     
@@ -87,6 +84,7 @@ final class TexasHoldemSharePlayService {
         }
         
         currentSession = session
+        isSessionActive = true
         messenger = GroupSessionMessenger(session: session)
         
         // Join the session

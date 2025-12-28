@@ -160,6 +160,26 @@ struct TexasHoldemView: View {
                 .font(.title)
                 .fontWeight(.bold)
             
+            // SharePlay Status Indicator
+            if viewModel.sharePlayService.isSessionActive {
+                HStack(spacing: 8) {
+                    Image(systemName: "shareplay")
+                        .foregroundStyle(.green)
+                    Text("SharePlay Active")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("•")
+                        .foregroundStyle(.secondary)
+                    Text("\(viewModel.sharePlayService.participantCount + 1) connected")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.green.opacity(0.15))
+                .cornerRadius(12)
+            }
+            
             // Show loading state if checking for existing game
             if viewModel.isLoading {
                 ProgressView("Checking for active game...")
