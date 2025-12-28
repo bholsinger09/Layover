@@ -53,10 +53,12 @@ final class TexasHoldemSharePlayService {
     private func handleSession(_ session: GroupSession<TexasHoldemActivity>) async {
         logger.info("🃏 Texas Hold'em SharePlay: Session received")
         
-        // Mark as host if we don't have a current session
-        if currentSession == nil {
-            isHost = false
-            logger.info("   Joining existing Texas Hold'em session")
+        // Only mark as participant if we didn't initiate the session
+        // If isHost is already true, we started this session, so keep it true
+        if currentSession == nil && !isHost {
+            logger.info("   Joining existing Texas Hold'em session as participant")
+        } else if isHost {
+            logger.info("   Confirming host role for session we initiated")
         }
         
         currentSession = session
