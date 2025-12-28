@@ -14,9 +14,6 @@ struct TexasHoldemView: View {
     @State private var currentRoom: Room
     @State private var refreshTimer: Timer?
     
-    // SharePlay
-    @State private var isSharePlayPresented = false
-    
     init(room: Room, currentUser: User) {
         self.room = room
         self.currentUser = currentUser
@@ -174,7 +171,9 @@ struct TexasHoldemView: View {
                 // SharePlay Button - prominently displayed
                 if !viewModel.sharePlayService.isSessionActive {
                     Button {
-                        isSharePlayPresented = true
+                        Task {
+                            await activateSharePlay()
+                        }
                     } label: {
                         Label("Start SharePlay", systemImage: "shareplay")
                             .frame(maxWidth: .infinity)
@@ -243,25 +242,6 @@ struct TexasHoldemView: View {
                 }
             }
         }
-        .sheet(isPresented: $isSharePlayPresented) {
-            // When sheet is dismissed, check if SharePlay was activated
-            Task {
-                // Give iOS a moment to process the SharePlay activation
-                try? await Task.sleep(nanoseconds: 500_000_000)
-                if viewModel.sharePlayService.isSessionActive {
-                    print("✅ SharePlay activated successfully")
-                }
-            }
-        } content: {
-            if let activity = createSharePlayActivity() {
-                #if os(iOS)
-                SharePlaySharingView(activity: activity)
-                #else
-                Text("SharePlay sharing controller not available on macOS")
-                    .padding()
-                #endif
-            }
-        }
     }
     
     private func createSharePlayActivity() -> TexasHoldemActivity? {
@@ -271,6 +251,53 @@ struct TexasHoldemView: View {
             gameID: viewModel.currentGame?.id ?? UUID(),
             roomName: room.name
         )
+    }
+    
+    private func activateSharePlay() async {
+        guard let activity = createSharePlayActivity() else {
+            print("❌ Failed to create SharePlay activity")
+            return
+        }
+        
+        print("🚀 Activating SharePlay...")
+        print("   Room ID: \(activity.roomID)")
+        print("   Game ID: \(activity.gameID)")
+        print("   Room Name: \(activity.roomName ?? "nil")")
+        
+        do {
+            // Mark as host before activating
+            viewModel.sharePlayService.isHost = true
+            print("   🏠 Marked as host")
+            
+            // Activate the SharePlay session
+            switch await activity.prepareForActivation() {
+            case .activationPreferred:
+                print("✅ SharePlay activation preferred - activating...")
+                let result = try await activity.activate()
+                print("✅ SharePlay activated successfully! Result: \(result)")
+                
+                // Give it a moment to connect
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                
+                if viewModel.sharePlayService.isSessionActive {
+                    print("🎉 SharePlay session is now active")
+                    print("   Participant count: \(viewModel.sharePlayService.participantCount)")
+                } else {
+                    print("⚠️ SharePlay activated but session not yet active")
+                }
+                
+            case .activationDisabled:
+                print("⚠️ SharePlay activation disabled - not in FaceTime call?")
+                
+            case .cancelled:
+                print("⚠️ SharePlay activation cancelled by user")
+                
+            @unknown default:
+                print("⚠️ Unknown SharePlay activation result")
+            }
+        } catch {
+            print("❌ SharePlay activation failed: \(error)")
+        }
     }
     
     private func detectPlayers() async {
@@ -586,31 +613,6 @@ struct CardView: View {
         .shadow(radius: 2)
     }
 }
-
-#if os(iOS)
-import UIKit
-
-/// SwiftUI wrapper for GroupActivitySharingController
-struct SharePlaySharingView: UIViewControllerRepresentable {
-    let activity: TexasHoldemActivity
-    
-    func makeUIViewController(context: Context) -> GroupActivitySharingController {
-        do {
-            return try GroupActivitySharingController(activity)
-        } catch {
-            print("❌ Failed to create GroupActivitySharingController: \(error)")
-            // Return a fallback controller
-            return GroupActivitySharingController(preparationHandler: {
-                return activity
-            })
-        }
-    }
-    
-    func updateUIViewController(_ uiViewController: GroupActivitySharingController, context: Context) {
-        // No updates needed
-    }
-}
-#endif
 
 #Preview {
     NavigationStack {

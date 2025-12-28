@@ -14,12 +14,10 @@ final class TexasHoldemSharePlayService {
     private var messageTask: Task<Void, Never>?
     private var participantsTask: Task<Void, Never>?
     
+    private(set) var participantCount: Int = 0
+    
     var isSessionActive: Bool {
         currentSession != nil
-    }
-    
-    var participantCount: Int {
-        currentSession?.activeParticipants.count ?? 0
     }
     
     var isHost: Bool = false
@@ -106,21 +104,28 @@ final class TexasHoldemSharePlayService {
         participantsTask?.cancel()
         participantsTask = Task {
             var previousCount = session.activeParticipants.count
-            logger.info("👥 Monitoring participants - initial count: \(previousCount)")
+            print("👥 Monitoring participants - initial count: \(previousCount)")
+            
+            // Update stored count
+            self.participantCount = previousCount
             
             // Notify initial count
             onParticipantCountChanged?(previousCount)
             
             for await participants in session.$activeParticipants.values {
                 let currentCount = participants.count
-                logger.info("👥 Participant count changed: \(previousCount) -> \(currentCount)")
+                print("👥 Participant count changed: \(previousCount) -> \(currentCount)")
+                
+                // Update stored count
+                self.participantCount = currentCount
+                print("👥 SharePlay participant count changed to: \(self.participantCount)")
                 
                 // Notify of count change
                 onParticipantCountChanged?(currentCount)
                 
                 // If a new participant joined (count increased), notify host to re-broadcast
                 if currentCount > previousCount && isHost {
-                    logger.info("🆕 New participant joined - notifying host to re-broadcast state")
+                    print("🆕 New participant joined - notifying host to re-broadcast state")
                     onParticipantJoined?()
                 }
                 

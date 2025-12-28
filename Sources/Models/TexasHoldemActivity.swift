@@ -3,6 +3,8 @@ import GroupActivities
 
 /// SharePlay activity specifically for Texas Hold'em poker game
 struct TexasHoldemActivity: GroupActivity {
+    // IMPORTANT: This identifier must match exactly across all devices and builds
+    // Format: <bundle-id>.<activity-name>
     static let activityIdentifier = "com.bholsinger.LayoverLounge.texasholdem"
     
     let roomID: UUID
