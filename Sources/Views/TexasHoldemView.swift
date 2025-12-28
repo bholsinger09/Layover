@@ -24,7 +24,10 @@ struct TexasHoldemView: View {
     }
 
     var body: some View {
-        let _ = logger.info("🟢 TexasHoldemView body rendering - Room: \(self.currentRoom.participantIDs.count) participants, SharePlay: \(self.viewModel.sharePlayService.isSessionActive ? "active" : "inactive"), SharePlay count: \(self.viewModel.sharePlayService.participantCount)")
+        let _ = print("🟢 TexasHoldemView body rendering")
+        let _ = print("   Room participants: \(currentRoom.participantIDs.count)")
+        let _ = print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
+        let _ = print("   SharePlay count: \(viewModel.sharePlayService.participantCount)")
         VStack(spacing: 0) {
             // Participant count and SharePlay indicator
             HStack {
