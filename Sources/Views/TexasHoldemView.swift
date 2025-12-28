@@ -428,16 +428,20 @@ struct TexasHoldemView: View {
             // Player's hand
             if let player = viewModel.getPlayer(for: currentUser.id) {
                 playerHandView(player)
+                let _ = print("✅ Showing player hand for currentUser.id: \(currentUser.id)")
             } else {
                 // Fallback: if we can't find by currentUser.id, show the second player (participant)
                 // or first player (host) depending on who we are
                 if let game = viewModel.currentGame, game.players.count >= 2 {
-                    let fallbackPlayer = viewModel.sharePlayService.isHost ? game.players[0] : game.players[1]
+                    let playerIndex = viewModel.sharePlayService.isHost ? 0 : 1
+                    let fallbackPlayer = game.players[playerIndex]
                     playerHandView(fallbackPlayer)
-                    let _ = print("⚠️ Using fallback player for display: \(fallbackPlayer.userID)")
+                    let _ = print("⚠️ Using fallback player[\(playerIndex)] for display (isHost=\(viewModel.sharePlayService.isHost)): \(fallbackPlayer.userID)")
+                    let _ = print("   Cards: \(fallbackPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })")
                 } else if let game = viewModel.currentGame, let firstPlayer = game.players.first {
                     playerHandView(firstPlayer)
                     let _ = print("⚠️ Using first player as fallback: \(firstPlayer.userID)")
+                    let _ = print("   Cards: \(firstPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })")
                 }
             }
 

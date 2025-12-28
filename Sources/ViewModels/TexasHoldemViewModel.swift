@@ -153,6 +153,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
             if let currentGame = currentGame {
                 for (index, player) in currentGame.players.enumerated() {
                     print("   Player \(index) (\(player.userID)): \(player.hand.count) cards")
+                    for card in player.hand {
+                        print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
+                    }
                 }
             }
             
@@ -467,7 +470,10 @@ final class TexasHoldemViewModel: LayoverViewModel {
                         return PlayingCard(rank: rank, suit: suit)
                     }
                     game.players[index].hand = incomingHand
-                    print("   ✅ Player \(index) received \(incomingHand.count) cards from host")
+                    print("   ✅ Player \(index) (\(playerState.id)) received \(incomingHand.count) cards from host:")
+                    for card in incomingHand {
+                        print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
+                    }
                 } else if game.gamePhase == .showdown && playerState.cards != nil {
                     // During showdown, update all cards to reveal them
                     let incomingHand = playerState.cards!.compactMap { cardData -> PlayingCard? in
