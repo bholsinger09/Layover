@@ -35,6 +35,10 @@ struct TexasHoldemView: View {
             if !sharePlayStarted && !viewModel.sharePlayService.isSessionActive && viewModel.currentGame == nil {
                 let _ = print("🔵 SharePlay button IS showing (sharePlayStarted=\(!sharePlayStarted), sessionActive=\(!viewModel.sharePlayService.isSessionActive), noGame=\(viewModel.currentGame == nil))")
                 VStack(spacing: 12) {
+                    Text("Both devices must start SharePlay")
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                    
                     Button {
                         print("🔴🔴🔴 BUTTON TAP REGISTERED 🔴🔴🔴")
                         Task {
@@ -43,23 +47,9 @@ struct TexasHoldemView: View {
                             print("   SharePlay activation completed")
                             print("   Session active: \(viewModel.sharePlayService.isSessionActive)")
                             print("   Is host: \(viewModel.sharePlayService.isHost)")
-                            
-                            // Auto-start game after SharePlay is initiated
-                            if currentRoom.participantIDs.count >= 1 {
-                                print("   Waiting 3 seconds for SharePlay to fully connect...")
-                                try? await Task.sleep(nanoseconds: 3_000_000_000) // Wait 3 seconds for SharePlay to connect
-                                if viewModel.currentGame == nil {
-                                    var playerIDs = Array(currentRoom.participantIDs)
-                                    if playerIDs.count < 2 {
-                                        playerIDs.append(UUID()) // Add AI if needed
-                                    }
-                                    print("   Starting game with players: \(playerIDs)")
-                                    await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
-                                }
-                            }
                         }
                     } label: {
-                        Label("Start SharePlay to play together", systemImage: "shareplay")
+                        Label("Start SharePlay", systemImage: "shareplay")
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.red)
