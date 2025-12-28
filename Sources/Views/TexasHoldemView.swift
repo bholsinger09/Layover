@@ -1,4 +1,5 @@
 import SwiftUI
+import GroupActivities
 
 /// View for Texas Hold'em game rooms
 struct TexasHoldemView: View {
@@ -11,6 +12,9 @@ struct TexasHoldemView: View {
     @State private var currentRoom: Room
     @State private var refreshTimer: Timer?
     
+    // SharePlay
+    @State private var isSharePlayPresented = false
+    
     init(room: Room, currentUser: User) {
         self.room = room
         self.currentUser = currentUser
@@ -20,13 +24,30 @@ struct TexasHoldemView: View {
     var body: some View {
         let _ = print("🟢 TexasHoldemView body is rendering")
         VStack(spacing: 0) {
-            // Participant count indicator
+            // Participant count and SharePlay indicator
             HStack {
                 Image(systemName: "person.2.fill")
                     .foregroundStyle(.blue)
                 Text("\(currentRoom.participantIDs.count) player\(currentRoom.participantIDs.count == 1 ? "" : "s")")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                // SharePlay status indicator
+                if viewModel.sharePlayService.isSessionActive {
+                    HStack(spacing: 4) {
+                        Image(systemName: "shareplay")
+                            .foregroundStyle(.green)
+                        Text("SharePlay Active")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.green.opacity(0.15))
+                    .cornerRadius(6)
+                }
             }
             .padding(.horizontal)
             .padding(.top, 8)
@@ -107,10 +128,31 @@ struct TexasHoldemView: View {
                 currentRoom = updatedRoom
                 print("📊 SharePlay active - added SharePlay participant. Total: \(currentRoom.participantIDs.count)")
             }
-        }
-    }
-
-    private var startGameView: some View {
+        }SharePlay")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                // SharePlay Button - prominently displayed
+                if !viewModel.sharePlayService.isSessionActive {
+                    Button {
+                        isSharePlayPresented = true
+                    } label: {
+                        Label("Start SharePlay", systemImage: "shareplay")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.purple)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    
+                    Text("Start SharePlay during a FaceTime call to sync with other players")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                tGameView: some View {
         VStack(spacing: 20) {
             Image(systemName: "suit.spade.fill")
                 .font(.system(size: 80))
@@ -156,6 +198,52 @@ struct TexasHoldemView: View {
                             print("🤖 Added AI player: \(aiPlayerID)")
                         }
                         
+                        await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+
+                if currentRoom.participantIDs.count < 2 {
+                    Text("Playing against computer opponent")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    VStack(spacing: 4) {
+                        Text("\(currentRoom.participantIDs.count) players ready")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                        if viewModel.sharePlayService.isSessionActive {
+                            Text("Syncs via SharePlay")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $isSharePlayPresented) {
+            // When sheet is dismissed, check if SharePlay was activated
+            Task {
+                // Give iOS a moment to process the SharePlay activation
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                if viewModel.sharePlayService.isSessionActive {
+                    print("✅ SharePlay activated successfully")
+                }
+            }
+        } content: {
+            if let activity = createSharePlayActivity() {
+                GroupActivitySharingController(activity)
+            }
+        }
+    }
+    
+    private func createSharePlayActivity() -> TexasHoldemActivity? {
+        // Create the activity for SharePlay
+        return TexasHoldemActivity(
+            roomID: room.id,
+            gameID: viewModel.currentGame?.id ?? UUID(),
+            roomName: room.name
+        )               
                         await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                     }
                 }
