@@ -68,9 +68,8 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     do {
                         let game = try await gameService.startGame(roomID: roomID, players: playerIDs)
                         currentGame = game
-                        try await gameService.dealCards()
-                        currentGame = gameService.currentGame
-                        print("✅ Participant game started successfully")
+                        // DON'T deal cards - participant will receive card state from host via SharePlay
+                        print("✅ Participant game started successfully - waiting for card state from host")
                         print("   Game ID: \(game.id)")
                         print("   Players in game: \(game.players.map { $0.userID })")
                     } catch {
@@ -449,7 +448,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
             print("⚠️ Skipping community card update - keeping existing \(game.communityCards.count) cards")
         }
         
-        // Update player states (but DON'T overwrite own cards)
+        // Update player states
         for playerState in state.playerStates {
             if let index = game.players.firstIndex(where: { $0.userID == playerState.id }) {
                 print("   Updating player \(index): chips=\(playerState.chips), bet=\(playerState.currentBet)")
@@ -457,8 +456,30 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 game.players[index].currentBet = playerState.currentBet
                 game.players[index].isFolded = playerState.hasFolded
                 
-                // DON'T update hand - each player keeps their own cards locally
-                // Only update during showdown when all cards are revealed
+                // Update hand ONLY if we don't have cards yet (participant receiving initial deal)
+                // or during showdown when all cards are revealed
+                if game.players[index].hand.isEmpty && playerState.cards != nil {
+                    let incomingHand = playerState.cards!.compactMap { cardData -> PlayingCard? in
+                        guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
+                              let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
+                            return nil
+                        }
+                        return PlayingCard(rank: rank, suit: suit)
+                    }
+                    game.players[index].hand = incomingHand
+                    print("   ✅ Player \(index) received \(incomingHand.count) cards from host")
+                } else if game.gamePhase == .showdown && playerState.cards != nil {
+                    // During showdown, update all cards to reveal them
+                    let incomingHand = playerState.cards!.compactMap { cardData -> PlayingCard? in
+                        guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
+                              let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
+                            return nil
+                        }
+                        return PlayingCard(rank: rank, suit: suit)
+                    }
+                    game.players[index].hand = incomingHand
+                    print("   ✅ Showdown: revealed player \(index) cards")
+                }
             }
         }
         
