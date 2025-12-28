@@ -312,16 +312,26 @@ final class TexasHoldemViewModel: LayoverViewModel {
         errorMessage = nil
         
         do {
+            print("🎴 dealFlop called - current community cards: \(currentGame?.communityCards.count ?? 0)")
             try await gameService.dealFlop()
             currentGame = gameService.currentGame
+            print("✅ Flop dealt - now have \(currentGame?.communityCards.count ?? 0) community cards")
+            if let cards = currentGame?.communityCards {
+                for card in cards {
+                    print("   - \(card.rank.rawValue) of \(card.suit.rawValue)")
+                }
+            }
             
             // Broadcast phase change
             if sharePlayService.isSessionActive {
+                print("📤 Broadcasting flop to SharePlay...")
                 await sharePlayService.sendMessage(.phaseAdvanced(.flop))
                 await broadcastGameState()
+                print("✅ Flop broadcast complete")
             }
         } catch {
             errorMessage = error.localizedDescription
+            print("❌ dealFlop failed: \(error)")
         }
     }
     
@@ -448,10 +458,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
             return PlayingCard(rank: rank, suit: suit)
         }
         
+        print("🃏 Community card sync - current: \(game.communityCards.count), incoming: \(incomingCards.count)")
+        
         // Only update if incoming has cards OR if we don't have any yet
         if !incomingCards.isEmpty || game.communityCards.isEmpty {
             game.communityCards = incomingCards
             print("✅ Applied \(game.communityCards.count) community cards")
+            for card in game.communityCards {
+                print("   - \(card.rank.rawValue) of \(card.suit.rawValue)")
+            }
         } else {
             print("⚠️ Skipping community card update - keeping existing \(game.communityCards.count) cards")
         }
@@ -564,12 +579,24 @@ final class TexasHoldemViewModel: LayoverViewModel {
                         gameService.loadGame(game)
                     } else if game.id == currentGame?.id {
                         // Update existing game if state changed
-                        if game.currentPlayerIndex != currentGame?.currentPlayerIndex ||
+                        // But DON'T overwrite if we have more community cards locally
+                        let shouldUpdate = game.currentPlayerIndex != currentGame?.currentPlayerIndex ||
                            game.pot != currentGame?.pot ||
-                           game.gamePhase != currentGame?.gamePhase {
+                           game.gamePhase != currentGame?.gamePhase
+                        
+                        if shouldUpdate {
                             print("🔄 Game state updated from iCloud")
-                            currentGame = game
-                            gameService.loadGame(game)
+                            // Preserve community cards if we have more locally
+                            if let current = currentGame, game.communityCards.count < current.communityCards.count {
+                                print("   ⚠️ iCloud has fewer community cards (\(game.communityCards.count)) than local (\(current.communityCards.count)) - keeping local")
+                                var updatedGame = game
+                                updatedGame.communityCards = current.communityCards
+                                currentGame = updatedGame
+                                gameService.loadGame(updatedGame)
+                            } else {
+                                currentGame = game
+                                gameService.loadGame(game)
+                            }
                         }
                     }
                 }
