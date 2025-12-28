@@ -232,7 +232,12 @@ struct TexasHoldemView: View {
             }
         } content: {
             if let activity = createSharePlayActivity() {
+                #if os(iOS)
                 GroupActivitySharingController(activity)
+                #else
+                Text("SharePlay sharing controller not available on macOS")
+                    .padding()
+                #endif
             }
         }
     }

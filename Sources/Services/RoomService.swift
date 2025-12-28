@@ -189,13 +189,17 @@ final class RoomService: RoomServiceProtocol {
             logger.info("   ✅ Updated room \(game.roomID) activeGameID")
         }
         
-        logger.info("   ✅ Game saved successfully. Total games: \(games.count)")
+        logger.info("   ✅ Game saved successfully. Total games: \(self.games.count)")
     }
     
     func getGame(gameID: UUID) -> TexasHoldemGame? {
         logger.info("🔍 Looking for game: \(gameID)")
         let game = games[gameID]
-        logger.info(game == nil ? "   ❌ Game not found" : "   ✅ Game found")
+        if game == nil {
+            logger.info("   ❌ Game not found")
+        } else {
+            logger.info("   ✅ Game found")
+        }
         return game
     }
     
@@ -212,7 +216,11 @@ final class RoomService: RoomServiceProtocol {
         }
         
         let game = games[gameID]
-        logger.info(game == nil ? "   ❌ Game \(gameID) not found in games dict" : "   ✅ Found active game \(gameID)")
+        if game == nil {
+            logger.info("   ❌ Game \(gameID) not found in games dict")
+        } else {
+            logger.info("   ✅ Found active game \(gameID)")
+        }
         return game
     }
     
