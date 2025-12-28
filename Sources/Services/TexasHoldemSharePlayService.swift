@@ -12,6 +12,7 @@ final class TexasHoldemSharePlayService {
     private var messenger: GroupSessionMessenger?
     private var sessionTask: Task<Void, Never>?
     private var messageTask: Task<Void, Never>?
+    private var participantsTask: Task<Void, Never>?
     
     var isSessionActive: Bool {
         currentSession != nil
@@ -25,6 +26,7 @@ final class TexasHoldemSharePlayService {
     var onPlayerAction: ((TexasHoldemMessage.PlayerAction) -> Void)?
     var onPhaseAdvanced: ((TexasHoldemMessage.GamePhase) -> Void)?
     var onGameEnded: ((UUID?) -> Void)?
+    var onParticipantJoined: (() -> Void)?
     
     init() {
         // Don't start observer here - will be started when callbacks are configured
@@ -66,6 +68,30 @@ final class TexasHoldemSharePlayService {
         
         // Start listening for messages
         setupMessageListener()
+        
+        // Monitor participant changes to re-broadcast state when new participants join
+        setupParticipantMonitoring(session: session)
+    }
+    
+    private func setupParticipantMonitoring(session: GroupSession<TexasHoldemActivity>) {
+        participantsTask?.cancel()
+        participantsTask = Task {
+            var previousCount = session.activeParticipants.count
+            logger.info("👥 Monitoring participants - initial count: \(previousCount)")
+            
+            for await participants in session.$activeParticipants.values {
+                let currentCount = participants.count
+                logger.info("👥 Participant count changed: \(previousCount) -> \(currentCount)")
+                
+                // If a new participant joined (count increased), notify host to re-broadcast
+                if currentCount > previousCount && isHost {
+                    logger.info("🆕 New participant joined - notifying host to re-broadcast state")
+                    onParticipantJoined?()
+                }
+                
+                previousCount = currentCount
+            }
+        }
     }
     
     private func setupMessageListener() {
@@ -166,6 +192,9 @@ final class TexasHoldemSharePlayService {
         
         messageTask?.cancel()
         messageTask = nil
+        
+        participantsTask?.cancel()
+        participantsTask = nil
         
         currentSession?.leave()
         currentSession = nil

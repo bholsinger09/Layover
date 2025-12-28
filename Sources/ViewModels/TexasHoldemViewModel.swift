@@ -86,6 +86,22 @@ final class TexasHoldemViewModel: LayoverViewModel {
             }
         }
         
+        sharePlayService.onParticipantJoined = { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                print("🆕 New participant joined - re-broadcasting game state")
+                
+                // If we're the host and have a game, re-broadcast the state
+                if self.sharePlayService.isHost, let game = self.currentGame {
+                    print("   Broadcasting gameStarted and game state to new participant")
+                    await self.sharePlayService.sendMessage(.gameStarted(roomID: game.roomID, gameID: game.id, playerIDs: game.players.map { $0.userID }))
+                    // Small delay to ensure participant has set up their listener
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                    await self.broadcastGameState()
+                }
+            }
+        }
+        
         // Start observing for SharePlay sessions AFTER callbacks are configured
         sharePlayService.startObserving()
         print("✅ SharePlay callbacks configured and observer started")
