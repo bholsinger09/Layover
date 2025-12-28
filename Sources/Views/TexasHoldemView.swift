@@ -128,7 +128,24 @@ struct TexasHoldemView: View {
                 currentRoom = updatedRoom
                 print("📊 SharePlay active - added SharePlay participant. Total: \(currentRoom.participantIDs.count)")
             }
-        }SharePlay")
+        }
+    }
+
+    private var startGameView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "suit.spade.fill")
+                .font(.system(size: 80))
+                .foregroundStyle(.red)
+
+            Text("Texas Hold'em")
+                .font(.title)
+                .fontWeight(.bold)
+            
+            // Show loading state if checking for existing game
+            if viewModel.isLoading {
+                ProgressView("Checking for active game...")
+                    .padding()
+                Text("Game syncs automatically via SharePlay")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
@@ -152,24 +169,7 @@ struct TexasHoldemView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                 }
-                tGameView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "suit.spade.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(.red)
-
-            Text("Texas Hold'em")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            // Show loading state if checking for existing game
-            if viewModel.isLoading {
-                ProgressView("Checking for active game...")
-                    .padding()
-                Text("Game syncs automatically via iCloud")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
+                
                 // Detect Players Button
                 if currentRoom.participantIDs.count < 2 {
                     Button {
@@ -243,28 +243,7 @@ struct TexasHoldemView: View {
             roomID: room.id,
             gameID: viewModel.currentGame?.id ?? UUID(),
             roomName: room.name
-        )               
-                        await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-
-                if currentRoom.participantIDs.count < 2 {
-                    Text("Playing against computer opponent")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    VStack(spacing: 4) {
-                        Text("\(currentRoom.participantIDs.count) players ready")
-                            .font(.caption)
-                            .foregroundStyle(.green)
-                        Text("Syncs automatically across devices")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        }
+        )
     }
     
     private func detectPlayers() async {
