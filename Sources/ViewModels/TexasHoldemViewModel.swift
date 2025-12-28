@@ -263,7 +263,13 @@ final class TexasHoldemViewModel: LayoverViewModel {
     }
 
     func getPlayer(for userID: UUID) -> TexasHoldemPlayer? {
-        currentGame?.players.first { $0.userID == userID }
+        let player = currentGame?.players.first { $0.userID == userID }
+        if let player = player {
+            print("🃏 getPlayer for \(userID): found with \(player.hand.count) cards")
+        } else {
+            print("⚠️ getPlayer for \(userID): not found")
+        }
+        return player
     }
     
     func check(playerID: UUID) async {
@@ -394,7 +400,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
     
     private func applyGameState(_ state: TexasHoldemGameState) async {
         // Update local game state from SharePlay message
-        guard var game = currentGame else { return }
+        guard var game = currentGame else {
+            print("⚠️ applyGameState: No current game")
+            return
+        }
+        
+        print("📥 Applying game state from SharePlay")
+        print("   Phase: \(state.phase)")
+        print("   Community cards: \(state.communityCards.count)")
+        print("   Players: \(state.playerStates.count)")
         
         // Update basic game state
         game.currentPlayerIndex = state.currentPlayerIndex
@@ -415,27 +429,23 @@ final class TexasHoldemViewModel: LayoverViewModel {
             return PlayingCard(rank: rank, suit: suit)
         }
         
-        // Update player states
+        print("✅ Applied \(game.communityCards.count) community cards")
+        
+        // Update player states (but DON'T overwrite own cards)
         for playerState in state.playerStates {
             if let index = game.players.firstIndex(where: { $0.userID == playerState.id }) {
+                print("   Updating player \(index): chips=\(playerState.chips), bet=\(playerState.currentBet)")
                 game.players[index].chips = playerState.chips
                 game.players[index].currentBet = playerState.currentBet
                 game.players[index].isFolded = playerState.hasFolded
                 
-                // Only update hand if cards are visible (showdown)
-                if let cards = playerState.cards {
-                    game.players[index].hand = cards.compactMap { cardData in
-                        guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
-                              let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
-                            return nil
-                        }
-                        return PlayingCard(rank: rank, suit: suit)
-                    }
-                }
+                // DON'T update hand - each player keeps their own cards locally
+                // Only update during showdown when all cards are revealed
             }
         }
         
         currentGame = game
+        print("✅ Game state applied successfully")
     }
     
     private func handlePlayerAction(_ action: TexasHoldemMessage.PlayerAction) async {
