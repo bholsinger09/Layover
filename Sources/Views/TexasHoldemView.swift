@@ -122,7 +122,7 @@ struct TexasHoldemView: View {
         print("🔄 refreshRoomData called")
         print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
         print("   SharePlay participant count: \(viewModel.sharePlayService.participantCount)")
-        logger.info("🔄 refreshRoomData - SharePlay: \(self.viewModel.sharePlayService.isSessionActive ? "active" : "inactive"), SharePlay count: \(self.viewModel.sharePlayService.participantCount), Room count: \(self.currentRoom.participantIDs.count)")
+        print("   Room participant count: \(currentRoom.participantIDs.count)")
         
         // Update participant count based on SharePlay if active
         if viewModel.sharePlayService.isSessionActive {
@@ -130,19 +130,28 @@ struct TexasHoldemView: View {
             var updatedRoom = currentRoom
             let sharePlayParticipantCount = viewModel.sharePlayService.participantCount
             
-            logger.info("📊 SharePlay active with \(sharePlayParticipantCount) participants")
+            print("📊 SharePlay active with \(sharePlayParticipantCount) participants")
             
             // Ensure room has the correct number of participants
             while updatedRoom.participantIDs.count < sharePlayParticipantCount {
                 let sharePlayParticipantID = UUID()
                 updatedRoom.participantIDs.insert(sharePlayParticipantID)
                 updatedRoom.participants.append(User(id: sharePlayParticipantID, username: "SharePlay User \(updatedRoom.participantIDs.count)"))
-                logger.info("   Added SharePlay participant \(updatedRoom.participantIDs.count)")
+                print("   ➕ Added SharePlay participant #\(updatedRoom.participantIDs.count)")
             }
             
             if updatedRoom.participantIDs.count != currentRoom.participantIDs.count {
                 await MainActor.run {
                     currentRoom = updatedRoom
+                    print("📊 ✅ Updated room participant count to: \(self.currentRoom.participantIDs.count)")
+                }
+            } else {
+                print("   ✓ Participant count already correct")
+            }
+        } else {
+            print("   ⚠️ SharePlay not active, skipping update")
+        }
+    }
                     logger.info("📊 ✅ Updated room participant count to: \(self.currentRoom.participantIDs.count)")
                 }
             } else {
