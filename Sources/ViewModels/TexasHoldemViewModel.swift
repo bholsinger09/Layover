@@ -148,6 +148,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
             print("✅ Game started successfully")
             print("   Game ID: \(game.id)")
             print("   Current game instance: \(currentGame != nil)")
+            print("   Players: \(currentGame?.players.count ?? 0)")
+            if let currentGame = currentGame {
+                for (index, player) in currentGame.players.enumerated() {
+                    print("   Player \(index) (\(player.userID)): \(player.hand.count) cards")
+                }
+            }
             
             // Save game to iCloud for cross-device sync
             if let currentGame = currentGame {

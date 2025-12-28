@@ -203,6 +203,9 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
             throw GameError.invalidMove
         }
         
+        // Shuffle remaining deck for randomness
+        deck.shuffle()
+        
         // Deal the flop (3 cards)
         game.communityCards = [deck.removeFirst(), deck.removeFirst(), deck.removeFirst()]
         game.gamePhase = .flop
@@ -220,6 +223,9 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
             throw GameError.invalidMove
         }
         
+        // Shuffle remaining deck for randomness
+        deck.shuffle()
+        
         // Deal the turn (1 card)
         game.communityCards.append(deck.removeFirst())
         game.gamePhase = .turn
@@ -236,6 +242,9 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         guard game.gamePhase == .turn else {
             throw GameError.invalidMove
         }
+        
+        // Shuffle remaining deck for randomness
+        deck.shuffle()
         
         // Deal the river (1 card)
         game.communityCards.append(deck.removeFirst())
