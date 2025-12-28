@@ -398,7 +398,16 @@ final class TexasHoldemViewModel: LayoverViewModel {
     }
     
     private func broadcastGameState() async {
-        guard let game = currentGame else { return }
+        guard let game = currentGame else {
+            print("⚠️ broadcastGameState: No current game to broadcast")
+            return
+        }
+        
+        print("📡 Broadcasting game state...")
+        print("   Community cards: \(game.communityCards.count)")
+        for card in game.communityCards {
+            print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
+        }
         
         let state = TexasHoldemGameState(
             gameID: game.id,
@@ -418,7 +427,10 @@ final class TexasHoldemViewModel: LayoverViewModel {
             }
         )
         
+        print("📤 Sending gameStateUpdate message with \(state.communityCards.count) community cards")
         await sharePlayService.sendMessage(.gameStateUpdate(state))
+        print("✅ Game state broadcast complete")
+    }
     }
     
     private func syncGameState() async {

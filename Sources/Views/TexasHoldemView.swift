@@ -426,7 +426,11 @@ struct TexasHoldemView: View {
 
             // Community cards
             if !game.communityCards.isEmpty {
+                let _ = print("🎴 Displaying \(game.communityCards.count) community cards:")
+                let _ = game.communityCards.forEach { print("   - \($0.rank.rawValue) of \($0.suit.rawValue)") }
                 communityCardsView(game.communityCards)
+            } else {
+                let _ = print("⚠️ No community cards to display")
             }
 
             Spacer()
