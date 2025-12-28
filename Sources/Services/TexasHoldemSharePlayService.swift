@@ -20,6 +20,7 @@ final class TexasHoldemSharePlayService {
     var isHost: Bool = false
     
     // Callbacks
+    var onSessionActivated: (() -> Void)?
     var onGameStarted: ((UUID, UUID, [UUID]) -> Void)?
     var onGameStateUpdate: ((TexasHoldemGameState) -> Void)?
     var onPlayerAction: ((TexasHoldemMessage.PlayerAction) -> Void)?
@@ -100,6 +101,10 @@ final class TexasHoldemSharePlayService {
         currentSession = session
         isSessionActive = true
         messenger = GroupSessionMessenger(session: session)
+        
+        // Notify that session is now active
+        print("📢 Calling onSessionActivated callback")
+        onSessionActivated?()
         
         // Join the session
         session.join()

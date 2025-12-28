@@ -160,8 +160,9 @@ struct TexasHoldemView: View {
                 .font(.title)
                 .fontWeight(.bold)
             
-            // SharePlay Status Indicator
+            // SharePlay Status Indicator - reference viewModel.sharePlayStateVersion to trigger updates
             if viewModel.sharePlayService.isSessionActive {
+                let _ = viewModel.sharePlayStateVersion // Force dependency
                 HStack(spacing: 8) {
                     Image(systemName: "shareplay")
                         .foregroundStyle(.green)

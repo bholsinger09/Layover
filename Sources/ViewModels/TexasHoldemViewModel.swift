@@ -12,6 +12,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
     private(set) var currentGame: TexasHoldemGame?
     private(set) var isLoading = false
     var errorMessage: String?
+    
+    // Trigger for SharePlay state changes
+    private(set) var sharePlayStateVersion: Int = 0
 
     var currentPhase: TexasHoldemGame.GamePhase {
         currentGame?.gamePhase ?? .preFlop
@@ -35,6 +38,13 @@ final class TexasHoldemViewModel: LayoverViewModel {
         print("🔧 Setting up SharePlay callbacks...")
         print("   Current session active: \(sharePlayService.isSessionActive)")
         print("   Is host: \(sharePlayService.isHost)")
+        
+        sharePlayService.onSessionActivated = { [weak self] in
+            Task { @MainActor in
+                print("🎊 SharePlay session activated - triggering UI update")
+                self?.sharePlayStateVersion += 1
+            }
+        }
         
         sharePlayService.onGameStarted = { [weak self] roomID, gameID, playerIDs in
             print("📨 RECEIVED gameStarted message!")
@@ -106,9 +116,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
             }
         }
         
-        sharePlayService.onParticipantCountChanged = { count in
-            print("👥 SharePlay participant count changed to: \(count)")
-            // Trigger UI refresh - this will be picked up by TexasHoldemView's refreshRoomData
+        sharePlayService.onParticipantCountChanged = { [weak self] count in
+            Task { @MainActor in
+                print("👥 SharePlay participant count changed to: \(count)")
+                // Trigger UI refresh by updating version counter
+                self?.sharePlayStateVersion += 1
+            }
         }
         
         // Start observing for SharePlay sessions AFTER callbacks are configured
