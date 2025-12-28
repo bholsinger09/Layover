@@ -573,7 +573,15 @@ struct SharePlaySharingView: UIViewControllerRepresentable {
     let activity: TexasHoldemActivity
     
     func makeUIViewController(context: Context) -> GroupActivitySharingController {
-        return GroupActivitySharingController(activity)
+        do {
+            return try GroupActivitySharingController(activity)
+        } catch {
+            print("❌ Failed to create GroupActivitySharingController: \(error)")
+            // Return a fallback controller
+            return GroupActivitySharingController(preparationHandler: {
+                return activity
+            })
+        }
     }
     
     func updateUIViewController(_ uiViewController: GroupActivitySharingController, context: Context) {
