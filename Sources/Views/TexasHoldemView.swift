@@ -233,7 +233,7 @@ struct TexasHoldemView: View {
         } content: {
             if let activity = createSharePlayActivity() {
                 #if os(iOS)
-                GroupActivitySharingController(activity)
+                SharePlaySharingView(activity: activity)
                 #else
                 Text("SharePlay sharing controller not available on macOS")
                     .padding()
@@ -564,6 +564,23 @@ struct CardView: View {
         .shadow(radius: 2)
     }
 }
+
+#if os(iOS)
+import UIKit
+
+/// SwiftUI wrapper for GroupActivitySharingController
+struct SharePlaySharingView: UIViewControllerRepresentable {
+    let activity: TexasHoldemActivity
+    
+    func makeUIViewController(context: Context) -> GroupActivitySharingController {
+        return GroupActivitySharingController(activity)
+    }
+    
+    func updateUIViewController(_ uiViewController: GroupActivitySharingController, context: Context) {
+        // No updates needed
+    }
+}
+#endif
 
 #Preview {
     NavigationStack {
