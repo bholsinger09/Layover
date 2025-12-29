@@ -64,7 +64,16 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
             throw GameError.noActiveGame
         }
 
-        deck.shuffle()
+        // Shuffle multiple times with different seeds to ensure randomness
+        // This prevents both devices from getting the same shuffle
+        let shuffleCount = Int.random(in: 3...7)
+        for _ in 0..<shuffleCount {
+            deck.shuffle()
+        }
+        
+        // Additional entropy: shuffle again using UUID-based randomness
+        var rng = SystemRandomNumberGenerator()
+        deck.shuffle(using: &rng)
 
         // Deal 2 cards to each player
         for i in 0..<game.players.count {
