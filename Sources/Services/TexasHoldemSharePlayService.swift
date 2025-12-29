@@ -36,6 +36,8 @@ final class TexasHoldemSharePlayService {
     
     func startObserving() {
         logger.info("🔍 Starting SharePlay session observer...")
+        print("🔍 ===== STARTING SHAREPLAY OBSERVER =====")
+        print("🔍 startObserving() called")
         setupSessionObserver()
         
         // Also check for existing sessions immediately
@@ -73,6 +75,7 @@ final class TexasHoldemSharePlayService {
     }
     
     private func setupSessionObserver() {
+        print("👁️ ===== SETTING UP SESSION OBSERVER =====")
         sessionTask = Task {
             print("👁️ Session observer loop started - waiting for sessions...")
             var iterationCount = 0
@@ -85,6 +88,7 @@ final class TexasHoldemSharePlayService {
             }
             print("⚠️ Session observer loop ended")
         }
+        print("✅ Session observer task created")
     }
     
     private func handleSession(_ session: GroupSession<TexasHoldemActivity>) async {
