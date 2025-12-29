@@ -604,9 +604,8 @@ struct TexasHoldemView: View {
                     .foregroundStyle(.secondary)
                     .padding()
             } else {
-                // Actions based on phase
-                if phase == .preFlop || phase == .flop {
-                    // Preflop and Flop: Call or Fold only
+                // All poker actions available
+                VStack(spacing: 12) {
                     HStack(spacing: 12) {
                         Button("Fold") {
                             Task {
@@ -616,25 +615,6 @@ struct TexasHoldemView: View {
                         .buttonStyle(.bordered)
                         .tint(.red)
                         .frame(maxWidth: .infinity)
-
-                        Button("Call") {
-                            Task {
-                                await viewModel.call(playerID: currentUser.id)
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
-                    }
-                } else {
-                    // Turn and River: Call, Check, Raise, or Fold
-                    HStack(spacing: 12) {
-                        Button("Fold") {
-                            Task {
-                                await viewModel.fold(playerID: currentUser.id)
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
 
                         Button("Check") {
                             Task {
@@ -642,6 +622,9 @@ struct TexasHoldemView: View {
                             }
                         }
                         .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity)
+                        .disabled(phase == .preFlop || phase == .flop)
+                        .opacity((phase == .preFlop || phase == .flop) ? 0.5 : 1.0)
                     }
                     
                     HStack(spacing: 12) {
@@ -651,6 +634,7 @@ struct TexasHoldemView: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
 
                         Button("Raise") {
                             Task {
@@ -659,6 +643,7 @@ struct TexasHoldemView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
+                        .frame(maxWidth: .infinity)
                     }
                 }
             }
