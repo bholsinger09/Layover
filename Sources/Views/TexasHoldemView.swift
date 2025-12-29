@@ -377,7 +377,6 @@ struct TexasHoldemView: View {
                 if let opponentPlayer = game.players.first(where: { $0.userID != currentUser.id }) {
                     opponentHandView(opponentPlayer, showCards: game.gamePhase == .showdown || game.gamePhase == .ended)
                 }
-                
                 // Game phase and pot
                 VStack(spacing: 8) {
                     Text(game.gamePhase.rawValue.capitalized)
@@ -488,6 +487,9 @@ struct TexasHoldemView: View {
             .padding()
             .padding(.bottom, 20)
         }
+        #if os(macOS)
+        .frame(minHeight: 600)
+        #endif
     }
     
     private func advancePhase() async {
