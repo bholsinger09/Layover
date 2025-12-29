@@ -403,18 +403,33 @@ struct TexasHoldemView: View {
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
-                // Deck - Click to advance phase
+                // Deck - Click to advance phase (host only in SharePlay)
                 if game.gamePhase != .ended && game.gamePhase != .showdown {
-                    Button {
-                        Task {
-                            await advancePhase()
+                    if !viewModel.sharePlayService.isSessionActive || viewModel.sharePlayService.isHost {
+                        Button {
+                            Task {
+                                await advancePhase()
+                            }
+                        } label: {
+                            VStack(spacing: 8) {
+                                Image(systemName: "square.stack.3d.up.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundStyle(.blue)
+                                Text("Tap to deal")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(width: 100, height: 100)
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                    } label: {
+                    } else {
+                        // Waiting indicator for non-host participants
                         VStack(spacing: 8) {
                             Image(systemName: "square.stack.3d.up.fill")
                                 .font(.system(size: 50))
-                                .foregroundStyle(.blue)
-                            Text("Tap to deal")
+                                .foregroundStyle(.gray)
+                            Text("Waiting for host")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
