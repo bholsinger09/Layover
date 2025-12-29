@@ -596,79 +596,83 @@ struct TexasHoldemView: View {
 
     private func gameControls(phase: TexasHoldemGame.GamePhase, isMyTurn: Bool) -> some View {
         VStack(spacing: 12) {
+            // Show waiting message when not your turn, but keep controls visible (disabled)
             if !isMyTurn {
                 Text("Waiting for opponent...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .padding()
-            } else {
-                // Bet amount slider
-                VStack(spacing: 8) {
-                    HStack {
-                        Text("Bet Amount:")
-                            .font(.subheadline)
-                        Spacer()
-                        Text("$\(betAmount)")
-                            .font(.headline)
-                            .foregroundStyle(.green)
-                    }
-                    
-                    Slider(value: Binding(
-                        get: { Double(betAmount) },
-                        set: { betAmount = Int($0) }
-                    ), in: 10...100, step: 10)
-                    .tint(.green)
+                    .padding(.vertical, 4)
+            }
+            
+            // Bet amount slider - always visible
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Bet Amount:")
+                        .font(.subheadline)
+                    Spacer()
+                    Text("$\(betAmount)")
+                        .font(.headline)
+                        .foregroundStyle(.green)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
                 
-                // All poker actions available
-                VStack(spacing: 12) {
-                    HStack(spacing: 12) {
-                        Button("Fold") {
-                            Task {
-                                await viewModel.fold(playerID: currentUser.id)
-                            }
+                Slider(value: Binding(
+                    get: { Double(betAmount) },
+                    set: { betAmount = Int($0) }
+                ), in: 10...100, step: 10)
+                .tint(.green)
+                .disabled(!isMyTurn)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .opacity(isMyTurn ? 1.0 : 0.6)
+            
+            // All poker actions available - always visible
+            VStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    Button("Fold") {
+                        Task {
+                            await viewModel.fold(playerID: currentUser.id)
                         }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
-                        .frame(maxWidth: .infinity)
-
-                        Button("Check") {
-                            Task {
-                                await viewModel.check(playerID: currentUser.id)
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: .infinity)
-                        .disabled(phase == .preFlop || phase == .flop)
-                        .opacity((phase == .preFlop || phase == .flop) ? 0.5 : 1.0)
                     }
-                    
-                    HStack(spacing: 12) {
-                        Button("Call") {
-                            Task {
-                                await viewModel.call(playerID: currentUser.id)
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
+                    .buttonStyle(.bordered)
+                    .tint(.red)
+                    .frame(maxWidth: .infinity)
 
-                        Button("Raise $\(betAmount)") {
-                            Task {
-                                await viewModel.bet(playerID: currentUser.id, amount: betAmount)
-                            }
+                    Button("Check") {
+                        Task {
+                            await viewModel.check(playerID: currentUser.id)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                        .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+                    .disabled(!isMyTurn || phase == .preFlop || phase == .flop)
+                    .opacity((!isMyTurn || phase == .preFlop || phase == .flop) ? 0.5 : 1.0)
+                }
+                
+                HStack(spacing: 12) {
+                    Button("Call") {
+                        Task {
+                            await viewModel.call(playerID: currentUser.id)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+
+                    Button("Raise $\(betAmount)") {
+                        Task {
+                            await viewModel.bet(playerID: currentUser.id, amount: betAmount)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                    .frame(maxWidth: .infinity)
                 }
             }
+            .disabled(!isMyTurn)
+            .opacity(isMyTurn ? 1.0 : 0.6)
         }
-        .disabled(!isMyTurn)
     }
 
     private func startSharePlay() async {
