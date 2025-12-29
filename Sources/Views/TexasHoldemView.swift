@@ -596,10 +596,19 @@ struct TexasHoldemView: View {
     private func gameControls(phase: TexasHoldemGame.GamePhase, isMyTurn: Bool) -> some View {
         VStack(spacing: 12) {
             if !isMyTurn {
-                Text("Waiting for opponent...")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .padding()
+                if let game = viewModel.currentGame {
+                    let currentPlayerUserID = game.players[game.currentPlayerIndex].userID
+                    let turnText = currentPlayerUserID == currentUser.id ? "Your Turn" : "Opponent's Turn"
+                    Text(turnText)
+                        .font(.subheadline)
+                        .foregroundStyle(currentPlayerUserID == currentUser.id ? .green : .orange)
+                        .padding()
+                } else {
+                    Text("Waiting for opponent...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding()
+                }
             } else {
                 // Actions based on phase
                 if phase == .preFlop || phase == .flop {

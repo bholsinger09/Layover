@@ -13,6 +13,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
     private(set) var isLoading = false
     var errorMessage: String?
     
+    // Track which player is local to this device
+    private(set) var localPlayerID: UUID?
+    
     // Trigger for SharePlay state changes
     private(set) var sharePlayStateVersion: Int = 0
 
@@ -136,6 +139,10 @@ final class TexasHoldemViewModel: LayoverViewModel {
         print("   Players: \(players)")
         print("   SharePlay active: \(sharePlayService.isSessionActive)")
         print("   Is host: \(sharePlayService.isHost)")
+        
+        // Set local player ID (first player for host, second for participant)
+        localPlayerID = sharePlayService.isHost ? players.first : (players.count > 1 ? players[1] : players.first)
+        print("   Local player ID: \(localPlayerID?.uuidString ?? "none")")
         
         isLoading = true
         errorMessage = nil
@@ -417,12 +424,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
             phase: game.gamePhase.rawValue,
             communityCards: game.communityCards.map { PlayingCardData(rank: $0.rank.rawValue, suit: $0.suit.rawValue) },
             playerStates: game.players.map { player in
+                // Only include cards during showdown OR if this is not the receiving player's hand
+                // During normal play, we don't broadcast each player's private cards
+                let shouldIncludeCards = game.gamePhase == .showdown
                 TexasHoldemGameState.PlayerState(
                     id: player.userID,
                     chips: player.chips,
                     currentBet: player.currentBet,
                     hasFolded: player.isFolded,
-                    cards: player.hand.map { PlayingCardData(rank: $0.rank.rawValue, suit: $0.suit.rawValue) }
+                    cards: shouldIncludeCards ? player.hand.map { PlayingCardData(rank: $0.rank.rawValue, suit: $0.suit.rawValue) } : nil
                 )
             }
         )
@@ -490,9 +500,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 game.players[index].currentBet = playerState.currentBet
                 game.players[index].isFolded = playerState.hasFolded
                 
-                // Update hand ONLY if we don't have cards yet (participant receiving initial deal)
-                // or during showdown when all cards are revealed
-                if game.players[index].hand.isEmpty && playerState.cards != nil {
+                // NEVER overwrite our own player's cards (unless during showdown)
+                // Only update opponent's cards
+                let isLocalPlayer = game.players[index].userID == localPlayerID
+                
+                if !isLocalPlayer && playerState.cards != nil {
+                    // This is an opponent - update their hand (usually during showdown)
                     let incomingHand = playerState.cards!.compactMap { cardData -> PlayingCard? in
                         guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
                               let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
@@ -501,21 +514,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
                         return PlayingCard(rank: rank, suit: suit)
                     }
                     game.players[index].hand = incomingHand
-                    print("   ✅ Player \(index) (\(playerState.id)) received \(incomingHand.count) cards from host:")
-                    for card in incomingHand {
-                        print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
-                    }
-                } else if game.gamePhase == .showdown && playerState.cards != nil {
-                    // During showdown, update all cards to reveal them
-                    let incomingHand = playerState.cards!.compactMap { cardData -> PlayingCard? in
-                        guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
-                              let suit = PlayingCard.Suit(rawValue: cardData.suit) else {
-                            return nil
-                        }
-                        return PlayingCard(rank: rank, suit: suit)
-                    }
-                    game.players[index].hand = incomingHand
-                    print("   ✅ Showdown: revealed player \(index) cards")
+                    print("   ✅ Updated opponent player \(index) cards (showdown)")
+                } else if isLocalPlayer {
+                    print("   ⏭️  Skipping card update for local player \(index) - keeping own cards")
                 }
             }
         }
