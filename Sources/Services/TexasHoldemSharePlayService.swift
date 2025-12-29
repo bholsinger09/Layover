@@ -171,21 +171,35 @@ final class TexasHoldemSharePlayService {
     
     private func handleMessage(_ message: TexasHoldemMessage) async {
         logger.info("📨 Received Texas Hold'em message: \(String(describing: message))")
+        print("📨 RECEIVED MESSAGE: \(String(describing: message))")
+        print("   Is host: \(isHost)")
+        print("   Session active: \(isSessionActive)")
         
         switch message {
         case .gameStarted(let roomID, let gameID, let playerIDs):
+            print("   -> Calling onGameStarted callback")
             onGameStarted?(roomID, gameID, playerIDs)
             
         case .gameStateUpdate(let state):
+            print("   -> Calling onGameStateUpdate callback")
+            print("      Pot: $\(state.pot), CurrentBet: $\(state.currentBet)")
+            print("      PlayerIndex: \(state.currentPlayerIndex)")
+            print("      Players: \(state.playerStates.count)")
+            for (i, player) in state.playerStates.enumerated() {
+                print("      Player \(i): chips=$\(player.chips), bet=$\(player.currentBet)")
+            }
             onGameStateUpdate?(state)
             
         case .playerAction(let action):
+            print("   -> Calling onPlayerAction callback")
             onPlayerAction?(action)
             
         case .phaseAdvanced(let phase):
+            print("   -> Calling onPhaseAdvanced callback")
             onPhaseAdvanced?(phase)
             
         case .gameEnded(let winnerID):
+            print("   -> Calling onGameEnded callback")
             onGameEnded?(winnerID)
         }
     }
@@ -232,14 +246,24 @@ final class TexasHoldemSharePlayService {
     func sendMessage(_ message: TexasHoldemMessage) async {
         guard let messenger = messenger else {
             logger.warning("⚠️ Cannot send message: no messenger available")
+            print("⚠️ Cannot send message: no messenger available")
+            print("   isSessionActive: \(isSessionActive)")
+            print("   currentSession: \(currentSession != nil)")
             return
         }
+        
+        print("📤 SENDING MESSAGE: \(String(describing: message))")
+        print("   Session active: \(isSessionActive)")
+        print("   Is host: \(isHost)")
+        print("   Participant count: \(participantCount)")
         
         do {
             try await messenger.send(message)
             logger.info("📤 Sent Texas Hold'em message: \(String(describing: message))")
+            print("✅ Message sent successfully")
         } catch {
             logger.error("❌ Failed to send message: \(error.localizedDescription)")
+            print("❌ Failed to send message: \(error.localizedDescription)")
         }
     }
     
