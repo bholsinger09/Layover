@@ -95,6 +95,9 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         game.players[playerIndex] = player
         currentGame = game
+        
+        // Advance to next player's turn
+        await advanceTurn()
     }
 
     func fold(playerID: UUID) async throws {
@@ -125,8 +128,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         let callAmount = game.currentBet - player.currentBet
         try await bet(playerID: playerID, amount: callAmount)
         
-        // Advance to next player's turn
-        await advanceTurn()
+        // bet() already calls advanceTurn(), so we don't need to call it again
     }
 
     func raise(playerID: UUID, amount: Int) async throws {
@@ -140,6 +142,8 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         let raiseAmount = (game.currentBet - player.currentBet) + amount
         try await bet(playerID: playerID, amount: raiseAmount)
+        
+        // bet() already calls advanceTurn(), so we don't need to call it again
     }
 
     func nextPhase() async throws {
