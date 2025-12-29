@@ -222,6 +222,12 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         // Deal the flop (3 cards)
         game.communityCards = [deck.removeFirst(), deck.removeFirst(), deck.removeFirst()]
         game.gamePhase = .flop
+        
+        // Reset betting for new round
+        game.currentBet = 0
+        for i in 0..<game.players.count {
+            game.players[i].currentBet = 0
+        }
         game.currentPlayerIndex = 0  // Reset to first player
 
         currentGame = game
@@ -242,6 +248,12 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         // Deal the turn (1 card)
         game.communityCards.append(deck.removeFirst())
         game.gamePhase = .turn
+        
+        // Reset betting for new round
+        game.currentBet = 0
+        for i in 0..<game.players.count {
+            game.players[i].currentBet = 0
+        }
         game.currentPlayerIndex = 0  // Reset to first player
 
         currentGame = game
@@ -262,6 +274,12 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         // Deal the river (1 card)
         game.communityCards.append(deck.removeFirst())
         game.gamePhase = .river
+        
+        // Reset betting for new round
+        game.currentBet = 0
+        for i in 0..<game.players.count {
+            game.players[i].currentBet = 0
+        }
         game.currentPlayerIndex = 0  // Reset to first player
 
         currentGame = game
