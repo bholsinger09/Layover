@@ -89,13 +89,19 @@ final class TexasHoldemSharePlayService {
     
     private func handleSession(_ session: GroupSession<TexasHoldemActivity>) async {
         logger.info("🃏 Texas Hold'em SharePlay: Session received")
+        print("🎉 SHAREPLAY SESSION RECEIVED!")
+        print("   Session ID: \(session.id)")
+        print("   Session state: \(session.state)")
+        print("   Active participants: \(session.activeParticipants.count)")
         
         // Only mark as participant if we didn't initiate the session
         // If isHost is already true, we started this session, so keep it true
         if currentSession == nil && !isHost {
             logger.info("   Joining existing Texas Hold'em session as participant")
+            print("   👥 Joining as PARTICIPANT")
         } else if isHost {
             logger.info("   Confirming host role for session we initiated")
+            print("   🏠 Confirming HOST role")
         }
         
         currentSession = session
@@ -107,10 +113,14 @@ final class TexasHoldemSharePlayService {
         onSessionActivated?()
         
         // Join the session
+        print("🚪 Joining SharePlay session...")
         session.join()
         logger.info("✅ Texas Hold'em SharePlay: Joined session")
+        print("✅ Successfully joined SharePlay session!")
+        print("   Session is now active with \(session.activeParticipants.count) participants")
         
         // Start listening for messages
+        print("👂 Setting up message listener...")
         setupMessageListener()
         
         // Monitor participant changes to re-broadcast state when new participants join
