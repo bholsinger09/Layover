@@ -479,6 +479,7 @@ struct TexasHoldemView: View {
                     .buttonStyle(.bordered)
                     .font(.caption)
                 }
+                .padding(.bottom, 20)
             } else {
                 Button("End Game") {
                     Task {
@@ -486,9 +487,11 @@ struct TexasHoldemView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .padding(.bottom, 20)
             }
         }
         .padding()
+        .safeAreaPadding(.bottom)
     }
     
     private func advancePhase() async {
