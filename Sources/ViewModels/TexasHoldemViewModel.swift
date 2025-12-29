@@ -71,10 +71,23 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     do {
                         let game = try await gameService.startGame(roomID: roomID, players: playerIDs)
                         currentGame = game
-                        // DON'T deal cards - participant will receive card state from host via SharePlay
-                        print("✅ Participant game started successfully - waiting for card state from host")
+                        
+                        // Deal cards locally - each device gets its own unique random cards
+                        // Cards are private until showdown, so each device deals independently
+                        try await gameService.dealCards()
+                        currentGame = gameService.currentGame
+                        
+                        print("✅ Participant game started successfully - cards dealt locally")
                         print("   Game ID: \(game.id)")
                         print("   Players in game: \(game.players.map { $0.userID })")
+                        if let currentGame = currentGame {
+                            for (index, player) in currentGame.players.enumerated() {
+                                print("   Player \(index) (\(player.userID)): \(player.hand.count) cards")
+                                for card in player.hand {
+                                    print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
+                                }
+                            }
+                        }
                     } catch {
                         errorMessage = error.localizedDescription
                         print("❌ Participant failed to start game: \(error)")
