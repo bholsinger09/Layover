@@ -427,7 +427,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 // Only include cards during showdown OR if this is not the receiving player's hand
                 // During normal play, we don't broadcast each player's private cards
                 let shouldIncludeCards = game.gamePhase == .showdown
-                TexasHoldemGameState.PlayerState(
+                return TexasHoldemGameState.PlayerState(
                     id: player.userID,
                     chips: player.chips,
                     currentBet: player.currentBet,
