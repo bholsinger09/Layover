@@ -223,6 +223,10 @@ final class TexasHoldemSharePlayService {
     /// Start a new Texas Hold'em SharePlay session
     func startActivity(roomID: UUID, gameID: UUID, roomName: String?) async throws {
         logger.info("🎬 Starting Texas Hold'em SharePlay activity")
+        print("🎬 ===== STARTING SHAREPLAY ACTIVITY =====")
+        print("   Room ID: \(roomID)")
+        print("   Game ID: \(gameID)")
+        print("   Room Name: \(roomName ?? "nil")")
         
         let activity = TexasHoldemActivity(
             roomID: roomID,
@@ -231,23 +235,35 @@ final class TexasHoldemSharePlayService {
         )
         
         isHost = true
+        print("   🏠 Marked as host")
         
-        switch await activity.prepareForActivation() {
+        print("📋 Preparing activity for activation...")
+        let preparationResult = await activity.prepareForActivation()
+        print("📋 Preparation result: \(preparationResult)")
+        
+        switch preparationResult {
         case .activationPreferred:
+            print("✅ Activation preferred - proceeding to activate...")
             do {
-                _ = try await activity.activate()
+                let result = try await activity.activate()
                 logger.info("✅ Texas Hold'em activity activated successfully")
+                print("🎉 Activity activated! Result: \(result)")
+                print("   Waiting for session to be established...")
             } catch {
                 logger.error("❌ Failed to activate Texas Hold'em activity: \(error.localizedDescription)")
+                print("❌ Activation failed: \(error)")
                 throw error
             }
             
         case .activationDisabled:
             logger.warning("⚠️ SharePlay is disabled")
+            print("⚠️ SharePlay is DISABLED - not in FaceTime call?")
             throw TexasHoldemSharePlayError.sharePlayDisabled
             
         case .cancelled:
             logger.info("ℹ️ User cancelled SharePlay activation")
+            print("ℹ️ User CANCELLED SharePlay activation")
+            throw TexasHoldemSharePlayError.userCancelled
             throw TexasHoldemSharePlayError.userCancelled
             
         @unknown default:
