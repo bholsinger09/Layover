@@ -604,6 +604,28 @@ struct TexasHoldemView: View {
                     .foregroundStyle(.secondary)
                     .padding()
             } else {
+                // Bet amount slider
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("Bet Amount:")
+                            .font(.subheadline)
+                        Spacer()
+                        Text("$\(betAmount)")
+                            .font(.headline)
+                            .foregroundStyle(.green)
+                    }
+                    
+                    Slider(value: Binding(
+                        get: { Double(betAmount) },
+                        set: { betAmount = Int($0) }
+                    ), in: 10...100, step: 10)
+                    .tint(.green)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                
                 // All poker actions available
                 VStack(spacing: 12) {
                     HStack(spacing: 12) {
@@ -636,7 +658,7 @@ struct TexasHoldemView: View {
                         .buttonStyle(.borderedProminent)
                         .frame(maxWidth: .infinity)
 
-                        Button("Raise") {
+                        Button("Raise $\(betAmount)") {
                             Task {
                                 await viewModel.bet(playerID: currentUser.id, amount: betAmount)
                             }
