@@ -25,7 +25,7 @@ protocol TexasHoldemServiceProtocol: LayoverService {
 final class TexasHoldemService: TexasHoldemServiceProtocol {
     private(set) var currentGame: TexasHoldemGame?
     private var deck: [PlayingCard] = []
-    
+
     func loadGame(_ game: TexasHoldemGame) {
         currentGame = game
         // Recreate deck based on cards already dealt
@@ -70,7 +70,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         for _ in 0..<shuffleCount {
             deck.shuffle()
         }
-        
+
         // Additional entropy: shuffle again using UUID-based randomness
         var rng = SystemRandomNumberGenerator()
         deck.shuffle(using: &rng)
@@ -104,7 +104,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         game.players[playerIndex] = player
         currentGame = game
-        
+
         // Advance to next player's turn
         await advanceTurn()
     }
@@ -120,7 +120,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         game.players[playerIndex].isFolded = true
         currentGame = game
-        
+
         // Advance to next player's turn
         await advanceTurn()
     }
@@ -136,7 +136,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         let callAmount = game.currentBet - player.currentBet
         try await bet(playerID: playerID, amount: callAmount)
-        
+
         // bet() already calls advanceTurn(), so we don't need to call it again
     }
 
@@ -151,7 +151,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
 
         let raiseAmount = (game.currentBet - player.currentBet) + amount
         try await bet(playerID: playerID, amount: raiseAmount)
-        
+
         // bet() already calls advanceTurn(), so we don't need to call it again
     }
 
@@ -188,109 +188,109 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         currentGame = nil
         deck = []
     }
-    
+
     func check(playerID: UUID) async throws {
         guard let game = currentGame else {
             throw GameError.noActiveGame
         }
-        
+
         guard let playerIndex = game.players.firstIndex(where: { $0.userID == playerID }) else {
             throw GameError.playerNotFound
         }
-        
+
         // Check is allowed if no one has bet yet or if player has matched current bet
         guard game.currentBet == game.players[playerIndex].currentBet else {
             throw GameError.invalidMove
         }
-        
+
         // Move to next player
         await advanceTurn()
     }
-    
+
     func dealFlop() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
-        
+
         guard game.gamePhase == .preFlop else {
             throw GameError.invalidMove
         }
-        
+
         // Shuffle remaining deck for randomness
         deck.shuffle()
-        
+
         // Deal the flop (3 cards)
         game.communityCards = [deck.removeFirst(), deck.removeFirst(), deck.removeFirst()]
         game.gamePhase = .flop
         game.currentPlayerIndex = 0  // Reset to first player
-        
+
         currentGame = game
     }
-    
+
     func dealTurn() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
-        
+
         guard game.gamePhase == .flop else {
             throw GameError.invalidMove
         }
-        
+
         // Shuffle remaining deck for randomness
         deck.shuffle()
-        
+
         // Deal the turn (1 card)
         game.communityCards.append(deck.removeFirst())
         game.gamePhase = .turn
         game.currentPlayerIndex = 0  // Reset to first player
-        
+
         currentGame = game
     }
-    
+
     func dealRiver() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
-        
+
         guard game.gamePhase == .turn else {
             throw GameError.invalidMove
         }
-        
+
         // Shuffle remaining deck for randomness
         deck.shuffle()
-        
+
         // Deal the river (1 card)
         game.communityCards.append(deck.removeFirst())
         game.gamePhase = .river
         game.currentPlayerIndex = 0  // Reset to first player
-        
+
         currentGame = game
     }
-    
+
     func showdown() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
-        
+
         guard game.gamePhase == .river else {
             throw GameError.invalidMove
         }
-        
+
         game.gamePhase = .showdown
         currentGame = game
     }
-    
+
     private func advanceTurn() async {
         guard var game = currentGame else { return }
-        
+
         // Move to next player
         game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.count
-        
+
         // Skip folded players
         while game.players[game.currentPlayerIndex].isFolded {
             game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.count
         }
-        
+
         currentGame = game
     }
 

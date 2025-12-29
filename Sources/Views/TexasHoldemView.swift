@@ -1,10 +1,11 @@
-import SwiftUI
 import GroupActivities
 import OSLog
+import SwiftUI
 
 /// View for Texas Hold'em game rooms
 struct TexasHoldemView: View {
-    private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "TexasHoldemView")
+    private let logger = Logger(
+        subsystem: "com.bholsinger.LayoverLounge", category: "TexasHoldemView")
     let room: Room
     let currentUser: User
 
@@ -13,7 +14,7 @@ struct TexasHoldemView: View {
     @State private var sharePlayStarted = false
     @State private var currentRoom: Room
     @State private var refreshTimer: Timer?
-    
+
     init(room: Room, currentUser: User) {
         self.room = room
         self.currentUser = currentUser
@@ -30,12 +31,14 @@ struct TexasHoldemView: View {
             HStack {
                 Image(systemName: "person.2.fill")
                     .foregroundStyle(.blue)
-                Text("\(currentRoom.participantIDs.count) player\(currentRoom.participantIDs.count == 1 ? "" : "s")")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                
+                Text(
+                    "\(currentRoom.participantIDs.count) player\(currentRoom.participantIDs.count == 1 ? "" : "s")"
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
                 Spacer()
-                
+
                 // SharePlay status indicator
                 if viewModel.sharePlayService.isSessionActive {
                     HStack(spacing: 4) {
@@ -53,7 +56,7 @@ struct TexasHoldemView: View {
             }
             .padding(.horizontal)
             .padding(.top, 8)
-            
+
             if let game = viewModel.currentGame {
                 gameView(game)
             } else {
@@ -67,7 +70,7 @@ struct TexasHoldemView: View {
         .task {
             // Setup SharePlay callbacks
             viewModel.setupSharePlayCallbacks()
-            
+
             // Add current user to room participants if not already there
             if !currentRoom.participantIDs.contains(currentUser.id) {
                 var updatedRoom = currentRoom
@@ -76,27 +79,27 @@ struct TexasHoldemView: View {
                 currentRoom = updatedRoom
                 print("➕ Added current user to room participants: \(currentUser.id)")
             }
-            
+
             // Start watching for game updates from iCloud
             viewModel.startWatchingForGameUpdates(roomID: currentRoom.id)
-            
+
             // Periodically refresh room data to get updated participant list
             refreshTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
                 Task {
                     await refreshRoomData()
                 }
             }
-            
+
             // Auto-start game ONLY if we're the host and SharePlay is active
             // This prevents participants from auto-starting their own game
-            if currentRoom.participantIDs.count >= 2 && 
-               viewModel.currentGame == nil && 
-               viewModel.sharePlayService.isSessionActive &&
-               viewModel.sharePlayService.isHost {
-                print("🎮 Auto-starting game as HOST with \(currentRoom.participantIDs.count) players")
+            if currentRoom.participantIDs.count >= 2 && viewModel.currentGame == nil
+                && viewModel.sharePlayService.isSessionActive && viewModel.sharePlayService.isHost
+            {
+                print(
+                    "🎮 Auto-starting game as HOST with \(currentRoom.participantIDs.count) players")
                 print("   SharePlay session is active and we are the host")
                 Task {
-                    try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds for SharePlay to fully connect
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)  // Wait 2 seconds for SharePlay to fully connect
                     if viewModel.currentGame == nil {
                         let playerIDs = Array(currentRoom.participantIDs)
                         await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
@@ -123,33 +126,38 @@ struct TexasHoldemView: View {
             }
         }
     }
-    
+
     private func refreshRoomData() async {
         print("🔄 refreshRoomData called")
         print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
         print("   SharePlay participant count: \(viewModel.sharePlayService.participantCount)")
         print("   Room participant count: \(currentRoom.participantIDs.count)")
-        
+
         // Update participant count based on SharePlay if active
         if viewModel.sharePlayService.isSessionActive {
             // SharePlay is active - use actual participant count from session
             var updatedRoom = currentRoom
             let sharePlayParticipantCount = viewModel.sharePlayService.participantCount
-            
+
             print("📊 SharePlay active with \(sharePlayParticipantCount) participants")
-            
+
             // Ensure room has the correct number of participants
             while updatedRoom.participantIDs.count < sharePlayParticipantCount {
                 let sharePlayParticipantID = UUID()
                 updatedRoom.participantIDs.insert(sharePlayParticipantID)
-                updatedRoom.participants.append(User(id: sharePlayParticipantID, username: "SharePlay User \(updatedRoom.participantIDs.count)"))
+                updatedRoom.participants.append(
+                    User(
+                        id: sharePlayParticipantID,
+                        username: "SharePlay User \(updatedRoom.participantIDs.count)"))
                 print("   ➕ Added SharePlay participant #\(updatedRoom.participantIDs.count)")
             }
-            
+
             if updatedRoom.participantIDs.count != currentRoom.participantIDs.count {
                 await MainActor.run {
                     currentRoom = updatedRoom
-                    print("📊 ✅ Updated room participant count to: \(self.currentRoom.participantIDs.count)")
+                    print(
+                        "📊 ✅ Updated room participant count to: \(self.currentRoom.participantIDs.count)"
+                    )
                 }
             } else {
                 print("   ✓ Participant count already correct")
@@ -168,10 +176,10 @@ struct TexasHoldemView: View {
             Text("Texas Hold'em")
                 .font(.title)
                 .fontWeight(.bold)
-            
+
             // SharePlay Status Indicator - reference viewModel.sharePlayStateVersion to trigger updates
             if viewModel.sharePlayService.isSessionActive {
-                let _ = viewModel.sharePlayStateVersion // Force dependency
+                let _ = viewModel.sharePlayStateVersion  // Force dependency
                 HStack(spacing: 8) {
                     Image(systemName: "shareplay")
                         .foregroundStyle(.green)
@@ -189,7 +197,7 @@ struct TexasHoldemView: View {
                 .background(Color.green.opacity(0.15))
                 .cornerRadius(12)
             }
-            
+
             // Show loading state if checking for existing game
             if viewModel.isLoading {
                 ProgressView("Checking for active game...")
@@ -213,14 +221,14 @@ struct TexasHoldemView: View {
                             .cornerRadius(10)
                     }
                     .padding(.horizontal)
-                    
+
                     Text("Start SharePlay during a FaceTime call to sync with other players")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                 }
-                
+
                 // Detect Players Button
                 if currentRoom.participantIDs.count < 2 {
                     Button {
@@ -245,22 +253,22 @@ struct TexasHoldemView: View {
                             await viewModel.endGame()
                             print("🧹 Cleared existing game before starting new one")
                         }
-                        
+
                         var playerIDs = Array(currentRoom.participantIDs)
-                        
+
                         // Ensure current user is in the player list
                         if !playerIDs.contains(currentUser.id) {
                             playerIDs.append(currentUser.id)
                             print("➕ Added current user to player list: \(currentUser.id)")
                         }
-                        
+
                         // Always add AI/computer player if less than 2 players
                         if playerIDs.count < 2 {
                             let aiPlayerID = UUID()
                             playerIDs.append(aiPlayerID)
                             print("🤖 Added AI player: \(aiPlayerID)")
                         }
-                        
+
                         print("🎮 Starting game with player IDs: \(playerIDs)")
                         await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                     }
@@ -286,7 +294,7 @@ struct TexasHoldemView: View {
             }
         }
     }
-    
+
     private func createSharePlayActivity() -> TexasHoldemActivity? {
         // Create the activity for SharePlay
         return TexasHoldemActivity(
@@ -295,46 +303,46 @@ struct TexasHoldemView: View {
             roomName: room.name
         )
     }
-    
+
     private func activateSharePlay() async {
         guard let activity = createSharePlayActivity() else {
             print("❌ Failed to create SharePlay activity")
             return
         }
-        
+
         print("🚀 Activating SharePlay...")
         print("   Room ID: \(activity.roomID)")
         print("   Game ID: \(activity.gameID)")
         print("   Room Name: \(activity.roomName ?? "nil")")
-        
+
         do {
             // Mark as host before activating
             viewModel.sharePlayService.isHost = true
             print("   🏠 Marked as host")
-            
+
             // Activate the SharePlay session
             switch await activity.prepareForActivation() {
             case .activationPreferred:
                 print("✅ SharePlay activation preferred - activating...")
                 let result = try await activity.activate()
                 print("✅ SharePlay activated successfully! Result: \(result)")
-                
+
                 // Give it a moment to connect
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                
+
                 if viewModel.sharePlayService.isSessionActive {
                     print("🎉 SharePlay session is now active")
                     print("   Participant count: \(viewModel.sharePlayService.participantCount)")
                 } else {
                     print("⚠️ SharePlay activated but session not yet active")
                 }
-                
+
             case .activationDisabled:
                 print("⚠️ SharePlay activation disabled - not in FaceTime call?")
-                
+
             case .cancelled:
                 print("⚠️ SharePlay activation cancelled by user")
-                
+
             @unknown default:
                 print("⚠️ Unknown SharePlay activation result")
             }
@@ -342,20 +350,21 @@ struct TexasHoldemView: View {
             print("❌ SharePlay activation failed: \(error)")
         }
     }
-    
+
     private func detectPlayers() async {
         print("🔍 Manually detecting players...")
-        
+
         // Check if SharePlay/FaceTime is active
         if viewModel.sharePlayService.isSessionActive {
             var updatedRoom = currentRoom
-            
+
             // Add SharePlay participants
             let sharePlayParticipantID = UUID()
             updatedRoom.participantIDs.insert(sharePlayParticipantID)
-            updatedRoom.participants.append(User(id: sharePlayParticipantID, username: "FaceTime User"))
+            updatedRoom.participants.append(
+                User(id: sharePlayParticipantID, username: "FaceTime User"))
             currentRoom = updatedRoom
-            
+
             print("✅ Detected SharePlay participant! Total: \(currentRoom.participantIDs.count)")
         } else {
             // Even if SharePlay isn't reporting active, add a second player for testing
@@ -363,9 +372,10 @@ struct TexasHoldemView: View {
             var updatedRoom = currentRoom
             let remoteParticipantID = UUID()
             updatedRoom.participantIDs.insert(remoteParticipantID)
-            updatedRoom.participants.append(User(id: remoteParticipantID, username: "Remote Player"))
+            updatedRoom.participants.append(
+                User(id: remoteParticipantID, username: "Remote Player"))
             currentRoom = updatedRoom
-            
+
             print("✅ Added remote player for testing. Total: \(currentRoom.participantIDs.count)")
         }
     }
@@ -375,7 +385,9 @@ struct TexasHoldemView: View {
             VStack(spacing: 16) {
                 // Opponent's hand (face down until showdown)
                 if let opponentPlayer = game.players.first(where: { $0.userID != currentUser.id }) {
-                    opponentHandView(opponentPlayer, showCards: game.gamePhase == .showdown || game.gamePhase == .ended)
+                    opponentHandView(
+                        opponentPlayer,
+                        showCards: game.gamePhase == .showdown || game.gamePhase == .ended)
                 }
                 // Game phase and pot
                 VStack(spacing: 8) {
@@ -385,7 +397,7 @@ struct TexasHoldemView: View {
                     Text("Pot: $\(game.pot)")
                         .font(.title2)
                         .fontWeight(.bold)
-                        
+
                     // Turn indicator
                     if game.currentPlayerIndex < game.players.count {
                         let currentPlayer = game.players[game.currentPlayerIndex]
@@ -395,17 +407,21 @@ struct TexasHoldemView: View {
                             .foregroundStyle(isMyTurn ? .green : .orange)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
-                            .background(isMyTurn ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
+                            .background(
+                                isMyTurn ? Color.green.opacity(0.2) : Color.orange.opacity(0.2)
+                            )
                             .cornerRadius(8)
                     }
                 }
                 .padding()
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                
+
                 // Deck - Click to advance phase (host only in SharePlay)
                 if game.gamePhase != .ended && game.gamePhase != .showdown {
-                    if !viewModel.sharePlayService.isSessionActive || viewModel.sharePlayService.isHost {
+                    if !viewModel.sharePlayService.isSessionActive
+                        || viewModel.sharePlayService.isHost
+                    {
                         Button {
                             Task {
                                 await advancePhase()
@@ -442,7 +458,9 @@ struct TexasHoldemView: View {
                 // Community cards
                 if !game.communityCards.isEmpty {
                     let _ = print("🎴 Displaying \(game.communityCards.count) community cards:")
-                    let _ = game.communityCards.forEach { print("   - \($0.rank.rawValue) of \($0.suit.rawValue)") }
+                    let _ = game.communityCards.forEach {
+                        print("   - \($0.rank.rawValue) of \($0.suit.rawValue)")
+                    }
                     communityCardsView(game.communityCards)
                 }
 
@@ -457,25 +475,35 @@ struct TexasHoldemView: View {
                         let playerIndex = viewModel.sharePlayService.isHost ? 0 : 1
                         let fallbackPlayer = game.players[playerIndex]
                         playerHandView(fallbackPlayer)
-                        let _ = print("⚠️ Using fallback player[\(playerIndex)] for display (isHost=\(viewModel.sharePlayService.isHost)): \(fallbackPlayer.userID)")
-                        let _ = print("   Cards: \(fallbackPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })")
-                    } else if let game = viewModel.currentGame, let firstPlayer = game.players.first {
+                        let _ = print(
+                            "⚠️ Using fallback player[\(playerIndex)] for display (isHost=\(viewModel.sharePlayService.isHost)): \(fallbackPlayer.userID)"
+                        )
+                        let _ = print(
+                            "   Cards: \(fallbackPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })"
+                        )
+                    } else if let game = viewModel.currentGame, let firstPlayer = game.players.first
+                    {
                         playerHandView(firstPlayer)
                         let _ = print("⚠️ Using first player as fallback: \(firstPlayer.userID)")
-                        let _ = print("   Cards: \(firstPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })")
+                        let _ = print(
+                            "   Cards: \(firstPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })"
+                        )
                     }
                 }
 
                 // Controls
                 if game.gamePhase != .ended {
                     VStack(spacing: 12) {
-                        gameControls(phase: game.gamePhase, isMyTurn: game.players[game.currentPlayerIndex].userID == currentUser.id)
-                        
+                        gameControls(
+                            phase: game.gamePhase,
+                            isMyTurn: game.players[game.currentPlayerIndex].userID == currentUser.id
+                        )
+
                         // New Game button
                         Button("Start New Game") {
                             Task {
                                 await viewModel.endGame()
-                                
+
                                 var playerIDs = Array(currentRoom.participantIDs)
                                 if !playerIDs.contains(currentUser.id) {
                                     playerIDs.append(currentUser.id)
@@ -483,8 +511,9 @@ struct TexasHoldemView: View {
                                 if playerIDs.count < 2 {
                                     playerIDs.append(UUID())
                                 }
-                                
-                                await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+
+                                await viewModel.startGame(
+                                    roomID: currentRoom.id, players: playerIDs)
                             }
                         }
                         .buttonStyle(.bordered)
@@ -503,13 +532,13 @@ struct TexasHoldemView: View {
             .padding(.bottom, 20)
         }
         #if os(macOS)
-        .frame(minHeight: 600)
+            .frame(minHeight: 600)
         #endif
     }
-    
+
     private func advancePhase() async {
         guard let game = viewModel.currentGame else { return }
-        
+
         switch game.gamePhase {
         case .preFlop:
             // Deal flop (3 cards)
@@ -562,7 +591,7 @@ struct TexasHoldemView: View {
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
-    
+
     private func opponentHandView(_ player: TexasHoldemPlayer, showCards: Bool) -> some View {
         VStack(spacing: 12) {
             Text(showCards ? "Opponent's Hand" : "Opponent")
@@ -578,11 +607,13 @@ struct TexasHoldemView: View {
                     // Show card backs (face down)
                     ForEach(0..<2, id: \.self) { _ in
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(LinearGradient(
-                                colors: [.blue, .blue.opacity(0.7)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ))
+                            .fill(
+                                LinearGradient(
+                                    colors: [.blue, .blue.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                             .frame(width: 60, height: 84)
                             .overlay {
                                 Image(systemName: "suit.spade.fill")
@@ -618,7 +649,7 @@ struct TexasHoldemView: View {
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 4)
             }
-            
+
             // Bet amount slider - always visible
             VStack(spacing: 8) {
                 HStack {
@@ -629,11 +660,13 @@ struct TexasHoldemView: View {
                         .font(.headline)
                         .foregroundStyle(.green)
                 }
-                
-                Slider(value: Binding(
-                    get: { Double(betAmount) },
-                    set: { betAmount = Int($0) }
-                ), in: 10...100, step: 10)
+
+                Slider(
+                    value: Binding(
+                        get: { Double(betAmount) },
+                        set: { betAmount = Int($0) }
+                    ), in: 10...100, step: 10
+                )
                 .tint(.green)
                 .disabled(!isMyTurn)
             }
@@ -642,7 +675,7 @@ struct TexasHoldemView: View {
             .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .opacity(isMyTurn ? 1.0 : 0.6)
-            
+
             // All poker actions available - always visible
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
@@ -665,7 +698,7 @@ struct TexasHoldemView: View {
                     .disabled(!isMyTurn || phase == .preFlop || phase == .flop)
                     .opacity((!isMyTurn || phase == .preFlop || phase == .flop) ? 0.5 : 1.0)
                 }
-                
+
                 HStack(spacing: 12) {
                     Button("Call") {
                         Task {
@@ -692,7 +725,7 @@ struct TexasHoldemView: View {
 
     private func startSharePlay() async {
         print("🃏 Starting Texas Hold'em SharePlay for room: \(room.name)")
-        
+
         do {
             try await viewModel.startSharePlay(roomID: room.id, roomName: room.name)
             sharePlayStarted = true
