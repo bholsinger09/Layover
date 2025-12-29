@@ -331,6 +331,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func dealFlop() async {
         errorMessage = nil
         
+        // Only host should deal community cards
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("⚠️ Non-host tried to deal flop - ignoring")
+            return
+        }
+        
         do {
             print("🎴 dealFlop called - current community cards: \(currentGame?.communityCards.count ?? 0)")
             try await gameService.dealFlop()
@@ -358,6 +364,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func dealTurn() async {
         errorMessage = nil
         
+        // Only host should deal community cards
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("⚠️ Non-host tried to deal turn - ignoring")
+            return
+        }
+        
         do {
             try await gameService.dealTurn()
             currentGame = gameService.currentGame
@@ -374,6 +386,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
     
     func dealRiver() async {
         errorMessage = nil
+        
+        // Only host should deal community cards
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("⚠️ Non-host tried to deal river - ignoring")
+            return
+        }
         
         do {
             try await gameService.dealRiver()
