@@ -228,6 +228,55 @@ struct TexasHoldemView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                 }
+                
+                // Test SharePlay Button - only show when SharePlay is active
+                if viewModel.sharePlayService.isSessionActive {
+                    VStack(spacing: 12) {
+                        Button {
+                            Task {
+                                await viewModel.testSharePlayConnection()
+                            }
+                        } label: {
+                            Label(
+                                viewModel.isTestingConnection ? "Testing..." : "Test SharePlay",
+                                systemImage: "antenna.radiowaves.left.and.right"
+                            )
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.orange)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                        }
+                        .disabled(viewModel.isTestingConnection)
+                        .padding(.horizontal)
+                        
+                        // Test results
+                        if !viewModel.testConnectionStatus.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(viewModel.testConnectionStatus)
+                                    .font(.headline)
+                                    .foregroundStyle(
+                                        viewModel.testConnectionStatus.starts(with: "✅") ? .green : .red
+                                    )
+                                
+                                if !viewModel.testMessages.isEmpty {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        ForEach(viewModel.testMessages, id: \.self) { message in
+                                            Text("• \(message)")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                        }
+                    }
+                }
 
                 // Detect Players Button
                 if currentRoom.participantIDs.count < 2 {

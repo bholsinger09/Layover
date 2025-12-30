@@ -35,6 +35,8 @@ enum TexasHoldemMessage: Codable {
     case playerAction(PlayerAction)
     case phaseAdvanced(GamePhase)
     case gameEnded(winnerID: UUID?)
+    case testPing(from: String, message: String)
+    case testPong(from: String, message: String)
     
     enum PlayerAction: Codable {
         case fold(playerID: UUID)

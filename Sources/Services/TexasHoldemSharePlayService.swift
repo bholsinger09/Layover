@@ -28,6 +28,8 @@ final class TexasHoldemSharePlayService {
     var onGameEnded: ((UUID?) -> Void)?
     var onParticipantJoined: (() -> Void)?
     var onParticipantCountChanged: ((Int) -> Void)?
+    var onTestPingReceived: ((String, String) -> Void)?
+    var onTestPongReceived: ((String, String) -> Void)?
     
     init() {
         // Don't start observer here - will be started when callbacks are configured
@@ -215,6 +217,16 @@ final class TexasHoldemSharePlayService {
         case .gameEnded(let winnerID):
             print("   -> Calling onGameEnded callback")
             onGameEnded?(winnerID)
+            
+        case .testPing(let from, let message):
+            print("   -> Calling onTestPingReceived callback")
+            print("      From: \(from), Message: \(message)")
+            onTestPingReceived?(from, message)
+            
+        case .testPong(let from, let message):
+            print("   -> Calling onTestPongReceived callback")
+            print("      From: \(from), Message: \(message)")
+            onTestPongReceived?(from, message)
         }
     }
     
@@ -264,7 +276,6 @@ final class TexasHoldemSharePlayService {
             logger.info("ℹ️ User cancelled SharePlay activation")
             print("ℹ️ User CANCELLED SharePlay activation")
             throw TexasHoldemSharePlayError.userCancelled
-            throw TexasHoldemSharePlayError.userCancelled
             
         @unknown default:
             logger.warning("⚠️ Unknown activation result")
@@ -311,6 +322,16 @@ final class TexasHoldemSharePlayService {
         currentSession = nil
         messenger = nil
         isHost = false
+    }
+    
+    /// Send a test ping message to verify connectivity
+    func sendTestPing(from: String, message: String) async {
+        await sendMessage(.testPing(from: from, message: message))
+    }
+    
+    /// Send a test pong response message
+    func sendTestPong(from: String, message: String) async {
+        await sendMessage(.testPong(from: from, message: message))
     }
 }
 
