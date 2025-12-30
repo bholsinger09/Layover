@@ -13,6 +13,11 @@ final class TexasHoldemViewModel: LayoverViewModel {
     private(set) var isLoading = false
     var errorMessage: String?
     
+    // Test SharePlay connectivity
+    var testMessages: [String] = []
+    var testConnectionStatus: String = ""
+    var isTestingConnection = false
+    
     // Track which player is local to this device
     private(set) var localPlayerID: UUID?
     
@@ -140,6 +145,30 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 self?.sharePlayStateVersion += 1
             }
         }
+        
+        sharePlayService.onTestPingReceived = { [weak self] from, message in
+            Task { @MainActor in
+                guard let self = self else { return }
+                print("🏓 Test ping received from: \(from), message: \(message)")
+                self.testMessages.append("Received from \(from): \(message)")
+                
+                // Auto-respond with pong
+                let responseRole = self.sharePlayService.isHost ? "host" : "guest"
+                let responseMessage = "Hello \(from == "host" ? "host" : "guest")"
+                await self.sharePlayService.sendTestPong(from: responseRole, message: responseMessage)
+                self.testMessages.append("Sent: \(responseMessage)")
+            }
+        }
+        
+        sharePlayService.onTestPongReceived = { [weak self] from, message in
+            Task { @MainActor in
+                guard let self = self else { return }
+                print("🏓 Test pong received from: \(from), message: \(message)")
+                self.testMessages.append("Received from \(from): \(message)")
+                self.isTestingConnection = false
+            }
+        }
+
         
         // Start observing for SharePlay sessions AFTER callbacks are configured
         sharePlayService.startObserving()
@@ -647,6 +676,122 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 // Poll every 2 seconds
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
             }
+        }
+    }
+}
+    
+    // MARK: - Test SharePlay Connectivity
+    
+    func testSharePlayConnection() async {
+        print("🧪 Testing SharePlay connection...")
+        testMessages = []
+        testConnectionStatus = ""
+        isTestingConnection = true
+        
+        // Check if SharePlay is active
+        if !sharePlayService.isSessionActive {
+            testConnectionStatus = "❌ SharePlay is not active"
+            testMessages.append("Error: SharePlay session is not active")
+            testMessages.append("Please start SharePlay during a FaceTime call")
+            isTestingConnection = false
+            return
+        }
+        
+        // Check participant count
+        if sharePlayService.participantCount < 1 {
+            testConnectionStatus = "❌ No other participants"
+            testMessages.append("Error: No other participants in SharePlay session")
+            testMessages.append("SharePlay requires at least 2 participants")
+            isTestingConnection = false
+            return
+        }
+        
+        // Send test ping
+        let role = sharePlayService.isHost ? "host" : "guest"
+        let targetRole = sharePlayService.isHost ? "guest" : "host"
+        let message = "Hello \(targetRole)"
+        
+        testMessages.append("Sending test ping as \(role)...")
+        testMessages.append("Message: \(message)")
+        testConnectionStatus = "🔄 Testing..."
+        
+        await sharePlayService.sendTestPing(from: role, message: message)
+        
+        // Wait for response (timeout after 5 seconds)
+        var attempts = 0
+        while isTestingConnection && attempts < 50 {
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            attempts += 1
+        }
+        
+        if isTestingConnection {
+            // Timeout
+            testConnectionStatus = "❌ Connection timeout"
+            testMessages.append("Error: No response received after 5 seconds")
+            testMessages.append("Possible issues:")
+            testMessages.append("- Other participant may not have the app open")
+            testMessages.append("- Network connectivity issues")
+            testMessages.append("- SharePlay session may not be properly synced")
+            isTestingConnection = false
+        } else {
+            testConnectionStatus = "✅ Connection successful"
+        }
+    
+    // MARK: - Test SharePlay Connectivity
+    
+    func testSharePlayConnection() async {
+        print("🧪 Testing SharePlay connection...")
+        testMessages = []
+        testConnectionStatus = ""
+        isTestingConnection = true
+        
+        // Check if SharePlay is active
+        if !sharePlayService.isSessionActive {
+            testConnectionStatus = "❌ SharePlay is not active"
+            testMessages.append("Error: SharePlay session is not active")
+            testMessages.append("Please start SharePlay during a FaceTime call")
+            isTestingConnection = false
+            return
+        }
+        
+        // Check participant count
+        if sharePlayService.participantCount < 1 {
+            testConnectionStatus = "❌ No other participants"
+            testMessages.append("Error: No other participants in SharePlay session")
+            testMessages.append("SharePlay requires at least 2 participants")
+            isTestingConnection = false
+            return
+        }
+        
+        // Send test ping
+        let role = sharePlayService.isHost ? "host" : "guest"
+        let targetRole = sharePlayService.isHost ? "guest" : "host"
+        let message = "Hello \(targetRole)"
+        
+        testMessages.append("Sending test ping as \(role)...")
+        testMessages.append("Message: \(message)")
+        testConnectionStatus = "🔄 Testing..."
+        
+        await sharePlayService.sendTestPing(from: role, message: message)
+        
+        // Wait for response (timeout after 5 seconds)
+        var attempts = 0
+        while isTestingConnection && attempts < 50 {
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            attempts += 1
+        }
+        
+        if isTestingConnection {
+            // Timeout
+            testConnectionStatus = "❌ Connection timeout"
+            testMessages.append("Error: No response received after 5 seconds")
+            testMessages.append("Possible issues:")
+            testMessages.append("- Other participant may not have the app open")
+            testMessages.append("- Network connectivity issues")
+            testMessages.append("- SharePlay session may not be properly synced")
+            isTestingConnection = false
+        } else {
+            testConnectionStatus = "✅ Connection successful"
         }
     }
 }
