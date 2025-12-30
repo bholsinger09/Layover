@@ -231,55 +231,7 @@ struct TexasHoldemView: View {
                 
                 // Test SharePlay Button - only show when SharePlay is active
                 if viewModel.sharePlayService.isSessionActive {
-                    let isTesting = viewModel.isTestingConnection
-                    let testStatus = viewModel.testConnectionStatus
-                    let messages = viewModel.testMessages
-                    
-                    VStack(spacing: 12) {
-                        Button {
-                            Task {
-                                await viewModel.testSharePlayConnection()
-                            }
-                        } label: {
-                            Label(
-                                isTesting ? "Testing..." : "Test SharePlay",
-                                systemImage: "antenna.radiowaves.left.and.right"
-                            )
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.orange)
-                            .foregroundStyle(.white)
-                            .cornerRadius(10)
-                        }
-                        .disabled(isTesting)
-                        .padding(.horizontal)
-                        
-                        // Test results
-                        if !testStatus.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(testStatus)
-                                    .font(.headline)
-                                    .foregroundStyle(
-                                        testStatus.starts(with: "✅") ? .green : .red
-                                    )
-                                
-                                if !messages.isEmpty {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        ForEach(messages, id: \.self) { message in
-                                            Text("• \(message)")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.secondary.opacity(0.1))
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                        }
-                    }
+                    testSharePlaySection
                 }
 
                 // Detect Players Button
@@ -344,6 +296,54 @@ struct TexasHoldemView: View {
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    private var testSharePlaySection: some View {
+        VStack(spacing: 12) {
+            Button {
+                Task {
+                    await viewModel.testSharePlayConnection()
+                }
+            } label: {
+                Label(
+                    viewModel.isTestingConnection ? "Testing..." : "Test SharePlay",
+                    systemImage: "antenna.radiowaves.left.and.right"
+                )
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.orange)
+                .foregroundStyle(.white)
+                .cornerRadius(10)
+            }
+            .disabled(viewModel.isTestingConnection)
+            .padding(.horizontal)
+            
+            // Test results
+            if !viewModel.testConnectionStatus.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(viewModel.testConnectionStatus)
+                        .font(.headline)
+                        .foregroundStyle(
+                            viewModel.testConnectionStatus.starts(with: "✅") ? .green : .red
+                        )
+                    
+                    if !viewModel.testMessages.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(viewModel.testMessages, id: \.self) { message in
+                                Text("• \(message)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(10)
+                .padding(.horizontal)
             }
         }
     }
