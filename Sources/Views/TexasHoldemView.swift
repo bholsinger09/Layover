@@ -67,9 +67,13 @@ struct TexasHoldemView: View {
         #if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
-        .task {
-            // Setup SharePlay callbacks
+        .onAppear {
+            print("🟢 TexasHoldemView appeared - setting up callbacks")
+            // Setup SharePlay callbacks - critical for observer to start
             viewModel.setupSharePlayCallbacks()
+        }
+        .task {
+            print("📋 TexasHoldemView .task started")
 
             // Add current user to room participants if not already there
             if !currentRoom.participantIDs.contains(currentUser.id) {
