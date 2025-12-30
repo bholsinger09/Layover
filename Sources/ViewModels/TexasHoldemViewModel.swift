@@ -168,7 +168,6 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 self.isTestingConnection = false
             }
         }
-        }
 
         
         // Start observing for SharePlay sessions AFTER callbacks are configured
