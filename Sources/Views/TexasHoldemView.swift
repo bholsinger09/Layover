@@ -231,6 +231,10 @@ struct TexasHoldemView: View {
                 
                 // Test SharePlay Button - only show when SharePlay is active
                 if viewModel.sharePlayService.isSessionActive {
+                    let isTesting = viewModel.isTestingConnection
+                    let testStatus = viewModel.testConnectionStatus
+                    let messages = viewModel.testMessages
+                    
                     VStack(spacing: 12) {
                         Button {
                             Task {
@@ -238,7 +242,7 @@ struct TexasHoldemView: View {
                             }
                         } label: {
                             Label(
-                                viewModel.isTestingConnection ? "Testing..." : "Test SharePlay",
+                                isTesting ? "Testing..." : "Test SharePlay",
                                 systemImage: "antenna.radiowaves.left.and.right"
                             )
                             .frame(maxWidth: .infinity)
@@ -247,21 +251,21 @@ struct TexasHoldemView: View {
                             .foregroundStyle(.white)
                             .cornerRadius(10)
                         }
-                        .disabled(viewModel.isTestingConnection)
+                        .disabled(isTesting)
                         .padding(.horizontal)
                         
                         // Test results
-                        if !viewModel.testConnectionStatus.isEmpty {
+                        if !testStatus.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(viewModel.testConnectionStatus)
+                                Text(testStatus)
                                     .font(.headline)
                                     .foregroundStyle(
-                                        viewModel.testConnectionStatus.starts(with: "✅") ? .green : .red
+                                        testStatus.starts(with: "✅") ? .green : .red
                                     )
                                 
-                                if !viewModel.testMessages.isEmpty {
+                                if !messages.isEmpty {
                                     VStack(alignment: .leading, spacing: 4) {
-                                        ForEach(viewModel.testMessages, id: \.self) { message in
+                                        ForEach(messages, id: \.self) { message in
                                             Text("• \(message)")
                                                 .font(.caption)
                                                 .foregroundStyle(.secondary)
