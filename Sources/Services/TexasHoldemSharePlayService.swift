@@ -19,6 +19,9 @@ final class TexasHoldemSharePlayService {
     
     var isHost: Bool = false
     
+    // Unique identifier for this device
+    private let deviceID = UUID()
+    
     // Callbacks
     var onSessionActivated: (() -> Void)?
     var onGameStarted: ((UUID, UUID, [UUID]) -> Void)?
@@ -28,8 +31,8 @@ final class TexasHoldemSharePlayService {
     var onGameEnded: ((UUID?) -> Void)?
     var onParticipantJoined: (() -> Void)?
     var onParticipantCountChanged: ((Int) -> Void)?
-    var onTestPingReceived: ((String, String) -> Void)?
-    var onTestPongReceived: ((String, String) -> Void)?
+    var onTestPingReceived: ((String, String, UUID) -> Void)?
+    var onTestPongReceived: ((String, String, UUID) -> Void)?
     
     init() {
         // Don't start observer here - will be started when callbacks are configured
@@ -218,15 +221,33 @@ final class TexasHoldemSharePlayService {
             print("   -> Calling onGameEnded callback")
             onGameEnded?(winnerID)
             
-        case .testPing(let from, let message):
-            print("   -> Calling onTestPingReceived callback")
-            print("      From: \(from), Message: \(message)")
-            onTestPingReceived?(from, message)
+        case .testPing(let from, let message, let senderID):
+            print("   -> Received testPing from \(from), senderID: \(senderID)")
+            print("      My deviceID: \(deviceID)")
             
-        case .testPong(let from, let message):
-            print("   -> Calling onTestPongReceived callback")
-            print("      From: \(from), Message: \(message)")
-            onTestPongReceived?(from, message)
+            // Ignore messages from ourselves
+            if senderID == deviceID {
+                print("      ⚠️ Ignoring own message")
+                return
+            }
+            
+            print("      ✅ Calling onTestPingReceived callback")
+            print("      Message: \(message)")
+            onTestPingReceived?(from, message, senderID)
+            
+        case .testPong(let from, let message, let senderID):
+            print("   -> Received testPong from \(from), senderID: \(senderID)")
+            print("      My deviceID: \(deviceID)")
+            
+            // Ignore messages from ourselves
+            if senderID == deviceID {
+                print("      ⚠️ Ignoring own message")
+                return
+            }
+            
+            print("      ✅ Calling onTestPongReceived callback")
+            print("      Message: \(message)")
+            onTestPongReceived?(from, message, senderID)
         }
     }
     
@@ -326,12 +347,12 @@ final class TexasHoldemSharePlayService {
     
     /// Send a test ping message to verify connectivity
     func sendTestPing(from: String, message: String) async {
-        await sendMessage(.testPing(from: from, message: message))
+        await sendMessage(.testPing(from: from, message: message, senderID: deviceID))
     }
     
     /// Send a test pong response message
     func sendTestPong(from: String, message: String) async {
-        await sendMessage(.testPong(from: from, message: message))
+        await sendMessage(.testPong(from: from, message: message, senderID: deviceID))
     }
 }
 
