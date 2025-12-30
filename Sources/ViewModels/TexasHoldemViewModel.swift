@@ -146,27 +146,28 @@ final class TexasHoldemViewModel: LayoverViewModel {
             }
         }
         
-        sharePlayService.onTestPingReceived = { [weak self] from, message in
+        sharePlayService.onTestPingReceived = { [weak self] (from: String, message: String, senderID: UUID) in
             Task { @MainActor in
                 guard let self = self else { return }
-                print("🏓 Test ping received from: \(from), message: \(message)")
-                self.testMessages.append("Received from \(from): \(message)")
+                print("🏓 Test ping received from: \(from), message: \(message), senderID: \(senderID)")
+                self.testMessages.append("📥 Received ping from \(from): \(message)")
                 
                 // Auto-respond with pong
                 let responseRole = self.sharePlayService.isHost ? "host" : "guest"
                 let responseMessage = "Hello \(from == "host" ? "host" : "guest")"
                 await self.sharePlayService.sendTestPong(from: responseRole, message: responseMessage)
-                self.testMessages.append("Sent: \(responseMessage)")
+                self.testMessages.append("📤 Sent pong: \(responseMessage)")
             }
         }
         
-        sharePlayService.onTestPongReceived = { [weak self] from, message in
+        sharePlayService.onTestPongReceived = { [weak self] (from: String, message: String, senderID: UUID) in
             Task { @MainActor in
                 guard let self = self else { return }
-                print("🏓 Test pong received from: \(from), message: \(message)")
-                self.testMessages.append("Received from \(from): \(message)")
+                print("🏓 Test pong received from: \(from), message: \(message), senderID: \(senderID)")
+                self.testMessages.append("📥 Received pong from \(from): \(message)")
                 self.isTestingConnection = false
             }
+        }
         }
 
         
