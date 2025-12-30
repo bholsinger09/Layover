@@ -354,6 +354,41 @@ final class TexasHoldemSharePlayService {
     func sendTestPong(from: String, message: String) async {
         await sendMessage(.testPong(from: from, message: message, senderID: deviceID))
     }
+    
+    /// Get detailed diagnostic information about the SharePlay session
+    func getDiagnostics() -> [String: Any] {
+        var diagnostics: [String: Any] = [:]
+        
+        diagnostics["deviceID"] = deviceID.uuidString
+        diagnostics["isSessionActive"] = isSessionActive
+        diagnostics["isHost"] = isHost
+        diagnostics["participantCount"] = participantCount
+        
+        if let session = currentSession {
+            diagnostics["sessionID"] = session.id.uuidString
+            diagnostics["sessionState"] = "\(session.state)"
+            diagnostics["activeParticipantCount"] = session.activeParticipants.count
+            
+            var participants: [[String: String]] = []
+            for (index, participant) in session.activeParticipants.enumerated() {
+                participants.append([
+                    "index": "\(index)",
+                    "id": "\(participant.id)"
+                ])
+            }
+            diagnostics["activeParticipants"] = participants
+        } else {
+            diagnostics["sessionID"] = "nil"
+            diagnostics["sessionState"] = "nil"
+        }
+        
+        diagnostics["hasMessenger"] = messenger != nil
+        diagnostics["hasSessionTask"] = sessionTask != nil
+        diagnostics["hasMessageTask"] = messageTask != nil
+        diagnostics["hasParticipantsTask"] = participantsTask != nil
+        
+        return diagnostics
+    }
 }
 
 enum TexasHoldemSharePlayError: LocalizedError {

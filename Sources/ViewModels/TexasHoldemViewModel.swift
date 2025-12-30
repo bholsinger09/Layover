@@ -682,14 +682,21 @@ final class TexasHoldemViewModel: LayoverViewModel {
     // MARK: - Test SharePlay Connectivity
     
     func testSharePlayConnection() async {
+    
+    // MARK: - Test SharePlay Connectivity
+    
+    func testSharePlayConnection() async {
         print("🧪 Testing SharePlay connection...")
         testMessages = []
         testConnectionStatus = ""
         isTestingConnection = true
         
-        // Detailed diagnostics
-        testMessages.append("📊 Diagnostic Information:")
+        // Get detailed diagnostics
+        let diagnostics = sharePlayService.getDiagnostics()
+        
+        testMessages.append("📊 Advanced Diagnostics:")
         testMessages.append("Role: \(sharePlayService.isHost ? "Host" : "Guest")")
+        testMessages.append("Device ID: \(diagnostics["deviceID"] as? String ?? "unknown")")
         
         // Check if SharePlay is active
         if !sharePlayService.isSessionActive {
@@ -701,13 +708,34 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
         testMessages.append("✅ SharePlay session is active")
         
-        // Check messenger availability
-        let hasMessenger = sharePlayService.currentSession != nil
-        testMessages.append(hasMessenger ? "✅ Session object exists" : "❌ Session object is nil")
+        // Session details
+        if let sessionID = diagnostics["sessionID"] as? String {
+            testMessages.append("Session ID: \(String(sessionID.prefix(8)))...")
+        }
         
-        // Check participant count
-        let participantCount = sharePlayService.participantCount
-        testMessages.append("Participants: \(participantCount + 1) total")
+        if let sessionState = diagnostics["sessionState"] as? String {
+            testMessages.append("Session State: \(sessionState)")
+        }
+        
+        // Messenger and task status
+        let hasMessenger = diagnostics["hasMessenger"] as? Bool ?? false
+        let hasMessageTask = diagnostics["hasMessageTask"] as? Bool ?? false
+        testMessages.append(hasMessenger ? "✅ Messenger exists" : "❌ Messenger is nil")
+        testMessages.append(hasMessageTask ? "✅ Message listener running" : "❌ Message listener not running")
+        
+        // Participant details
+        let participantCount = diagnostics["participantCount"] as? Int ?? 0
+        let activeParticipantCount = diagnostics["activeParticipantCount"] as? Int ?? 0
+        testMessages.append("Stored participants: \(participantCount)")
+        testMessages.append("Active participants: \(activeParticipantCount)")
+        
+        if let participants = diagnostics["activeParticipants"] as? [[String: String]] {
+            for participant in participants {
+                let index = participant["index"] ?? "?"
+                let id = participant["id"] ?? "unknown"
+                testMessages.append("  Participant \(index): \(String(id.prefix(8)))...")
+            }
+        }
         
         if participantCount < 1 {
             testConnectionStatus = "❌ No other participants"
@@ -763,13 +791,27 @@ final class TexasHoldemViewModel: LayoverViewModel {
             testMessages.append("")
             testMessages.append("❌ No response received after \(String(format: "%.1f", elapsed))s")
             testMessages.append("")
-            testMessages.append("🔍 Troubleshooting:")
+            testMessages.append("🔍 Possible Issues:")
+            
+            // Analyze specific issues based on diagnostics
+            if !hasMessageTask {
+                testMessages.append("⚠️ Message listener is not running on this device")
+                testMessages.append("   This means callbacks won't be triggered")
+            }
+            
+            if activeParticipantCount != participantCount + 1 {
+                testMessages.append("⚠️ Participant count mismatch:")
+                testMessages.append("   Expected: \(participantCount + 1), Actual: \(activeParticipantCount)")
+            }
+            
+            testMessages.append("")
+            testMessages.append("📋 Troubleshooting Steps:")
             testMessages.append("1. Verify other device has app open")
-            testMessages.append("2. Check if other device is on same screen")
-            testMessages.append("3. Both devices should show 'SharePlay Active'")
-            testMessages.append("4. Try restarting SharePlay on both devices")
-            testMessages.append("5. Ensure both devices have network connection")
-            testMessages.append("6. Check FaceTime call is still active")
+            testMessages.append("2. Check both devices show same Session ID")
+            testMessages.append("3. Restart SharePlay on both devices")
+            testMessages.append("4. Try ending and restarting FaceTime call")
+            testMessages.append("5. Ensure both devices on same WiFi/network")
+            testMessages.append("6. Check Console logs for SharePlay errors")
             isTestingConnection = false
         } else {
             let endTime = Date()
