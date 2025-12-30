@@ -17,7 +17,13 @@ final class TexasHoldemSharePlayService {
     private(set) var participantCount: Int = 0
     private(set) var isSessionActive: Bool = false
     
-    var isHost: Bool = false
+    var isHost: Bool = false {
+        didSet {
+            print("🔄 isHost changed from \(oldValue) to \(isHost)")
+            print("   Stack trace:")
+            Thread.callStackSymbols.prefix(5).forEach { print("      \($0)") }
+        }
+    }
     
     // Unique identifier for this device
     private let deviceID = UUID()
@@ -102,15 +108,19 @@ final class TexasHoldemSharePlayService {
         print("   Session ID: \(session.id)")
         print("   Session state: \(session.state)")
         print("   Active participants: \(session.activeParticipants.count)")
+        print("   ⚠️ BEFORE ROLE CHECK - Current isHost value: \(isHost)")
+        print("   ⚠️ BEFORE ROLE CHECK - Current session nil?: \(currentSession == nil)")
         
-        // Only mark as participant if we didn't initiate the session
-        // If isHost is already true, we started this session, so keep it true
-        if currentSession == nil && !isHost {
-            logger.info("   Joining existing Texas Hold'em session as participant")
-            print("   👥 Joining as PARTICIPANT")
-        } else if isHost {
-            logger.info("   Confirming host role for session we initiated")
-            print("   🏠 Confirming HOST role")
+        // Determine host/guest role:
+        // If we INITIATED the session (called startSharePlay), isHost will already be true
+        // Otherwise, we're joining an existing session as a guest
+        if isHost {
+            logger.info("   Session was INITIATED by this device - confirming HOST role")
+            print("   🏠 Session INITIATED by this device - Confirming HOST role (isHost stays true)")
+        } else {
+            logger.info("   Joining EXISTING session created by another device - setting GUEST role")
+            print("   👥 Joining EXISTING session - Setting GUEST role (isHost = false)")
+            isHost = false
         }
         
         currentSession = session
@@ -347,12 +357,16 @@ final class TexasHoldemSharePlayService {
     
     /// Send a test ping message to verify connectivity
     func sendTestPing(from: String, message: String) async {
+        print("📤 sendTestPing called - from: \(from), message: \(message), deviceID: \(deviceID)")
         await sendMessage(.testPing(from: from, message: message, senderID: deviceID))
+        print("📤 sendTestPing message sent")
     }
     
     /// Send a test pong response message
     func sendTestPong(from: String, message: String) async {
+        print("📤 sendTestPong called - from: \(from), message: \(message), deviceID: \(deviceID)")
         await sendMessage(.testPong(from: from, message: message, senderID: deviceID))
+        print("📤 sendTestPong message sent")
     }
     
     /// Get detailed diagnostic information about the SharePlay session

@@ -681,8 +681,6 @@ final class TexasHoldemViewModel: LayoverViewModel {
     
     // MARK: - Test SharePlay Connectivity
     
-    func testSharePlayConnection() async {
-    
     // MARK: - Test SharePlay Connectivity
     
     func testSharePlayConnection() async {

@@ -303,8 +303,11 @@ struct TexasHoldemView: View {
     private var testSharePlaySection: some View {
         VStack(spacing: 12) {
             Button {
+                print("🔴 TEST BUTTON TAPPED!")
                 Task {
+                    print("🔴 Task started, calling testSharePlayConnection...")
                     await viewModel.testSharePlayConnection()
+                    print("🔴 testSharePlayConnection completed")
                 }
             } label: {
                 Label(
