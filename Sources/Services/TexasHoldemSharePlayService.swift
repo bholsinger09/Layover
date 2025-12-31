@@ -25,6 +25,12 @@ final class TexasHoldemSharePlayService {
         }
     }
     
+    // Track if we initiated the activity locally
+    private var didInitiateActivity: Bool = false
+    
+    // Track which session we've already handled to avoid re-determining role
+    private var handledSessionID: UUID?
+    
     // Unique identifier for this device
     private let deviceID = UUID()
     
@@ -43,6 +49,11 @@ final class TexasHoldemSharePlayService {
     init() {
         // Don't start observer here - will be started when callbacks are configured
         logger.info("🎯 TexasHoldemSharePlayService initialized")
+        print(String(repeating: "=", count: 80))
+        print("🎯 ===== TEXAS HOLDEM SHAREPLAY SERVICE INIT =====")
+        print("🎯 Device ID: \(deviceID)")
+        print("🎯 This device is ready to observe for SharePlay sessions")
+        print(String(repeating: "=", count: 80))
     }
     
     func startObserving() {
@@ -51,10 +62,9 @@ final class TexasHoldemSharePlayService {
         print("🔍 startObserving() called")
         setupSessionObserver()
         
-        // Also check for existing sessions immediately
-        Task {
-            await checkForExistingSessions()
-        }
+        // Note: We removed checkForExistingSessions() to avoid race conditions
+        // The session observer will pick up any active sessions automatically
+        print("✅ Session observer started - will detect sessions via observer loop")
     }
     
     private func checkForExistingSessions() async {
@@ -87,19 +97,27 @@ final class TexasHoldemSharePlayService {
     
     private func setupSessionObserver() {
         print("👁️ ===== SETTING UP SESSION OBSERVER =====")
+        print("👁️ Device ID: \(deviceID)")
+        print("👁️ Current didInitiateActivity: \(didInitiateActivity)")
+        
+        sessionTask?.cancel() // Cancel any existing observer
         sessionTask = Task {
             print("👁️ Session observer loop started - waiting for sessions...")
+            print("👁️ This will automatically detect SharePlay sessions from other devices")
             var iterationCount = 0
             for await session in TexasHoldemActivity.sessions() {
                 iterationCount += 1
-                print("🔔 Session observer detected session #\(iterationCount)!")
+                print("🔔 ===== SESSION DETECTED #\(iterationCount) =====")
                 print("   Session ID: \(session.id)")
                 print("   Session state: \(session.state)")
+                print("   Active participants: \(session.activeParticipants.count)")
+                print("   Did we initiate?: \(didInitiateActivity)")
                 await handleSession(session)
+                print("🔔 ===== SESSION HANDLING COMPLETE =====")
             }
             print("⚠️ Session observer loop ended")
         }
-        print("✅ Session observer task created")
+        print("✅ Session observer task created and running")
     }
     
     private func handleSession(_ session: GroupSession<TexasHoldemActivity>) async {
@@ -110,17 +128,28 @@ final class TexasHoldemSharePlayService {
         print("   Active participants: \(session.activeParticipants.count)")
         print("   ⚠️ BEFORE ROLE CHECK - Current isHost value: \(isHost)")
         print("   ⚠️ BEFORE ROLE CHECK - Current session nil?: \(currentSession == nil)")
+        print("   ⚠️ Did we initiate activity?: \(didInitiateActivity)")
+        print("   ⚠️ Already handled session ID: \(handledSessionID?.uuidString ?? "none")")
         
-        // Determine host/guest role:
-        // If we INITIATED the session (called startSharePlay), isHost will already be true
-        // Otherwise, we're joining an existing session as a guest
-        if isHost {
-            logger.info("   Session was INITIATED by this device - confirming HOST role")
-            print("   🏠 Session INITIATED by this device - Confirming HOST role (isHost stays true)")
+        // If we've already handled this exact session, preserve the role
+        if let handledID = handledSessionID, handledID == session.id {
+            print("   ♻️ Already handled this session - preserving role (isHost: \(isHost))")
         } else {
-            logger.info("   Joining EXISTING session created by another device - setting GUEST role")
-            print("   👥 Joining EXISTING session - Setting GUEST role (isHost = false)")
-            isHost = false
+            // First time handling this session - determine role
+            handledSessionID = session.id
+            
+            // Determine host/guest role based on whether WE initiated the activity
+            // The device that called startActivity() is the host
+            // All other devices joining are guests
+            if didInitiateActivity {
+                logger.info("   ✅ This device INITIATED the activity - setting HOST role")
+                print("   🏠 This device INITIATED the activity - Setting HOST role")
+                isHost = true
+            } else {
+                logger.info("   ✅ This device is JOINING an existing session - setting GUEST role")
+                print("   👥 This device is JOINING - Setting GUEST role")
+                isHost = false
+            }
         }
         
         currentSession = session
@@ -131,12 +160,13 @@ final class TexasHoldemSharePlayService {
         print("📢 Calling onSessionActivated callback")
         onSessionActivated?()
         
-        // Join the session
-        print("🚪 Joining SharePlay session...")
+        // Auto-join the session (important for guests!)
+        print("🚪 Auto-joining SharePlay session...")
         session.join()
         logger.info("✅ Texas Hold'em SharePlay: Joined session")
         print("✅ Successfully joined SharePlay session!")
         print("   Session is now active with \(session.activeParticipants.count) participants")
+        print("   Role: \(isHost ? "HOST" : "GUEST")")
         
         // Start listening for messages
         print("👂 Setting up message listener...")
@@ -200,9 +230,11 @@ final class TexasHoldemSharePlayService {
     
     private func handleMessage(_ message: TexasHoldemMessage) async {
         logger.info("📨 Received Texas Hold'em message: \(String(describing: message))")
-        print("📨 RECEIVED MESSAGE: \(String(describing: message))")
+        print("📨 ===== MESSAGE RECEIVED =====")
+        print("📨 Message type: \(String(describing: message))")
         print("   Is host: \(isHost)")
         print("   Session active: \(isSessionActive)")
+        print("   Device ID: \(deviceID)")
         
         switch message {
         case .gameStarted(let roomID, let gameID, let playerIDs):
@@ -232,33 +264,54 @@ final class TexasHoldemSharePlayService {
             onGameEnded?(winnerID)
             
         case .testPing(let from, let message, let senderID):
-            print("   -> Received testPing from \(from), senderID: \(senderID)")
-            print("      My deviceID: \(deviceID)")
+            print("   -> TEST PING RECEIVED!")
+            print("      From role: \(from)")
+            print("      Message: \(message)")
+            print("      Sender device ID: \(senderID)")
+            print("      My device ID: \(deviceID)")
+            print("      Same device?: \(senderID == deviceID)")
             
             // Ignore messages from ourselves
             if senderID == deviceID {
-                print("      ⚠️ Ignoring own message")
+                print("      ⚠️ Ignoring own message (same device ID)")
                 return
             }
             
-            print("      ✅ Calling onTestPingReceived callback")
-            print("      Message: \(message)")
-            onTestPingReceived?(from, message, senderID)
+            print("      ✅ Different device - processing message")
+            print("      Callback exists?: \(onTestPingReceived != nil)")
+            
+            if onTestPingReceived != nil {
+                print("      ✅ Calling onTestPingReceived callback")
+                onTestPingReceived?(from, message, senderID)
+            } else {
+                print("      ❌ ERROR: onTestPingReceived callback is NIL!")
+            }
             
         case .testPong(let from, let message, let senderID):
-            print("   -> Received testPong from \(from), senderID: \(senderID)")
-            print("      My deviceID: \(deviceID)")
+            print("   -> TEST PONG RECEIVED!")
+            print("      From role: \(from)")
+            print("      Message: \(message)")
+            print("      Sender device ID: \(senderID)")
+            print("      My device ID: \(deviceID)")
+            print("      Same device?: \(senderID == deviceID)")
             
             // Ignore messages from ourselves
             if senderID == deviceID {
-                print("      ⚠️ Ignoring own message")
+                print("      ⚠️ Ignoring own message (same device ID)")
                 return
             }
             
-            print("      ✅ Calling onTestPongReceived callback")
-            print("      Message: \(message)")
-            onTestPongReceived?(from, message, senderID)
+            print("      ✅ Different device - processing message")
+            print("      Callback exists?: \(onTestPongReceived != nil)")
+            
+            if onTestPongReceived != nil {
+                print("      ✅ Calling onTestPongReceived callback")
+                onTestPongReceived?(from, message, senderID)
+            } else {
+                print("      ❌ ERROR: onTestPongReceived callback is NIL!")
+            }
         }
+        print("📨 ===== MESSAGE HANDLING COMPLETE =====")
     }
     
     // MARK: - Public Methods
@@ -270,6 +323,8 @@ final class TexasHoldemSharePlayService {
         print("   Room ID: \(roomID)")
         print("   Game ID: \(gameID)")
         print("   Room Name: \(roomName ?? "nil")")
+        print("   ⚠️ IMPORTANT: This device is INITIATING SharePlay")
+        print("   ⚠️ Device ID: \(deviceID)")
         
         let activity = TexasHoldemActivity(
             roomID: roomID,
@@ -277,8 +332,10 @@ final class TexasHoldemSharePlayService {
             roomName: roomName
         )
         
-        isHost = true
-        print("   🏠 Marked as host")
+        // Mark that we initiated this activity
+        didInitiateActivity = true
+        print("   🏠 Marked didInitiateActivity = true (will become host)")
+        print("   🏠 This flag will be checked when handleSession() is called")
         
         print("📋 Preparing activity for activation...")
         let preparationResult = await activity.prepareForActivation()
@@ -352,6 +409,8 @@ final class TexasHoldemSharePlayService {
         currentSession?.leave()
         currentSession = nil
         messenger = nil
+        didInitiateActivity = false
+        handledSessionID = nil
         isHost = false
     }
     

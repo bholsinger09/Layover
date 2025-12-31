@@ -25,7 +25,10 @@ struct TexasHoldemView: View {
         let _ = print("🟢 TexasHoldemView body rendering")
         let _ = print("   Room participants: \(currentRoom.participantIDs.count)")
         let _ = print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
+        let _ = print("   SharePlay is host: \(viewModel.sharePlayService.isHost)")
         let _ = print("   SharePlay count: \(viewModel.sharePlayService.participantCount)")
+        let _ = print("   SharePlay version: \(viewModel.sharePlayStateVersion)")
+        
         VStack(spacing: 0) {
             // Participant count and SharePlay indicator
             HStack {
@@ -47,6 +50,12 @@ struct TexasHoldemView: View {
                         Text("SharePlay Active")
                             .font(.caption)
                             .foregroundStyle(.green)
+                        Text("•")
+                            .foregroundStyle(.secondary)
+                        Text(viewModel.sharePlayService.isHost ? "Host" : "Guest")
+                            .font(.caption)
+                            .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
+                            .fontWeight(.semibold)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -69,8 +78,14 @@ struct TexasHoldemView: View {
         #endif
         .onAppear {
             print("🟢 TexasHoldemView appeared - setting up callbacks")
+            print("🟢 Current SharePlay state:")
+            print("   Is active: \(viewModel.sharePlayService.isSessionActive)")
+            print("   Is host: \(viewModel.sharePlayService.isHost)")
+            
             // Setup SharePlay callbacks - critical for observer to start
             viewModel.setupSharePlayCallbacks()
+            
+            print("🟢 SharePlay observer should now be listening for sessions")
         }
         .task {
             print("📋 TexasHoldemView .task started")
@@ -184,17 +199,28 @@ struct TexasHoldemView: View {
             // SharePlay Status Indicator - reference viewModel.sharePlayStateVersion to trigger updates
             if viewModel.sharePlayService.isSessionActive {
                 let _ = viewModel.sharePlayStateVersion  // Force dependency
-                HStack(spacing: 8) {
-                    Image(systemName: "shareplay")
-                        .foregroundStyle(.green)
-                    Text("SharePlay Active")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text("•")
-                        .foregroundStyle(.secondary)
-                    Text("\(viewModel.sharePlayService.participantCount + 1) connected")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                VStack(spacing: 8) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "shareplay")
+                            .foregroundStyle(.green)
+                        Text("SharePlay Active")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text("•")
+                            .foregroundStyle(.secondary)
+                        Text("\(viewModel.sharePlayService.participantCount + 1) connected")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 4) {
+                        Text("You are the")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(viewModel.sharePlayService.isHost ? "Host" : "Guest")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
@@ -210,7 +236,7 @@ struct TexasHoldemView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                // SharePlay Button - prominently displayed
+                // SharePlay Button - prominently displayed ONLY if not in a session
                 if !viewModel.sharePlayService.isSessionActive {
                     Button {
                         Task {
@@ -231,7 +257,50 @@ struct TexasHoldemView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
+                } else {
+                    // Already in SharePlay session - show status
+                    VStack(spacing: 12) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Connected via SharePlay")
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text("You are the \(viewModel.sharePlayService.isHost ? "Host" : "Guest")")
+                                    .font(.subheadline)
+                                    .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.green.opacity(0.15))
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
                 }
+                
+                // Debug info - remove after testing
+                #if DEBUG
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Debug Info:")
+                        .font(.caption2)
+                        .fontWeight(.bold)
+                    Text("Session Active: \(viewModel.sharePlayService.isSessionActive ? "YES" : "NO")")
+                        .font(.caption2)
+                    Text("Is Host: \(viewModel.sharePlayService.isHost ? "YES" : "NO")")
+                        .font(.caption2)
+                    Text("Participant Count: \(viewModel.sharePlayService.participantCount)")
+                        .font(.caption2)
+                    Text("State Version: \(viewModel.sharePlayStateVersion)")
+                        .font(.caption2)
+                }
+                .padding(8)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(6)
+                .padding(.horizontal)
+                #endif
                 
                 // Test SharePlay Button - only show when SharePlay is active
                 if viewModel.sharePlayService.isSessionActive {
@@ -305,18 +374,65 @@ struct TexasHoldemView: View {
     }
     
     private var testSharePlaySection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
+            // Role indicator
+            VStack(spacing: 8) {
+                HStack {
+                    Text("Your Role:")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(viewModel.sharePlayService.isHost ? "🏠 Host" : "👤 Guest")
+                        .font(.headline)
+                        .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
+                }
+                Text("Participants: \(viewModel.sharePlayService.participantCount + 1)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding()
+            .background(Color.secondary.opacity(0.1))
+            .cornerRadius(10)
+            .padding(.horizontal)
+            
+            // Ping button
             Button {
-                print("🔴 TEST BUTTON TAPPED!")
+                print("🔴 PING BUTTON TAPPED!")
                 Task {
-                    print("🔴 Task started, calling testSharePlayConnection...")
-                    await viewModel.testSharePlayConnection()
-                    print("🔴 testSharePlayConnection completed")
+                    await viewModel.sendPingToOtherUser()
                 }
             } label: {
                 Label(
-                    viewModel.isTestingConnection ? "Testing..." : "Test SharePlay",
+                    viewModel.isTestingConnection ? "Sending..." : "Ping \(viewModel.sharePlayService.isHost ? "Guest" : "Host")",
                     systemImage: "antenna.radiowaves.left.and.right"
+                )
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(viewModel.sharePlayService.isHost ? Color.blue : Color.purple)
+                .foregroundStyle(.white)
+                .cornerRadius(10)
+            }
+            .disabled(viewModel.isTestingConnection || viewModel.sharePlayService.participantCount < 1)
+            .opacity(viewModel.sharePlayService.participantCount < 1 ? 0.5 : 1.0)
+            .padding(.horizontal)
+            
+            if viewModel.sharePlayService.participantCount < 1 {
+                Text("Waiting for another participant to join...")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal)
+            }
+            
+            // Full test with diagnostics
+            Button {
+                Task {
+                    await viewModel.testSharePlayConnection()
+                }
+            } label: {
+                Label(
+                    "Advanced Diagnostics",
+                    systemImage: "stethoscope"
                 )
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -327,7 +443,7 @@ struct TexasHoldemView: View {
             .disabled(viewModel.isTestingConnection)
             .padding(.horizontal)
             
-            // Test results
+            // Test results and messages
             if !viewModel.testConnectionStatus.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(viewModel.testConnectionStatus)
@@ -337,13 +453,20 @@ struct TexasHoldemView: View {
                         )
                     
                     if !viewModel.testMessages.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            ForEach(viewModel.testMessages, id: \.self) { message in
-                                Text("• \(message)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 4) {
+                                ForEach(viewModel.testMessages, id: \.self) { message in
+                                    Text(message)
+                                        .font(.caption)
+                                        .foregroundStyle(
+                                            message.contains("✅") ? .green :
+                                            message.contains("❌") ? .red : .secondary
+                                        )
+                                        .fontWeight(message.contains("📥") || message.contains("📤") ? .semibold : .regular)
+                                }
                             }
                         }
+                        .frame(maxHeight: 200)
                     }
                 }
                 .padding()
@@ -355,56 +478,30 @@ struct TexasHoldemView: View {
         }
     }
 
-    private func createSharePlayActivity() -> TexasHoldemActivity? {
-        // Create the activity for SharePlay
-        return TexasHoldemActivity(
-            roomID: room.id,
-            gameID: viewModel.currentGame?.id ?? UUID(),
-            roomName: room.name
-        )
-    }
-
     private func activateSharePlay() async {
-        guard let activity = createSharePlayActivity() else {
-            print("❌ Failed to create SharePlay activity")
-            return
-        }
-
         print("🚀 Activating SharePlay...")
-        print("   Room ID: \(activity.roomID)")
-        print("   Game ID: \(activity.gameID)")
-        print("   Room Name: \(activity.roomName ?? "nil")")
+        print("   Room ID: \(room.id)")
+        print("   Room Name: \(room.name)")
 
         do {
-            // Mark as host before activating
-            viewModel.sharePlayService.isHost = true
-            print("   🏠 Marked as host")
+            // Use the service's startActivity method which properly sets the host flag
+            try await viewModel.sharePlayService.startActivity(
+                roomID: room.id,
+                gameID: viewModel.currentGame?.id ?? UUID(),
+                roomName: room.name
+            )
+            
+            print("✅ SharePlay activated successfully via service!")
+            
+            // Give it a moment to connect
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
 
-            // Activate the SharePlay session
-            switch await activity.prepareForActivation() {
-            case .activationPreferred:
-                print("✅ SharePlay activation preferred - activating...")
-                let result = try await activity.activate()
-                print("✅ SharePlay activated successfully! Result: \(result)")
-
-                // Give it a moment to connect
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-
-                if viewModel.sharePlayService.isSessionActive {
-                    print("🎉 SharePlay session is now active")
-                    print("   Participant count: \(viewModel.sharePlayService.participantCount)")
-                } else {
-                    print("⚠️ SharePlay activated but session not yet active")
-                }
-
-            case .activationDisabled:
-                print("⚠️ SharePlay activation disabled - not in FaceTime call?")
-
-            case .cancelled:
-                print("⚠️ SharePlay activation cancelled by user")
-
-            @unknown default:
-                print("⚠️ Unknown SharePlay activation result")
+            if viewModel.sharePlayService.isSessionActive {
+                print("🎉 SharePlay session is now active")
+                print("   Is Host: \(viewModel.sharePlayService.isHost)")
+                print("   Participant count: \(viewModel.sharePlayService.participantCount)")
+            } else {
+                print("⚠️ SharePlay activated but session not yet active")
             }
         } catch {
             print("❌ SharePlay activation failed: \(error)")
