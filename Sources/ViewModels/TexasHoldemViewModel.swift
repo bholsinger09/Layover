@@ -657,6 +657,10 @@ final class TexasHoldemViewModel: LayoverViewModel {
 
         currentGame = game
         print("✅ Game state applied successfully")
+        print("   Triggering UI refresh...")
+        
+        // Force UI refresh by updating a published property
+        sharePlayStateVersion += 1
     }
 
     private func handlePlayerAction(_ action: TexasHoldemMessage.PlayerAction) async {

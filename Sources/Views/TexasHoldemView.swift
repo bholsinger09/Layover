@@ -281,31 +281,31 @@ struct TexasHoldemView: View {
                     .padding(.horizontal)
                 }
                 
-                // Debug info - remove after testing
-                #if DEBUG
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Debug Info:")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                    Text("Session Active: \(viewModel.sharePlayService.isSessionActive ? "YES" : "NO")")
-                        .font(.caption2)
-                    Text("Is Host: \(viewModel.sharePlayService.isHost ? "YES" : "NO")")
-                        .font(.caption2)
-                    Text("Participant Count: \(viewModel.sharePlayService.participantCount)")
-                        .font(.caption2)
-                    Text("State Version: \(viewModel.sharePlayStateVersion)")
-                        .font(.caption2)
-                }
-                .padding(8)
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(6)
-                .padding(.horizontal)
-                #endif
+                // Debug info - commented out after testing
+                // #if DEBUG
+                // VStack(alignment: .leading, spacing: 4) {
+                //     Text("Debug Info:")
+                //         .font(.caption2)
+                //         .fontWeight(.bold)
+                //     Text("Session Active: \(viewModel.sharePlayService.isSessionActive ? "YES" : "NO")")
+                //         .font(.caption2)
+                //     Text("Is Host: \(viewModel.sharePlayService.isHost ? "YES" : "NO")")
+                //         .font(.caption2)
+                //     Text("Participant Count: \(viewModel.sharePlayService.participantCount)")
+                //         .font(.caption2)
+                //     Text("State Version: \(viewModel.sharePlayStateVersion)")
+                //         .font(.caption2)
+                // }
+                // .padding(8)
+                // .background(Color.orange.opacity(0.1))
+                // .cornerRadius(6)
+                // .padding(.horizontal)
+                // #endif
                 
-                // Test SharePlay Button - only show when SharePlay is active
-                if viewModel.sharePlayService.isSessionActive {
-                    testSharePlaySection
-                }
+                // Test SharePlay Button - commented out after testing
+                // if viewModel.sharePlayService.isSessionActive {
+                //     testSharePlaySection
+                // }
 
                 // Detect Players Button
                 if currentRoom.participantIDs.count < 2 {
@@ -373,108 +373,133 @@ struct TexasHoldemView: View {
         }
     }
     
-    private var testSharePlaySection: some View {
-        VStack(spacing: 16) {
-            // Role indicator
-            VStack(spacing: 8) {
-                HStack {
-                    Text("Your Role:")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(viewModel.sharePlayService.isHost ? "🏠 Host" : "👤 Guest")
-                        .font(.headline)
-                        .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
-                }
-                Text("Participants: \(viewModel.sharePlayService.participantCount + 1)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding()
-            .background(Color.secondary.opacity(0.1))
-            .cornerRadius(10)
-            .padding(.horizontal)
-            
-            // Ping button
-            Button {
-                print("🔴 PING BUTTON TAPPED!")
-                Task {
-                    await viewModel.sendPingToOtherUser()
-                }
-            } label: {
-                Label(
-                    viewModel.isTestingConnection ? "Sending..." : "Ping \(viewModel.sharePlayService.isHost ? "Guest" : "Host")",
-                    systemImage: "antenna.radiowaves.left.and.right"
-                )
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(viewModel.sharePlayService.isHost ? Color.blue : Color.purple)
-                .foregroundStyle(.white)
-                .cornerRadius(10)
-            }
-            .disabled(viewModel.isTestingConnection || viewModel.sharePlayService.participantCount < 1)
-            .opacity(viewModel.sharePlayService.participantCount < 1 ? 0.5 : 1.0)
-            .padding(.horizontal)
-            
-            if viewModel.sharePlayService.participantCount < 1 {
-                Text("Waiting for another participant to join...")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
-                    .padding(.horizontal)
-            }
-            
-            // Full test with diagnostics
-            Button {
-                Task {
-                    await viewModel.testSharePlayConnection()
-                }
-            } label: {
-                Label(
-                    "Advanced Diagnostics",
-                    systemImage: "stethoscope"
-                )
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.orange)
-                .foregroundStyle(.white)
-                .cornerRadius(10)
-            }
-            .disabled(viewModel.isTestingConnection)
-            .padding(.horizontal)
-            
-            // Test results and messages
-            if !viewModel.testConnectionStatus.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(viewModel.testConnectionStatus)
-                        .font(.headline)
-                        .foregroundStyle(
-                            viewModel.testConnectionStatus.starts(with: "✅") ? .green : .red
-                        )
-                    
-                    if !viewModel.testMessages.isEmpty {
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 4) {
-                                ForEach(viewModel.testMessages, id: \.self) { message in
-                                    Text(message)
-                                        .font(.caption)
-                                        .foregroundStyle(
-                                            message.contains("✅") ? .green :
-                                            message.contains("❌") ? .red : .secondary
-                                        )
-                                        .fontWeight(message.contains("📥") || message.contains("📤") ? .semibold : .regular)
-                                }
-                            }
-                        }
-                        .frame(maxHeight: 200)
-                    }
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.secondary.opacity(0.1))
-                .cornerRadius(10)
-                .padding(.horizontal)
-            }
+    // Test SharePlay section - commented out after testing
+    // private var testSharePlaySection: some View {
+    //     VStack(spacing: 16) {
+    //         // Role indicator
+    //         VStack(spacing: 8) {
+    //             HStack {
+    //                 Text("Your Role:")
+    //                     .font(.subheadline)
+    //                     .foregroundStyle(.secondary)
+    //                 Spacer()
+    //                 Text(viewModel.sharePlayService.isHost ? "🏠 Host" : "👤 Guest")
+    //                     .font(.headline)
+    //                     .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
+    //             }
+    //             Text("Participants: \(viewModel.sharePlayService.participantCount + 1)")
+    //                 .font(.caption)
+    //                 .foregroundStyle(.secondary)
+    //                 .frame(maxWidth: .infinity, alignment: .leading)
+    //         }
+    //         .padding()
+    //         .background(Color.secondary.opacity(0.1))
+    //         .cornerRadius(10)
+    //         .padding(.horizontal)
+    //         
+    //         // Ping button
+    //         Button {
+    //             print("🔴 PING BUTTON TAPPED!")
+    //             Task {
+    //                 await viewModel.sendPingToOtherUser()
+    //             }
+    //         } label: {
+    //             Label(
+    //                 viewModel.isTestingConnection ? "Sending..." : "Ping \(viewModel.sharePlayService.isHost ? "Guest" : "Host")",
+    //                 systemImage: "antenna.radiowaves.left.and.right"
+    //             )
+    //             .frame(maxWidth: .infinity)
+    //             .padding()
+    //             .background(viewModel.sharePlayService.isHost ? Color.blue : Color.purple)
+    //             .foregroundStyle(.white)
+    //             .cornerRadius(10)
+    //         }
+    //         .disabled(viewModel.isTestingConnection || viewModel.sharePlayService.participantCount < 1)
+    //         .opacity(viewModel.sharePlayService.participantCount < 1 ? 0.5 : 1.0)
+    //         .padding(.horizontal)
+    //         
+    //         if viewModel.sharePlayService.participantCount < 1 {
+    //             Text("Waiting for another participant to join...")
+    //                 .font(.caption)
+    //                 .foregroundStyle(.orange)
+    //                 .padding(.horizontal)
+    //         }
+    //         
+    //         // Full test with diagnostics
+    //         Button {
+    //             Task {
+    //                 await viewModel.testSharePlayConnection()
+    //             }
+    //         } label: {
+    //             Label(
+    //                 "Advanced Diagnostics",
+    //                 systemImage: "stethoscope"
+    //             )
+    //             .frame(maxWidth: .infinity)
+    //             .padding()
+    //             .background(Color.orange)
+    //             .foregroundStyle(.white)
+    //             .cornerRadius(10)
+    //         }
+    //         .disabled(viewModel.isTestingConnection)
+    //         .padding(.horizontal)
+    //         
+    //         // Test results and messages
+    //         if !viewModel.testConnectionStatus.isEmpty {
+    //             VStack(alignment: .leading, spacing: 8) {
+    //                 Text(viewModel.testConnectionStatus)
+    //                     .font(.headline)
+    //                     .foregroundStyle(
+    //                         viewModel.testConnectionStatus.starts(with: "✅") ? .green : .red
+    //                     )
+    //                 
+    //                 if !viewModel.testMessages.isEmpty {
+    //                     ScrollView {
+    //                         VStack(alignment: .leading, spacing: 4) {
+    //                             ForEach(viewModel.testMessages, id: \.self) { message in
+    //                                 Text(message)
+    //                                     .font(.caption)
+    //                                     .foregroundStyle(
+    //                                         message.contains("✅") ? .green :
+    //                                         message.contains("❌") ? .red : .secondary
+    //                                     )
+    //                                     .fontWeight(message.contains("📥") || message.contains("📤") ? .semibold : .regular)
+    //                             }
+    //                         }
+    //                     }
+    //                     .frame(maxHeight: 200)
+    //                 }
+    //             }
+    //             .padding()
+    //             .frame(maxWidth: .infinity, alignment: .leading)
+    //             .background(Color.secondary.opacity(0.1))
+    //             .cornerRadius(10)
+    //             .padding(.horizontal)
+    //         }
+    //     }
+    // }
+
+    private func isMyTurnInGame(game: TexasHoldemGame) -> Bool {
+        // In SharePlay mode, determine turn based on role
+        if viewModel.sharePlayService.isSessionActive {
+            // Host is player 0, Guest is player 1
+            let myPlayerIndex = viewModel.sharePlayService.isHost ? 0 : 1
+            return game.currentPlayerIndex == myPlayerIndex
+        } else {
+            // Non-SharePlay mode: check by currentUser.id
+            return game.players[game.currentPlayerIndex].userID == currentUser.id
+        }
+    }
+    
+    private func getMyPlayerID(game: TexasHoldemGame) -> UUID {
+        // In SharePlay mode, get player ID based on role
+        if viewModel.sharePlayService.isSessionActive {
+            // Host is player 0, Guest is player 1
+            let myPlayerIndex = viewModel.sharePlayService.isHost ? 0 : 1
+            return game.players[myPlayerIndex].userID
+        } else {
+            // Non-SharePlay mode: use currentUser.id
+            return currentUser.id
         }
     }
 
@@ -557,8 +582,7 @@ struct TexasHoldemView: View {
 
                     // Turn indicator
                     if game.currentPlayerIndex < game.players.count {
-                        let currentPlayer = game.players[game.currentPlayerIndex]
-                        let isMyTurn = currentPlayer.userID == currentUser.id
+                        let isMyTurn = isMyTurnInGame(game: game)
                         Text(isMyTurn ? "Your Turn" : "Opponent's Turn")
                             .font(.subheadline)
                             .foregroundStyle(isMyTurn ? .green : .orange)
@@ -652,8 +676,9 @@ struct TexasHoldemView: View {
                 if game.gamePhase != .ended {
                     VStack(spacing: 12) {
                         gameControls(
+                            game: game,
                             phase: game.gamePhase,
-                            isMyTurn: game.players[game.currentPlayerIndex].userID == currentUser.id
+                            isMyTurn: isMyTurnInGame(game: game)
                         )
 
                         // New Game button
@@ -797,8 +822,10 @@ struct TexasHoldemView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func gameControls(phase: TexasHoldemGame.GamePhase, isMyTurn: Bool) -> some View {
-        VStack(spacing: 12) {
+    private func gameControls(game: TexasHoldemGame, phase: TexasHoldemGame.GamePhase, isMyTurn: Bool) -> some View {
+        let myPlayerID = getMyPlayerID(game: game)
+        
+        return VStack(spacing: 12) {
             // Show waiting message when not your turn, but keep controls visible (disabled)
             if !isMyTurn {
                 Text("Waiting for opponent...")
@@ -838,7 +865,7 @@ struct TexasHoldemView: View {
                 HStack(spacing: 12) {
                     Button("Fold") {
                         Task {
-                            await viewModel.fold(playerID: currentUser.id)
+                            await viewModel.fold(playerID: myPlayerID)
                         }
                     }
                     .buttonStyle(.bordered)
@@ -847,7 +874,7 @@ struct TexasHoldemView: View {
 
                     Button("Check") {
                         Task {
-                            await viewModel.check(playerID: currentUser.id)
+                            await viewModel.check(playerID: myPlayerID)
                         }
                     }
                     .buttonStyle(.bordered)
@@ -859,7 +886,7 @@ struct TexasHoldemView: View {
                 HStack(spacing: 12) {
                     Button("Call") {
                         Task {
-                            await viewModel.call(playerID: currentUser.id)
+                            await viewModel.call(playerID: myPlayerID)
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -867,7 +894,7 @@ struct TexasHoldemView: View {
 
                     Button("Raise $\(betAmount)") {
                         Task {
-                            await viewModel.bet(playerID: currentUser.id, amount: betAmount)
+                            await viewModel.bet(playerID: myPlayerID, amount: betAmount)
                         }
                     }
                     .buttonStyle(.borderedProminent)
