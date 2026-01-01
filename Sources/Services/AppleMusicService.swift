@@ -93,8 +93,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        var request = MusicRecentlyPlayedRequest()
-        request.limit = 20
+        let request = MusicRecentlyPlayedRequest()
         let response = try await request.response()
         
         return response.items.compactMap { item -> MediaContent? in
