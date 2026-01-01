@@ -150,7 +150,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        let request = MusicLibraryRequest<Playlist>()
+        let request: MusicLibraryRequest<Playlist> = MusicLibraryRequest()
         let response = try await request.response()
         
         return response.items.map { playlist in
@@ -169,7 +169,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        let request = MusicLibraryRequest<Song>()
+        let request: MusicLibraryRequest<Song> = MusicLibraryRequest()
         let response = try await request.response()
         
         return response.items.prefix(limit).map { song in
@@ -188,7 +188,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        let request = MusicLibraryRequest<Album>()
+        let request: MusicLibraryRequest<Album> = MusicLibraryRequest()
         let response = try await request.response()
         
         return response.items.prefix(limit).map { album in
