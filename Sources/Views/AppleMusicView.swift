@@ -8,8 +8,10 @@ struct AppleMusicView: View {
 
     @State private var viewModel: AppleMusicViewModel
     @State private var showingContentPicker = false
+    @State private var showingCreatePlaylist = false
     @State private var sharePlayStarted = false
     @State private var isSharePlayActive = false
+    @State private var showingSearch = false
     
     init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol) {
         self.room = room
@@ -40,21 +42,21 @@ struct AppleMusicView: View {
                 .background(Color.pink.opacity(0.1))
             }
 
-            Spacer()
-
-            if let content = viewModel.currentContent {
-                currentContentView(content)
+            // Main content
+            if viewModel.isAuthorized {
+                if showingSearch {
+                    searchView
+                } else {
+                    libraryBrowseView
+                }
             } else {
-                ContentUnavailableView(
-                    "No Music Selected",
-                    systemImage: "music.note",
-                    description: Text("Select music to listen together")
-                )
+                authorizationView
             }
-
-            Spacer()
-
-            controlBar
+            
+            // Now Playing Bar
+            if let content = viewModel.currentContent {
+                nowPlayingBar(content)
+            }
         }
         .navigationTitle(room.name)
         #if !os(macOS)
@@ -63,24 +65,22 @@ struct AppleMusicView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    showingContentPicker = true
+                    showingSearch.toggle()
                 } label: {
-                    Label("Select Music", systemImage: "music.note.list")
+                    Label(showingSearch ? "Browse" : "Search", systemImage: showingSearch ? "music.note.list" : "magnifyingglass")
                 }
             }
         }
-        .sheet(isPresented: $showingContentPicker) {
-            MusicPickerView(onSelect: { content in
+        .sheet(isPresented: $showingCreatePlaylist) {
+            CreatePlaylistView { name in
                 Task {
-                    await viewModel.loadContent(content)
-                    showingContentPicker = false
+                    await viewModel.createPlaylist(name: name)
+                    showingCreatePlaylist = false
                 }
-            })
+            }
         }
         .onAppear {
-            // Listen for session state changes BEFORE checking initial state
             sharePlayService.addSessionStateObserver { isActive in
-                // Callback already runs on MainActor from SharePlayService
                 isSharePlayActive = isActive
                 sharePlayStarted = isActive
             }
@@ -89,64 +89,261 @@ struct AppleMusicView: View {
             if !viewModel.isAuthorized {
                 await viewModel.requestAuthorization()
             }
+            if viewModel.isAuthorized {
+                await viewModel.loadLibraryContent()
+            }
         }
     }
-
-    private func currentContentView(_ content: MediaContent) -> some View {
-        VStack(spacing: 16) {
-            if let artworkURL = content.artworkURL {
-                AsyncImage(url: artworkURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } placeholder: {
-                    Rectangle()
-                        .fill(.secondary.opacity(0.3))
+    
+    // MARK: - Authorization View
+    
+    private var authorizationView: some View {
+        ContentUnavailableView(
+            "Apple Music Access Required",
+            systemImage: "music.note",
+            description: Text("Grant access to browse and play your music library")
+        )
+    }
+    
+    // MARK: - Library Browse View
+    
+    private var libraryBrowseView: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Section Picker
+                Picker("Browse", selection: $viewModel.selectedSection) {
+                    ForEach(MusicBrowseSection.allCases, id: \.self) { section in
+                        Text(section.rawValue).tag(section)
+                    }
                 }
-                .frame(width: 300, height: 300)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(radius: 10)
-            } else {
-                Image(systemName: "music.note")
-                    .font(.system(size: 100))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 300, height: 300)
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                
+                // Content based on selected section
+                switch viewModel.selectedSection {
+                case .recentlyPlayed:
+                    contentGrid(items: viewModel.recentlyPlayed, title: "Recently Played")
+                case .recommendations:
+                    contentGrid(items: viewModel.recommendations, title: "For You")
+                case .playlists:
+                    playlistsSection
+                case .songs:
+                    contentList(items: viewModel.songs, title: "Songs") {
+                        await viewModel.fetchSongs()
+                    }
+                case .albums:
+                    contentGrid(items: viewModel.albums, title: "Albums", onLoad: {
+                        await viewModel.fetchAlbums()
+                    })
+                }
             }
-
-            Text(content.title)
+            .padding(.bottom, 100)
+        }
+    }
+    
+    // MARK: - Search View
+    
+    private var searchView: some View {
+        VStack {
+            TextField("Search music...", text: $viewModel.searchQuery)
+                .textFieldStyle(.roundedBorder)
+                .padding()
+                .onChange(of: viewModel.searchQuery) { _, _ in
+                    Task {
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                        await viewModel.search()
+                    }
+                }
+            
+            if viewModel.searchResults.isEmpty && !viewModel.searchQuery.isEmpty {
+                ContentUnavailableView.search
+            } else {
+                ScrollView {
+                    contentList(items: viewModel.searchResults, title: "Results")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Content Sections
+    
+    private func contentGrid(items: [MediaContent], title: String, onLoad: (() async -> Void)? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
                 .font(.title2)
                 .fontWeight(.bold)
+                .padding(.horizontal)
+            
+            if items.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .task {
+                        if let onLoad = onLoad {
+                            await onLoad()
+                        }
+                    }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 16) {
+                        ForEach(items, id: \.contentID) { item in
+                            MusicItemCard(content: item) {
+                                Task {
+                                    await viewModel.loadContent(item)
+                                    await viewModel.play()
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
         }
     }
-
-    private var controlBar: some View {
-        HStack(spacing: 30) {
-            Button {
-                // Previous track
-            } label: {
-                Image(systemName: "backward.fill")
-                    .font(.title)
-            }
-
-            Button {
-                Task {
-                    await viewModel.togglePlayPause()
+    
+    private func contentList(items: [MediaContent], title: String, onLoad: (() async -> Void)? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding(.horizontal)
+            
+            if items.isEmpty {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .task {
+                        if let onLoad = onLoad {
+                            await onLoad()
+                        }
+                    }
+            } else {
+                LazyVStack(spacing: 8) {
+                    ForEach(items, id: \.contentID) { item in
+                        MusicListRow(content: item) {
+                            Task {
+                                await viewModel.loadContent(item)
+                                await viewModel.play()
+                            }
+                        }
+                    }
                 }
-            } label: {
-                Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 60))
-            }
-            .disabled(viewModel.currentContent == nil)
-
-            Button {
-                // Next track
-            } label: {
-                Image(systemName: "forward.fill")
-                    .font(.title)
+                .padding(.horizontal)
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
+    }
+    
+    private var playlistsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Playlists")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                Button {
+                    showingCreatePlaylist = true
+                } label: {
+                    Label("New Playlist", systemImage: "plus.circle.fill")
+                        .font(.headline)
+                }
+            }
+            .padding(.horizontal)
+            
+            if viewModel.playlists.isEmpty {
+                ContentUnavailableView(
+                    "No Playlists",
+                    systemImage: "music.note.list",
+                    description: Text("Create a playlist to get started")
+                )
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 16) {
+                        ForEach(viewModel.playlists, id: \.contentID) { playlist in
+                            MusicItemCard(content: playlist) {
+                                Task {
+                                    await viewModel.loadContent(playlist)
+                                    await viewModel.play()
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Now Playing Bar
+    
+    private func nowPlayingBar(_ content: MediaContent) -> some View {
+        VStack(spacing: 0) {
+            Divider()
+            
+            HStack(spacing: 16) {
+                // Artwork thumbnail
+                if let artworkURL = content.artworkURL {
+                    AsyncImage(url: artworkURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(.secondary.opacity(0.3))
+                    }
+                    .frame(width: 50, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                } else {
+                    Image(systemName: "music.note")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 50, height: 50)
+                        .background(.secondary.opacity(0.2))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                
+                // Title
+                Text(content.title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                
+                Spacer()
+                
+                // Controls
+                HStack(spacing: 20) {
+                    Button {
+                        Task {
+                            await viewModel.skipToPrevious()
+                        }
+                    } label: {
+                        Image(systemName: "backward.fill")
+                            .font(.title3)
+                    }
+                    
+                    Button {
+                        Task {
+                            await viewModel.togglePlayPause()
+                        }
+                    } label: {
+                        Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .font(.title)
+                    }
+                    
+                    Button {
+                        Task {
+                            await viewModel.skipToNext()
+                        }
+                    } label: {
+                        Image(systemName: "forward.fill")
+                            .font(.title3)
+                    }
+                }
+            }
+            .padding()
+            .background(.ultraThinMaterial)
+        }
     }
 
     private func startSharePlay() async {
@@ -160,14 +357,12 @@ struct AppleMusicView: View {
         do {
             try await sharePlayService.startActivity(activity)
 
-            // Update state on main actor to trigger UI updates
             await MainActor.run {
                 sharePlayStarted = true
                 isSharePlayActive = sharePlayService.isSessionActive
                 print("✅ SharePlay started successfully, session active: \(isSharePlayActive)")
             }
 
-            // Share the room data with other participants
             print("📤 Sending room data to SharePlay participants...")
             await sharePlayService.shareRoom(room)
         } catch {
@@ -176,34 +371,123 @@ struct AppleMusicView: View {
     }
 }
 
-/// Music picker placeholder
-struct MusicPickerView: View {
-    let onSelect: (MediaContent) -> Void
+// MARK: - Supporting Views
 
+struct MusicItemCard: View {
+    let content: MediaContent
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                if let artworkURL = content.artworkURL {
+                    AsyncImage(url: artworkURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(.secondary.opacity(0.3))
+                    }
+                    .frame(width: 150, height: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 50))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 150, height: 150)
+                        .background(.secondary.opacity(0.2))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                
+                Text(content.title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 150)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct MusicListRow: View {
+    let content: MediaContent
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                if let artworkURL = content.artworkURL {
+                    AsyncImage(url: artworkURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(.secondary.opacity(0.3))
+                    }
+                    .frame(width: 50, height: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                } else {
+                    Image(systemName: "music.note")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 50, height: 50)
+                        .background(.secondary.opacity(0.2))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(content.title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    
+                    Text(content.contentType.rawValue.capitalized)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct CreatePlaylistView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var playlistName = ""
+    let onCreate: (String) -> Void
+    
     var body: some View {
         NavigationStack {
-            List {
-                Button("Sample Song") {
-                    onSelect(
-                        MediaContent(
-                            title: "Sample Song",
-                            contentID: "sample-song",
-                            duration: 240,
-                            contentType: .song
-                        ))
+            Form {
+                TextField("Playlist Name", text: $playlistName)
+            }
+            .navigationTitle("New Playlist")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
                 }
-
-                Button("Sample Album") {
-                    onSelect(
-                        MediaContent(
-                            title: "Sample Album",
-                            contentID: "sample-album",
-                            duration: 3600,
-                            contentType: .album
-                        ))
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") {
+                        onCreate(playlistName)
+                    }
+                    .disabled(playlistName.isEmpty)
                 }
             }
-            .navigationTitle("Select Music")
         }
     }
 }
