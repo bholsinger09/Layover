@@ -104,7 +104,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
                     title: song.title,
                     contentID: song.id.rawValue,
                     artworkURL: song.artwork?.url(width: 300, height: 300),
-                    duration: Int(song.duration ?? 0),
+                    duration: song.duration ?? 0,
                     contentType: .song
                 )
             case .album(let album):
@@ -181,7 +181,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
                 title: song.title,
                 contentID: song.id.rawValue,
                 artworkURL: song.artwork?.url(width: 300, height: 300),
-                duration: Int(song.duration ?? 0),
+                duration: song.duration ?? 0,
                 contentType: .song
             )
         }
@@ -224,7 +224,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
                 title: song.title,
                 contentID: song.id.rawValue,
                 artworkURL: song.artwork?.url(width: 300, height: 300),
-                duration: Int(song.duration ?? 0),
+                duration: song.duration ?? 0,
                 contentType: .song
             ))
         }
