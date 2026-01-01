@@ -126,7 +126,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
         
         // Get top charts as recommendations
-        let request = MusicCatalogChartsRequest(kinds: [.mostPlayed], types: [Album.self])
+        let request: MusicCatalogChartsRequest = MusicCatalogChartsRequest(kinds: [.mostPlayed], types: [Album.self])
         let response = try await request.response()
         
         var results: [MediaContent] = []
@@ -207,8 +207,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        var request = MusicCatalogSearchRequest(term: query, types: [Song.self, Album.self])
-        request.limit = 20
+        let request: MusicCatalogSearchRequest = MusicCatalogSearchRequest(term: query, types: [Song.self, Album.self])
         let response = try await request.response()
         
         var results: [MediaContent] = []
