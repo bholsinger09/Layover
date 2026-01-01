@@ -72,7 +72,7 @@ struct AppleMusicView: View {
             }
         }
         .sheet(isPresented: $showingCreatePlaylist) {
-            CreatePlaylistView { name in
+            MusicCreatePlaylistView { name in
                 Task {
                     await viewModel.createPlaylist(name: name)
                     showingCreatePlaylist = false
@@ -386,17 +386,13 @@ struct MusicItemCard: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     } placeholder: {
-                        Rectangle()
-                            .fill(.secondary.opacity(0.3))
+                        placeholderView
                     }
                     .frame(width: 150, height: 150)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 } else {
-                    Image(systemName: "music.note")
-                        .font(.system(size: 50))
-                        .foregroundStyle(.secondary)
+                    placeholderView
                         .frame(width: 150, height: 150)
-                        .background(.secondary.opacity(0.2))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 
@@ -409,6 +405,47 @@ struct MusicItemCard: View {
             }
         }
         .buttonStyle(.plain)
+    }
+    
+    @ViewBuilder
+    private var placeholderView: some View {
+        ZStack {
+            LinearGradient(
+                colors: gradientColors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            Image(systemName: iconName)
+                .font(.system(size: 50))
+                .foregroundStyle(.white)
+        }
+    }
+    
+    private var iconName: String {
+        switch content.contentType {
+        case .playlist:
+            return "music.note.list"
+        case .album:
+            return "square.stack"
+        case .song:
+            return "music.note"
+        default:
+            return "music.note"
+        }
+    }
+    
+    private var gradientColors: [Color] {
+        switch content.contentType {
+        case .playlist:
+            return [.purple, .pink]
+        case .album:
+            return [.blue, .cyan]
+        case .song:
+            return [.orange, .red]
+        default:
+            return [.gray, .gray.opacity(0.5)]
+        }
     }
 }
 
@@ -462,7 +499,7 @@ struct MusicListRow: View {
     }
 }
 
-struct CreatePlaylistView: View {
+struct MusicCreatePlaylistView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var playlistName = ""
     let onCreate: (String) -> Void

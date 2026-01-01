@@ -93,30 +93,17 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        let request: MusicRecentlyPlayedRequest = MusicRecentlyPlayedRequest()
+        let request = MusicRecentlyPlayedRequest<Song>()
         let response = try await request.response()
         
-        return response.items.compactMap { item -> MediaContent? in
-            switch item {
-            case .song(let song):
-                return MediaContent(
-                    title: song.title,
-                    contentID: song.id.rawValue,
-                    artworkURL: song.artwork?.url(width: 300, height: 300),
-                    duration: song.duration ?? 0,
-                    contentType: .song
-                )
-            case .album(let album):
-                return MediaContent(
-                    title: album.title,
-                    contentID: album.id.rawValue,
-                    artworkURL: album.artwork?.url(width: 300, height: 300),
-                    duration: 0,
-                    contentType: .album
-                )
-            default:
-                return nil
-            }
+        return response.items.compactMap { song -> MediaContent? in
+            MediaContent(
+                title: song.title,
+                contentID: song.id.rawValue,
+                artworkURL: song.artwork?.url(width: 300, height: 300),
+                duration: song.duration ?? 0,
+                contentType: .song
+            )
         }
     }
     
