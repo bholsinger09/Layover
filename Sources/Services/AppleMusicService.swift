@@ -60,21 +60,27 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         // Load the music into the player based on content type
         do {
             if content.contentType == .song {
-                // Load a single song
-                if let songID = MusicItemID(content.contentID) {
-                    let song = try await Song(id: songID)
+                // Load a single song by ID
+                let songID = MusicItemID(rawValue: content.contentID)
+                var request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: songID)
+                let response = try await request.response()
+                if let song = response.items.first {
                     musicPlayer.queue = [song]
                 }
             } else if content.contentType == .album {
-                // Load an album
-                if let albumID = MusicItemID(content.contentID) {
-                    let album = try await Album(id: albumID)
+                // Load an album by ID
+                let albumID = MusicItemID(rawValue: content.contentID)
+                var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: albumID)
+                let response = try await request.response()
+                if let album = response.items.first {
                     musicPlayer.queue = ApplicationMusicPlayer.Queue(album)
                 }
             } else if content.contentType == .playlist {
-                // Load a playlist
-                if let playlistID = MusicItemID(content.contentID) {
-                    let playlist = try await Playlist(id: playlistID)
+                // Load a playlist by ID
+                let playlistID = MusicItemID(rawValue: content.contentID)
+                var request = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: playlistID)
+                let response = try await request.response()
+                if let playlist = response.items.first {
                     musicPlayer.queue = ApplicationMusicPlayer.Queue(playlist)
                 }
             }
