@@ -246,13 +246,14 @@ struct TexasHoldemView: View {
                         Label("Start SharePlay", systemImage: "shareplay")
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.purple)
+                            .background(currentRoom.participantIDs.count > 1 ? Color.purple : Color.gray)
                             .foregroundStyle(.white)
                             .cornerRadius(10)
                     }
+                    .disabled(currentRoom.participantIDs.count <= 1)
                     .padding(.horizontal)
 
-                    Text("Start SharePlay during a FaceTime call to sync with other players")
+                    Text(currentRoom.participantIDs.count <= 1 ? "SharePlay requires a FaceTime call with another player" : "Start SharePlay during a FaceTime call to sync with other players")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -317,10 +318,11 @@ struct TexasHoldemView: View {
                         Label("Detect Players", systemImage: "person.2.badge.gearshape")
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue)
+                            .background(Color.blue.opacity(0.5))
                             .foregroundStyle(.white)
                             .cornerRadius(10)
                     }
+                    .disabled(true)
                     .padding(.horizontal)
                     
                     Text("or")
