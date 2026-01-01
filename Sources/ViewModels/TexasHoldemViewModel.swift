@@ -77,26 +77,17 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     do {
                         let game = try await gameService.startGame(
                             roomID: roomID, players: playerIDs)
+                        
+                        // DO NOT deal cards - guest will receive cards from host's broadcast
+                        // Just create the game structure without cards
                         currentGame = game
 
-                        // Don't deal cards locally - wait for host to broadcast the dealt hands
-                        // This ensures each player gets unique cards from the host's shuffle
-
                         print(
-                            "✅ Participant game started successfully - waiting for host to deal cards"
+                            "✅ Participant game started - waiting for host's card broadcast"
                         )
                         print("   Game ID: \(game.id)")
                         print("   Players in game: \(game.players.map { $0.userID })")
-                        if let currentGame = currentGame {
-                            for (index, player) in currentGame.players.enumerated() {
-                                print(
-                                    "   Player \(index) (\(player.userID)): \(player.hand.count) cards"
-                                )
-                                for card in player.hand {
-                                    print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
-                                }
-                            }
-                        }
+                        print("   Cards NOT dealt locally - will receive from host")
                     } catch {
                         errorMessage = error.localizedDescription
                         print("❌ Participant failed to start game: \(error)")
@@ -116,9 +107,105 @@ final class TexasHoldemViewModel: LayoverViewModel {
 
         sharePlayService.onPlayerAction = { [weak self] action in
             Task { @MainActor [weak self] in
-                // Don't re-execute the action - just wait for the gameStateUpdate
-                // The host will broadcast the updated state after executing the action
-                print("📨 Received player action: \(action) - waiting for state update")
+                guard let self = self else { return }
+                
+                // Only the HOST should execute incoming player actions from guests
+                if self.sharePlayService.isHost {
+                    print("📨 HOST received player action from guest: \(action)")
+                    print("   💰 POT BEFORE ACTION: $\(self.gameService.currentGame?.pot ?? -1)")
+                    print("   Executing action and broadcasting result...")
+                    
+                    let phaseBefore = self.gameService.currentGame?.gamePhase
+                    
+                    // Execute the action
+                    print("   ⚙️ Executing action in service...")
+                    switch action {
+                    case .fold(let playerID):
+                        try? await self.gameService.fold(playerID: playerID)
+                    case .check(let playerID):
+                        try? await self.gameService.check(playerID: playerID)
+                    case .call(let playerID):
+                        try? await self.gameService.call(playerID: playerID)
+                    case .bet(let playerID, let amount):
+                        print("   💰 Executing bet: playerID=\(playerID), amount=$\(amount)")
+                        try? await self.gameService.bet(playerID: playerID, amount: amount)
+                    case .raise(let playerID, let amount):
+                        try? await self.gameService.raise(playerID: playerID, amount: amount)
+                    }
+                    
+                    print("   ⚙️ Action execution complete, updating currentGame...")
+                    print("   💰 POT AFTER SERVICE EXECUTION: $\(self.gameService.currentGame?.pot ?? -1)")
+                    
+                    // CRITICAL: Get the absolute latest game state from service
+                    guard let updatedGame = self.gameService.currentGame else {
+                        print("   ⚠️ gameService.currentGame is nil!")
+                        return
+                    }
+                    
+                    print("   📊 Service game state after action:")
+                    print("      💰💰 Pot: $\(updatedGame.pot) 💰💰")
+                    print("      CurrentBet: $\(updatedGame.currentBet)")
+                    print("      Phase: \(updatedGame.gamePhase.rawValue)")
+                    
+                    // Force a new object to trigger @Observable change detection
+                    print("   🔄 Creating new game object with pot=$\(updatedGame.pot)")
+                    self.currentGame = TexasHoldemGame(
+                        id: updatedGame.id,
+                        roomID: updatedGame.roomID,
+                        players: updatedGame.players,
+                        dealerIndex: updatedGame.dealerIndex,
+                        currentBet: updatedGame.currentBet,
+                        pot: updatedGame.pot,
+                        communityCards: updatedGame.communityCards,
+                        gamePhase: updatedGame.gamePhase,
+                        currentPlayerIndex: updatedGame.currentPlayerIndex
+                    )
+                    
+                    print("   ✅ HOST currentGame updated with new reference")
+                    print("   💰 POT IN NEW currentGame OBJECT: $\(self.currentGame?.pot ?? -1)")
+                    print("   📊 ViewModel currentGame after update:")
+                    if let game = self.currentGame {
+                        print("      💰💰 Pot: $\(game.pot) 💰💰")
+                        print("      CurrentBet: $\(game.currentBet)")
+                        print("      Phase: \(game.gamePhase.rawValue)")
+                    }
+                    
+                    let phaseAfter = self.gameService.currentGame?.gamePhase
+                    print("   📊 STATE AFTER EXECUTION:")
+                    print("      Phase: \(phaseBefore?.rawValue ?? "nil") → \(phaseAfter?.rawValue ?? "nil")")
+                    
+                    if let game = self.currentGame {
+                        print("      Pot: $\(game.pot)")
+                        print("      Current Bet: $\(game.currentBet)")
+                        print("      Current Player Index: \(game.currentPlayerIndex)")
+                        print("      Player 0: chips=$\(game.players[0].chips), bet=$\(game.players[0].currentBet)")
+                        if game.players.count > 1 {
+                            print("      Player 1: chips=$\(game.players[1].chips), bet=$\(game.players[1].currentBet)")
+                        }
+                        print("      Host is player \(self.sharePlayService.isHost ? 0 : 1)")
+                        let hostTurn = game.currentPlayerIndex == 0
+                        print("      Is it host's turn? \(hostTurn)")
+                    } else {
+                        print("      ⚠️ WARNING: currentGame is nil after execution!")
+                    }
+                    
+                    // Broadcast IMMEDIATELY - no delays
+                    print("   📡 Broadcasting state to all participants...")
+                    await self.broadcastGameState()
+                    
+                    // CRITICAL: Force UI update on host
+                    self.sharePlayStateVersion += 1
+                    print("✅ HOST executed action, broadcast complete, UI version: \(self.sharePlayStateVersion)")
+                    
+                    // If phase changed, send one more broadcast to ensure sync
+                    if phaseBefore != phaseAfter {
+                        print("   Phase auto-advanced - broadcasting again")
+                        await self.broadcastGameState()
+                        self.sharePlayStateVersion += 1
+                    }
+                } else {
+                    print("📨 GUEST received player action echo: \(action) - waiting for state update")
+                }
             }
         }
 
@@ -263,6 +350,16 @@ final class TexasHoldemViewModel: LayoverViewModel {
         print("   SharePlay active: \(sharePlayService.isSessionActive)")
         errorMessage = nil
 
+        // If guest in SharePlay, only send action request to host
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("📤 GUEST sending bet action to host")
+            await sharePlayService.sendMessage(
+                .playerAction(.bet(playerID: playerID, amount: amount)))
+            print("   Waiting for host to execute and broadcast result...")
+            return
+        }
+
+        // Host or single-player: execute locally
         do {
             print("   Executing bet in service...")
             try await gameService.bet(playerID: playerID, amount: amount)
@@ -280,11 +377,8 @@ final class TexasHoldemViewModel: LayoverViewModel {
             
             saveGameState()
 
-            // Broadcast action to all participants
+            // Broadcast to all participants (if host in SharePlay)
             if sharePlayService.isSessionActive {
-                print("   Broadcasting bet action via SharePlay...")
-                await sharePlayService.sendMessage(
-                    .playerAction(.bet(playerID: playerID, amount: amount)))
                 print("   Broadcasting game state via SharePlay...")
                 await broadcastGameState()
             } else {
@@ -299,14 +393,22 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func fold(playerID: UUID) async {
         errorMessage = nil
 
+        // If guest in SharePlay, only send action request to host
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("📤 GUEST sending fold action to host")
+            await sharePlayService.sendMessage(.playerAction(.fold(playerID: playerID)))
+            print("   Waiting for host to execute and broadcast result...")
+            return
+        }
+
+        // Host or single-player: execute locally
         do {
             try await gameService.fold(playerID: playerID)
             currentGame = gameService.currentGame
             saveGameState()
 
-            // Broadcast action to all participants
+            // Broadcast to all participants (if host in SharePlay)
             if sharePlayService.isSessionActive {
-                await sharePlayService.sendMessage(.playerAction(.fold(playerID: playerID)))
                 await broadcastGameState()
             }
         } catch {
@@ -317,15 +419,35 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func call(playerID: UUID) async {
         errorMessage = nil
 
+        // If guest in SharePlay, only send action request to host
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("📤 GUEST sending call action to host")
+            await sharePlayService.sendMessage(.playerAction(.call(playerID: playerID)))
+            print("   Waiting for host to execute and broadcast result...")
+            return
+        }
+
+        // Host or single-player: execute locally
         do {
+            let phaseBefore = gameService.currentGame?.gamePhase
+            
             try await gameService.call(playerID: playerID)
             currentGame = gameService.currentGame
             saveGameState()
 
-            // Broadcast action to all participants
+            let phaseAfter = gameService.currentGame?.gamePhase
+            print("📞 Call executed - phase: \(phaseBefore?.rawValue ?? "nil") → \(phaseAfter?.rawValue ?? "nil")")
+            
+            // Broadcast to all participants (if host in SharePlay)
             if sharePlayService.isSessionActive {
-                await sharePlayService.sendMessage(.playerAction(.call(playerID: playerID)))
                 await broadcastGameState()
+                
+                // If phase auto-advanced, broadcast again to ensure sync
+                if phaseBefore != phaseAfter {
+                    print("   Phase auto-advanced after call - broadcasting again")
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                    await broadcastGameState()
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -335,14 +457,22 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func raise(playerID: UUID, amount: Int) async {
         errorMessage = nil
 
+        // If guest in SharePlay, only send action request to host
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("📤 GUEST sending bet action to host")
+            await sharePlayService.sendMessage(
+                .playerAction(.bet(playerID: playerID, amount: amount)))
+            print("   Waiting for host to execute and broadcast result...")
+            return
+        }
+
+        // Host or single-player: execute locally
         do {
             try await gameService.raise(playerID: playerID, amount: amount)
             currentGame = gameService.currentGame
 
-            // Broadcast action to all participants
+            // Broadcast to all participants (if host in SharePlay)
             if sharePlayService.isSessionActive {
-                await sharePlayService.sendMessage(
-                    .playerAction(.raise(playerID: playerID, amount: amount)))
                 await broadcastGameState()
             }
         } catch {
@@ -388,14 +518,34 @@ final class TexasHoldemViewModel: LayoverViewModel {
     func check(playerID: UUID) async {
         errorMessage = nil
 
+        // If guest in SharePlay, only send action request to host
+        if sharePlayService.isSessionActive && !sharePlayService.isHost {
+            print("📤 GUEST sending check action to host")
+            await sharePlayService.sendMessage(.playerAction(.check(playerID: playerID)))
+            print("   Waiting for host to execute and broadcast result...")
+            return
+        }
+
+        // Host or single-player: execute locally
         do {
+            let phaseBefore = gameService.currentGame?.gamePhase
+            
             try await gameService.check(playerID: playerID)
             currentGame = gameService.currentGame
 
-            // Broadcast action to all participants
+            let phaseAfter = gameService.currentGame?.gamePhase
+            print("✅ Check executed - phase: \(phaseBefore?.rawValue ?? "nil") → \(phaseAfter?.rawValue ?? "nil")")
+            
+            // Broadcast to all participants (if host in SharePlay)
             if sharePlayService.isSessionActive {
-                await sharePlayService.sendMessage(.playerAction(.check(playerID: playerID)))
                 await broadcastGameState()
+                
+                // If phase auto-advanced, broadcast again
+                if phaseBefore != phaseAfter {
+                    print("   Phase auto-advanced after check - broadcasting again")
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                    await broadcastGameState()
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -519,10 +669,20 @@ final class TexasHoldemViewModel: LayoverViewModel {
             return
         }
 
-        print("📡 Broadcasting game state...")
+        print("📡 ===== BROADCASTING GAME STATE =====")
+        print("   💰💰 POT BEING BROADCAST: $\(game.pot) 💰💰")
+        print("   Phase: \(game.gamePhase.rawValue)")
+        print("   Current bet: $\(game.currentBet)")
+        print("   Current player index: \(game.currentPlayerIndex)")
         print("   Community cards: \(game.communityCards.count)")
         for card in game.communityCards {
             print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
+        }
+        for (i, player) in game.players.enumerated() {
+            print("   Player \(i): chips=$\(player.chips), currentBet=$\(player.currentBet), folded=\(player.isFolded), cards=\(player.hand.count)")
+            if !player.hand.isEmpty {
+                print("      Cards: \(player.hand.map { "\($0.rank.rawValue)\($0.suit.rawValue)" }.joined(separator: ", "))")
+            }
         }
 
         let state = TexasHoldemGameState(
@@ -547,10 +707,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
             }
         )
 
-        print(
-            "📤 Sending gameStateUpdate message with \(state.communityCards.count) community cards")
+        print("📤 Sending gameStateUpdate message:")
+        print("   💰 State object pot: $\(state.pot)")
+        print("   Community cards: \(state.communityCards.count)")
+        for (i, playerState) in state.playerStates.enumerated() {
+            print("   Player \(i): \(playerState.cards?.count ?? 0) cards being sent")
+        }
+        print("   🚀 SENDING MESSAGE WITH POT=$\(state.pot)")
         await sharePlayService.sendMessage(.gameStateUpdate(state))
-        print("✅ Game state broadcast complete")
+        print("✅ Game state broadcast complete - sent pot=$\(state.pot)")
     }
 
     private func syncGameState() async {
@@ -566,18 +731,21 @@ final class TexasHoldemViewModel: LayoverViewModel {
             return
         }
 
-        print("📥 Applying game state from SharePlay")
-        print("   Phase: \(state.phase)")
+        print("📥 ===== APPLYING GAME STATE FROM SHAREPLAY =====")
+        print("   💰 Previous POT: $\(game.pot)")
+        print("   💰💰 INCOMING POT: $\(state.pot) 💰💰")
+        print("   Previous state - Phase: \(game.gamePhase.rawValue), CurrentBet: $\(game.currentBet)")
+        print("   Incoming state - Phase: \(state.phase), CurrentBet: $\(state.currentBet)")
         print("   Community cards: \(state.communityCards.count)")
         print("   Players: \(state.playerStates.count)")
-        print("   Pot: $\(state.pot)")
-        print("   Current bet: $\(state.currentBet)")
         print("   Current player index: \(state.currentPlayerIndex)")
 
         // Update basic game state
         game.currentPlayerIndex = state.currentPlayerIndex
+        print("   🔄 Updating game.pot from $\(game.pot) to $\(state.pot)")
         game.pot = state.pot
         game.currentBet = state.currentBet
+        print("   ✅ game.pot updated to $\(game.pot)")
 
         // Update phase
         if let phase = TexasHoldemGame.GamePhase(rawValue: state.phase) {
@@ -617,14 +785,17 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 print(
                     "   Updating player \(index): chips=\(playerState.chips), bet=\(playerState.currentBet)"
                 )
+                print("      Current hand size: \(game.players[index].hand.count)")
+                print("      Incoming cards: \(playerState.cards?.count ?? 0)")
+                
                 game.players[index].chips = playerState.chips
                 game.players[index].currentBet = playerState.currentBet
                 game.players[index].isFolded = playerState.hasFolded
 
-                // Update hand ONLY if we don't have cards yet (participant receiving initial deal)
-                // or during showdown when all cards are revealed
-                if game.players[index].hand.isEmpty && playerState.cards != nil {
-                    let incomingHand = playerState.cards!.compactMap { cardData -> PlayingCard? in
+                // ALWAYS update cards if the broadcast includes them
+                // This ensures guest receives host's dealt cards
+                if let incomingCards = playerState.cards, !incomingCards.isEmpty {
+                    let incomingHand = incomingCards.compactMap { cardData -> PlayingCard? in
                         guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
                             let suit = PlayingCard.Suit(rawValue: cardData.suit)
                         else {
@@ -632,35 +803,34 @@ final class TexasHoldemViewModel: LayoverViewModel {
                         }
                         return PlayingCard(rank: rank, suit: suit)
                     }
-                    game.players[index].hand = incomingHand
-                    print(
-                        "   ✅ Player \(index) (\(playerState.id)) received \(incomingHand.count) cards from host:"
-                    )
-                    for card in incomingHand {
-                        print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
-                    }
-                } else if game.gamePhase == .showdown && playerState.cards != nil {
-                    // During showdown, update all cards to reveal them
-                    let incomingHand = playerState.cards!.compactMap { cardData -> PlayingCard? in
-                        guard let rank = PlayingCard.Rank(rawValue: cardData.rank),
-                            let suit = PlayingCard.Suit(rawValue: cardData.suit)
-                        else {
-                            return nil
+                    
+                    // Only update if we don't have cards OR if it's showdown
+                    if game.players[index].hand.isEmpty || game.gamePhase == .showdown {
+                        game.players[index].hand = incomingHand
+                        print(
+                            "   ✅ Player \(index) (\(playerState.id)) cards updated: \(incomingHand.count) cards"
+                        )
+                        for card in incomingHand {
+                            print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
                         }
-                        return PlayingCard(rank: rank, suit: suit)
+                    } else {
+                        print("   ℹ️ Player \(index) already has \(game.players[index].hand.count) cards - preserving")
                     }
-                    game.players[index].hand = incomingHand
-                    print("   ✅ Showdown: revealed player \(index) cards")
+                } else {
+                    print("   ⚠️ No cards in broadcast for player \(index)")
                 }
             }
         }
 
         currentGame = game
         print("✅ Game state applied successfully")
+        print("   💰 FINAL POT AFTER APPLY: $\(game.pot)")
+        print("   💰 currentGame.pot: $\(self.currentGame?.pot ?? -1)")
         print("   Triggering UI refresh...")
         
         // Force UI refresh by updating a published property
         sharePlayStateVersion += 1
+        print("   📺 UI refresh triggered, version: \(sharePlayStateVersion)")
     }
 
     private func handlePlayerAction(_ action: TexasHoldemMessage.PlayerAction) async {
@@ -724,6 +894,18 @@ final class TexasHoldemViewModel: LayoverViewModel {
 
             // Continue polling for updates while waiting for a game OR while a game is active
             while true {
+                // Skip iCloud updates if we're in an active SharePlay session
+                // SharePlay uses its own synchronization, iCloud polling would cause conflicts
+                if sharePlayService.isSessionActive {
+                    if sharePlayService.isHost {
+                        print("🚫 Host in SharePlay - ignoring iCloud updates (host is authoritative)")
+                    } else {
+                        print("🚫 Guest in SharePlay - ignoring iCloud updates (receiving from host)")
+                    }
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)  // Still sleep to avoid tight loop
+                    continue
+                }
+                
                 if let game = roomService.getActiveGame(for: roomID) {
                     if currentGame == nil {
                         // Game was just created - load it

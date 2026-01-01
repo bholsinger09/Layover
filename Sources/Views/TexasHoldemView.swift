@@ -583,6 +583,7 @@ struct TexasHoldemView: View {
                     // Turn indicator
                     if game.currentPlayerIndex < game.players.count {
                         let isMyTurn = isMyTurnInGame(game: game)
+                        let _ = print("🎮 VIEW: isMyTurn=\(isMyTurn), currentPlayerIndex=\(game.currentPlayerIndex), isHost=\(viewModel.sharePlayService.isHost)")
                         Text(isMyTurn ? "Your Turn" : "Opponent's Turn")
                             .font(.subheadline)
                             .foregroundStyle(isMyTurn ? .green : .orange)
@@ -884,7 +885,7 @@ struct TexasHoldemView: View {
                 }
 
                 HStack(spacing: 12) {
-                    Button("Call") {
+                    Button(game.currentBet == 0 ? "Bet $10" : "Call $\(game.currentBet)") {
                         Task {
                             await viewModel.call(playerID: myPlayerID)
                         }
@@ -900,6 +901,8 @@ struct TexasHoldemView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.green)
                     .frame(maxWidth: .infinity)
+                    .disabled(game.currentBet == 0)
+                    .opacity(game.currentBet == 0 ? 0.5 : 1.0)
                 }
             }
             .disabled(!isMyTurn)
