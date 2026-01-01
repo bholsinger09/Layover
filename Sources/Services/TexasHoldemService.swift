@@ -329,6 +329,18 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
             print("🏆 Player \(winnerIndex) wins $\(winningsPerPlayer)!")
         }
         
+        // Set winner ID for UI display (if single winner)
+        if winners.count == 1 {
+            game.winnerID = game.players[winners[0]].userID
+            game.winningAmount = winningsPerPlayer
+            print("🎉 Winner set: \(game.winnerID!) wins $\(game.winningAmount)")
+        } else {
+            // Multiple winners (tie)
+            game.winnerID = nil
+            game.winningAmount = winningsPerPlayer
+            print("🤝 Tie! \(winners.count) players split pot of $\(game.pot)")
+        }
+        
         // Reset pot and bets for next hand
         game.pot = 0
         game.currentBet = 0

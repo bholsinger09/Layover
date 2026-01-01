@@ -704,7 +704,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
                         PlayingCardData(rank: $0.rank.rawValue, suit: $0.suit.rawValue)
                     }
                 )
-            }
+            },
+            winnerID: game.winnerID,
+            winningAmount: game.winningAmount
         )
 
         print("📤 Sending gameStateUpdate message:")
@@ -746,6 +748,13 @@ final class TexasHoldemViewModel: LayoverViewModel {
         game.pot = state.pot
         game.currentBet = state.currentBet
         print("   ✅ game.pot updated to $\(game.pot)")
+        
+        // Update winner info
+        game.winnerID = state.winnerID
+        game.winningAmount = state.winningAmount
+        if let winnerID = state.winnerID {
+            print("   🏆 Winner updated: \(winnerID) won $\(state.winningAmount)")
+        }
 
         // Update phase
         if let phase = TexasHoldemGame.GamePhase(rawValue: state.phase) {

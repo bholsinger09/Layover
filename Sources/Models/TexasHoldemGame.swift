@@ -11,6 +11,8 @@ struct TexasHoldemGame: LayoverModel {
     var communityCards: [PlayingCard]
     var gamePhase: GamePhase
     var currentPlayerIndex: Int
+    var winnerID: UUID?  // ID of the winning player (set during showdown)
+    var winningAmount: Int = 0  // Amount won by the winner
 
     enum GamePhase: String, Codable, Sendable {
         case preFlop
@@ -30,7 +32,9 @@ struct TexasHoldemGame: LayoverModel {
         pot: Int = 0,
         communityCards: [PlayingCard] = [],
         gamePhase: GamePhase = .preFlop,
-        currentPlayerIndex: Int = 0
+        currentPlayerIndex: Int = 0,
+        winnerID: UUID? = nil,
+        winningAmount: Int = 0
     ) {
         self.id = id
         self.roomID = roomID
@@ -41,6 +45,8 @@ struct TexasHoldemGame: LayoverModel {
         self.communityCards = communityCards
         self.gamePhase = gamePhase
         self.currentPlayerIndex = currentPlayerIndex
+        self.winnerID = winnerID
+        self.winningAmount = winningAmount
     }
 }
 

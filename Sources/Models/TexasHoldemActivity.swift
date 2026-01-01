@@ -64,6 +64,8 @@ struct TexasHoldemGameState: Codable {
     let phase: String
     let communityCards: [PlayingCardData]
     let playerStates: [PlayerState]
+    let winnerID: UUID?  // ID of the winning player (set during showdown)
+    let winningAmount: Int  // Amount won
     
     struct PlayerState: Codable {
         let id: UUID

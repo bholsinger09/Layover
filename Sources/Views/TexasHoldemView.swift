@@ -579,9 +579,46 @@ struct TexasHoldemView: View {
                     Text("Pot: $\(game.pot)")
                         .font(.title2)
                         .fontWeight(.bold)
+                    
+                    // Winner announcement (showdown phase)
+                    if game.gamePhase == .showdown, let winnerID = game.winnerID {
+                        VStack(spacing: 8) {
+                            Text("🏆 Winner!")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.yellow)
+                            
+                            if winnerID == currentUser.id {
+                                Text("You won $\(game.winningAmount)!")
+                                    .font(.title3)
+                                    .foregroundStyle(.green)
+                            } else {
+                                Text("Opponent won $\(game.winningAmount)")
+                                    .font(.title3)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                        .padding()
+                        .background(Color.yellow.opacity(0.2))
+                        .cornerRadius(12)
+                    } else if game.gamePhase == .showdown && game.winnerID == nil && game.winningAmount > 0 {
+                        // Tie game
+                        VStack(spacing: 8) {
+                            Text("🤝 It's a Tie!")
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.blue)
+                            Text("Pot split: $\(game.winningAmount) each")
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.2))
+                        .cornerRadius(12)
+                    }
 
                     // Turn indicator
-                    if game.currentPlayerIndex < game.players.count {
+                    if game.currentPlayerIndex < game.players.count && game.gamePhase != .showdown {
                         let isMyTurn = isMyTurnInGame(game: game)
                         let _ = print("🎮 VIEW: isMyTurn=\(isMyTurn), currentPlayerIndex=\(game.currentPlayerIndex), isHost=\(viewModel.sharePlayService.isHost)")
                         Text(isMyTurn ? "Your Turn" : "Opponent's Turn")
@@ -674,7 +711,31 @@ struct TexasHoldemView: View {
                 }
 
                 // Controls
-                if game.gamePhase != .ended {
+                if game.gamePhase == .showdown {
+                    // Showdown - offer to start new hand
+                    VStack(spacing: 12) {
+                        Button("Start New Hand") {
+                            Task {
+                                // Reset game for new hand
+                                await viewModel.endGame()
+                                
+                                // Start new game with same players
+                                let playerIDs = game.players.map { $0.userID }
+                                await viewModel.startGame(roomID: room.id, players: playerIDs)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                        
+                        Button("End Game") {
+                            Task {
+                                await viewModel.endGame()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                    }
+                } else if game.gamePhase != .ended {
                     VStack(spacing: 12) {
                         gameControls(
                             game: game,
