@@ -126,8 +126,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
         
         // Get top charts as recommendations
-        var request = MusicCatalogChartsRequest(types: [Album.self, Song.self])
-        request.limit = 20
+        let request = MusicCatalogChartsRequest(kinds: [.mostPlayed], types: [Album.self])
         let response = try await request.response()
         
         var results: [MediaContent] = []
@@ -151,11 +150,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        var request = MusicLibraryRequest<Playlist>()
-        request.limit = 25
-        let response = try await request.response()
+        let response = try await MusicLibrary.shared.playlists()
         
-        return response.items.map { playlist in
+        return response.map { playlist in
             MediaContent(
                 title: playlist.name,
                 contentID: playlist.id.rawValue,
@@ -171,11 +168,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        var request = MusicLibraryRequest<Song>()
-        request.limit = limit
-        let response = try await request.response()
+        let response = try await MusicLibrary.shared.songs()
         
-        return response.items.map { song in
+        return response.prefix(limit).map { song in
             MediaContent(
                 title: song.title,
                 contentID: song.id.rawValue,
@@ -191,11 +186,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        var request = MusicLibraryRequest<Album>()
-        request.limit = limit
-        let response = try await request.response()
+        let response = try await MusicLibrary.shared.albums()
         
-        return response.items.map { album in
+        return response.prefix(limit).map { album in
             MediaContent(
                 title: album.title,
                 contentID: album.id.rawValue,
