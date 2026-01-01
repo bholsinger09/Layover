@@ -103,17 +103,17 @@ final class AppleMusicService: AppleMusicServiceProtocol {
                 return MediaContent(
                     title: song.title,
                     contentID: song.id.rawValue,
+                    artworkURL: song.artwork?.url(width: 300, height: 300),
                     duration: Int(song.duration ?? 0),
-                    contentType: .song,
-                    artworkURL: song.artwork?.url(width: 300, height: 300)
+                    contentType: .song
                 )
             case .album(let album):
                 return MediaContent(
                     title: album.title,
                     contentID: album.id.rawValue,
+                    artworkURL: album.artwork?.url(width: 300, height: 300),
                     duration: 0,
-                    contentType: .album,
-                    artworkURL: album.artwork?.url(width: 300, height: 300)
+                    contentType: .album
                 )
             default:
                 return nil
@@ -126,22 +126,25 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        // Get personalized recommendations
-        var request = MusicPersonalRecommendationRequest()
+        // Get top charts as recommendations
+        var request = MusicCatalogChartsRequest(types: [Album.self, Song.self])
         request.limit = 20
         let response = try await request.response()
         
-        return response.recommendations.flatMap { recommendation -> [MediaContent] in
-            recommendation.albums?.compactMap { album in
-                MediaContent(
-                    title: album.title,
-                    contentID: album.id.rawValue,
-                    duration: 0,
-                    contentType: .album,
-                    artworkURL: album.artwork?.url(width: 300, height: 300)
-                )
-            } ?? []
+        var results: [MediaContent] = []
+        
+        // Add albums from charts
+        for album in response.albumCharts.flatMap({ $0.items }) {
+            results.append(MediaContent(
+                title: album.title,
+                contentID: album.id.rawValue,
+                artworkURL: album.artwork?.url(width: 300, height: 300),
+                duration: 0,
+                contentType: .album
+            ))
         }
+        
+        return results
     }
     
     func fetchPlaylists() async throws -> [MediaContent] {
@@ -157,9 +160,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             MediaContent(
                 title: playlist.name,
                 contentID: playlist.id.rawValue,
+                artworkURL: playlist.artwork?.url(width: 300, height: 300),
                 duration: 0,
-                contentType: .playlist,
-                artworkURL: playlist.artwork?.url(width: 300, height: 300)
+                contentType: .playlist
             )
         }
     }
@@ -177,9 +180,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             MediaContent(
                 title: song.title,
                 contentID: song.id.rawValue,
+                artworkURL: song.artwork?.url(width: 300, height: 300),
                 duration: Int(song.duration ?? 0),
-                contentType: .song,
-                artworkURL: song.artwork?.url(width: 300, height: 300)
+                contentType: .song
             )
         }
     }
@@ -197,9 +200,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             MediaContent(
                 title: album.title,
                 contentID: album.id.rawValue,
+                artworkURL: album.artwork?.url(width: 300, height: 300),
                 duration: 0,
-                contentType: .album,
-                artworkURL: album.artwork?.url(width: 300, height: 300)
+                contentType: .album
             )
         }
     }
@@ -216,29 +219,25 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         var results: [MediaContent] = []
         
         // Add songs from search results
-        if let songs = response.songs {
-            results += songs.map { song in
-                MediaContent(
-                    title: song.title,
-                    contentID: song.id.rawValue,
-                    duration: Int(song.duration ?? 0),
-                    contentType: .song,
-                    artworkURL: song.artwork?.url(width: 300, height: 300)
-                )
-            }
+        for song in response.songs {
+            results.append(MediaContent(
+                title: song.title,
+                contentID: song.id.rawValue,
+                artworkURL: song.artwork?.url(width: 300, height: 300),
+                duration: Int(song.duration ?? 0),
+                contentType: .song
+            ))
         }
         
         // Add albums from search results
-        if let albums = response.albums {
-            results += albums.map { album in
-                MediaContent(
-                    title: album.title,
-                    contentID: album.id.rawValue,
-                    duration: 0,
-                    contentType: .album,
-                    artworkURL: album.artwork?.url(width: 300, height: 300)
-                )
-            }
+        for album in response.albums {
+            results.append(MediaContent(
+                title: album.title,
+                contentID: album.id.rawValue,
+                artworkURL: album.artwork?.url(width: 300, height: 300),
+                duration: 0,
+                contentType: .album
+            ))
         }
         
         return results
@@ -254,9 +253,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         return MediaContent(
             title: playlist.name,
             contentID: playlist.id.rawValue,
+            artworkURL: playlist.artwork?.url(width: 300, height: 300),
             duration: 0,
-            contentType: .playlist,
-            artworkURL: playlist.artwork?.url(width: 300, height: 300)
+            contentType: .playlist
         )
     }
     
