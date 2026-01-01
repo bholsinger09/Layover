@@ -54,8 +54,34 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
 
-        // In a real app, this would use MusicKit to load the actual content
+        // Store the current content
         self.currentContent = content
+        
+        // Load the music into the player based on content type
+        do {
+            if content.contentType == .song {
+                // Load a single song
+                if let songID = MusicItemID(content.contentID) {
+                    let song = try await Song(id: songID)
+                    musicPlayer.queue = [song]
+                }
+            } else if content.contentType == .album {
+                // Load an album
+                if let albumID = MusicItemID(content.contentID) {
+                    let album = try await Album(id: albumID)
+                    musicPlayer.queue = ApplicationMusicPlayer.Queue(album)
+                }
+            } else if content.contentType == .playlist {
+                // Load a playlist
+                if let playlistID = MusicItemID(content.contentID) {
+                    let playlist = try await Playlist(id: playlistID)
+                    musicPlayer.queue = ApplicationMusicPlayer.Queue(playlist)
+                }
+            }
+        } catch {
+            logger.error("Failed to load content: \(error.localizedDescription)")
+            throw MusicError.loadFailed
+        }
     }
 
     func play() async {
