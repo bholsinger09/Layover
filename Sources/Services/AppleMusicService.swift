@@ -62,7 +62,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             if content.contentType == .song {
                 // Load a single song by ID
                 let songID = MusicItemID(rawValue: content.contentID)
-                var request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: songID)
+                let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: songID)
                 let response = try await request.response()
                 if let song = response.items.first {
                     musicPlayer.queue = [song]
@@ -70,7 +70,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             } else if content.contentType == .album {
                 // Load an album by ID
                 let albumID = MusicItemID(rawValue: content.contentID)
-                var request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: albumID)
+                let request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: albumID)
                 let response = try await request.response()
                 if let album = response.items.first {
                     musicPlayer.queue = ApplicationMusicPlayer.Queue(album)
@@ -78,7 +78,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             } else if content.contentType == .playlist {
                 // Load a playlist by ID
                 let playlistID = MusicItemID(rawValue: content.contentID)
-                var request = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: playlistID)
+                let request = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: playlistID)
                 let response = try await request.response()
                 if let playlist = response.items.first {
                     musicPlayer.queue = ApplicationMusicPlayer.Queue(playlist)
@@ -88,6 +88,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             logger.error("Failed to load content: \(error.localizedDescription)")
             throw MusicError.loadFailed
         }
+    }
     }
 
     func play() async {
