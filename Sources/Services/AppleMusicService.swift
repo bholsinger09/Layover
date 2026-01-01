@@ -150,9 +150,10 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        let response = try await MusicLibrary.shared.playlists()
+        let request = MusicLibraryRequest<Playlist>()
+        let response = try await request.response()
         
-        return response.map { playlist in
+        return response.items.map { playlist in
             MediaContent(
                 title: playlist.name,
                 contentID: playlist.id.rawValue,
@@ -168,9 +169,10 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        let response = try await MusicLibrary.shared.songs()
+        let request = MusicLibraryRequest<Song>()
+        let response = try await request.response()
         
-        return response.prefix(limit).map { song in
+        return response.items.prefix(limit).map { song in
             MediaContent(
                 title: song.title,
                 contentID: song.id.rawValue,
@@ -186,9 +188,10 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
         
-        let response = try await MusicLibrary.shared.albums()
+        let request = MusicLibraryRequest<Album>()
+        let response = try await request.response()
         
-        return response.prefix(limit).map { album in
+        return response.items.prefix(limit).map { album in
             MediaContent(
                 title: album.title,
                 contentID: album.id.rawValue,
