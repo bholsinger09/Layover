@@ -34,6 +34,11 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         subsystem: "com.bholsinger.LayoverLounge", category: "AppleMusicService")
     private(set) var currentContent: MediaContent?
     private let musicPlayer = ApplicationMusicPlayer.shared
+    
+    // Cache of MusicKit items for playback
+    private var songCache: [String: Song] = [:]
+    private var albumCache: [String: Album] = [:]
+    private var playlistCache: [String: Playlist] = [:]
 
     var isAuthorized: Bool {
         get async {
@@ -54,53 +59,80 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             throw MusicError.notAuthorized
         }
 
-        // Store the current content
+        // Store the current content for display
         self.currentContent = content
         
-        // Load the music into the player based on content type
+        logger.info("Loading content: \(content.title), type: \(String(describing: content.contentType)), ID: \(content.contentID)")
+        
+        // Load from cache and set up player queue
         do {
-            if content.contentType == .song {
-                // Load a single song by ID
-                let songID = MusicItemID(rawValue: content.contentID)
-                let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: songID)
-                let response = try await request.response()
-                if let song = response.items.first {
+            switch content.contentType {
+            case .song:
+                if let song = songCache[content.contentID] {
+                    logger.info("Found song in cache, setting queue")
                     musicPlayer.queue = [song]
+                    logger.info("Queue set with song: \(song.title)")
+                    try await musicPlayer.prepareToPlay()
+                    logger.info("Player prepared to play")
+                } else {
+                    logger.warning("Song not found in cache: \(content.contentID)")
                 }
-            } else if content.contentType == .album {
-                // Load an album by ID
-                let albumID = MusicItemID(rawValue: content.contentID)
-                let request = MusicCatalogResourceRequest<Album>(matching: \.id, equalTo: albumID)
-                let response = try await request.response()
-                if let album = response.items.first {
-                    musicPlayer.queue = ApplicationMusicPlayer.Queue(album)
+            case .album:
+                if let album = albumCache[content.contentID] {
+                    logger.info("Found album in cache")
+                    // Access tracks directly - this will load them if needed
+                    do {
+                        if let tracks = album.tracks, !tracks.isEmpty {
+                            logger.info("Album has \(tracks.count) tracks")
+                            musicPlayer.queue = ApplicationMusicPlayer.Queue(for: tracks)
+                            try await musicPlayer.prepareToPlay()
+                            logger.info("Player prepared to play")
+                        } else {
+                            logger.warning("Album has no tracks")
+                        }
+                    }
+                } else {
+                    logger.warning("Album not found in cache: \(content.contentID)")
                 }
-            } else if content.contentType == .playlist {
-                // Load a playlist by ID
-                let playlistID = MusicItemID(rawValue: content.contentID)
-                let request = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: playlistID)
-                let response = try await request.response()
-                if let playlist = response.items.first {
-                    musicPlayer.queue = ApplicationMusicPlayer.Queue(playlist)
+            case .playlist:
+                if let playlist = playlistCache[content.contentID] {
+                    logger.info("Found playlist in cache")
+                    // Access tracks directly - this will load them if needed
+                    do {
+                        if let tracks = playlist.tracks, !tracks.isEmpty {
+                            logger.info("Playlist has \(tracks.count) tracks")
+                            musicPlayer.queue = ApplicationMusicPlayer.Queue(for: tracks)
+                            try await musicPlayer.prepareToPlay()
+                            logger.info("Player prepared to play")
+                        } else {
+                            logger.warning("Playlist has no tracks")
+                        }
+                    }
+                } else {
+                    logger.warning("Playlist not found in cache: \(content.contentID)")
                 }
+            default:
+                logger.warning("Unsupported content type: \(String(describing: content.contentType))")
+                break
             }
         } catch {
             logger.error("Failed to load content: \(error.localizedDescription)")
             throw MusicError.loadFailed
         }
     }
-    }
 
     func play() async {
         do {
-            try await musicPlayer.play()
+            logger.info("Starting playback, queue has \(self.musicPlayer.queue.entries.count) items")
+            try await self.musicPlayer.play()
+            logger.info("Playback started successfully")
         } catch {
             logger.error("Failed to play music: \(error.localizedDescription)")
         }
     }
 
     func pause() async {
-        musicPlayer.pause()
+        self.musicPlayer.pause()
     }
     
     func skipToNext() async {
@@ -130,7 +162,10 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         let response = try await request.response()
         
         return response.items.compactMap { song -> MediaContent? in
-            MediaContent(
+            // Cache the song for playback
+            songCache[song.id.rawValue] = song
+            
+            return MediaContent(
                 title: song.title,
                 contentID: song.id.rawValue,
                 artworkURL: song.artwork?.url(width: 300, height: 300),
@@ -153,6 +188,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         
         // Add albums from charts
         for album in response.albumCharts.flatMap({ $0.items }) {
+            // Cache the album for playback
+            albumCache[album.id.rawValue] = album
+            
             results.append(MediaContent(
                 title: album.title,
                 contentID: album.id.rawValue,
@@ -174,7 +212,10 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         let response = try await request.response()
         
         return response.items.map { playlist in
-            MediaContent(
+            // Cache the playlist for playback
+            playlistCache[playlist.id.rawValue] = playlist
+            
+            return MediaContent(
                 title: playlist.name,
                 contentID: playlist.id.rawValue,
                 artworkURL: playlist.artwork?.url(width: 300, height: 300),
@@ -193,7 +234,10 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         let response = try await request.response()
         
         return response.items.prefix(limit).map { song in
-            MediaContent(
+            // Cache the song for playback
+            songCache[song.id.rawValue] = song
+            
+            return MediaContent(
                 title: song.title,
                 contentID: song.id.rawValue,
                 artworkURL: song.artwork?.url(width: 300, height: 300),
@@ -212,7 +256,10 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         let response = try await request.response()
         
         return response.items.prefix(limit).map { album in
-            MediaContent(
+            // Cache the album for playback
+            albumCache[album.id.rawValue] = album
+            
+            return MediaContent(
                 title: album.title,
                 contentID: album.id.rawValue,
                 artworkURL: album.artwork?.url(width: 300, height: 300),
@@ -234,6 +281,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         
         // Add songs from search results
         for song in response.songs {
+            // Cache the song for playback
+            songCache[song.id.rawValue] = song
+            
             results.append(MediaContent(
                 title: song.title,
                 contentID: song.id.rawValue,
@@ -245,6 +295,9 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         
         // Add albums from search results
         for album in response.albums {
+            // Cache the album for playback
+            albumCache[album.id.rawValue] = album
+            
             results.append(MediaContent(
                 title: album.title,
                 contentID: album.id.rawValue,
