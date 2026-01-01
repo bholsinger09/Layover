@@ -1021,8 +1021,6 @@ struct TexasHoldemView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.green)
                     .frame(maxWidth: .infinity)
-                    .disabled(game.currentBet == 0)
-                    .opacity(game.currentBet == 0 ? 0.5 : 1.0)
                 }
             }
             .disabled(!isMyTurn)
