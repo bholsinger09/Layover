@@ -68,9 +68,24 @@ final class TexasHoldemAIService {
             case .moderate:
                 // Call with moderate hands
                 return callAmount > 0 ? .call : .check
-            case .weak, .veryWeak:
-                // Fold weak hands if there's a bet
-                return callAmount > 0 ? .fold : .check
+            case .weak:
+                // Call small bets, check otherwise
+                if callAmount == 0 {
+                    return .check
+                } else if callAmount <= 10 {
+                    return .call  // Call small bets even with weak hands
+                } else {
+                    return .fold
+                }
+            case .veryWeak:
+                // Still play if call is free or very cheap
+                if callAmount == 0 {
+                    return .check
+                } else if callAmount <= 5 {
+                    return .call  // Cheap to see the flop
+                } else {
+                    return .fold
+                }
             }
         }
         
@@ -90,38 +105,52 @@ final class TexasHoldemAIService {
             // Bet or call with strong hands
             if callAmount == 0 {
                 return .bet(amount: 20)
-            } else if callAmount <= 30 {
+            } else if callAmount <= 40 {
                 return .call
             } else {
-                // Fold to large bets
+                // Only fold to very large bets
                 return .fold
             }
             
         case .moderate:
-            // Call small bets, check otherwise
+            // More willing to call
             if callAmount == 0 {
+                // Sometimes bet with moderate hands
+                if Double.random(in: 0...1) < 0.3 {
+                    return .bet(amount: 15)
+                }
                 return .check
-            } else if callAmount <= 20 && potOdds < 0.5 {
-                return .call
+            } else if callAmount <= 30 {
+                return .call  // Increased from 20
             } else {
                 return .fold
             }
             
         case .weak:
-            // Check or fold
+            // More willing to check and call small bets
             if callAmount == 0 {
                 // Occasionally bluff
-                if Double.random(in: 0...1) < 0.15 {
+                if Double.random(in: 0...1) < 0.2 {
                     return .bet(amount: 15)
                 }
                 return .check
+            } else if callAmount <= 15 {
+                // Call small bets instead of folding
+                return .call
             } else {
                 return .fold
             }
             
         case .veryWeak:
-            // Always fold or check
-            return callAmount > 0 ? .fold : .check
+            // Still willing to call very small bets
+            if callAmount == 0 {
+                return .check
+            } else if callAmount <= 10 {
+                // Call very small bets to see more cards
+                return .call
+            } else {
+                return .fold
+            }
         }
     }
     
@@ -157,33 +186,48 @@ final class TexasHoldemAIService {
             return .veryStrong
         }
         
-        // Medium pairs (10-10 through 7-7)
+        // Medium pairs (10-10 through 7-7) and small pairs
         if isPair && highCard >= 7 {
             return .strong
         }
         
-        // High cards suited (AK, AQ, AJ suited)
-        if isSuited && highCard == 14 && lowCard >= 11 {
+        // Any pair
+        if isPair {
+            return .moderate
+        }
+        
+        // High cards suited (AK, AQ, AJ, AT suited)
+        if isSuited && highCard == 14 && lowCard >= 10 {
             return .strong
         }
         
-        // High cards offsuit (AK, AQ)
-        if highCard == 14 && lowCard >= 12 {
+        // High cards offsuit (AK, AQ, AJ)
+        if highCard == 14 && lowCard >= 11 {
+            return .moderate
+        }
+        
+        // King with face card
+        if highCard == 13 && lowCard >= 11 {
             return .moderate
         }
         
         // Suited connectors or one-gappers
-        if isSuited && abs(highCard - lowCard) <= 2 && highCard >= 9 {
+        if isSuited && abs(highCard - lowCard) <= 2 && highCard >= 8 {
             return .moderate
         }
         
         // Any two face cards
-        if highCard >= 11 && lowCard >= 11 {
+        if highCard >= 11 && lowCard >= 10 {
             return .moderate
         }
         
-        // One high card
-        if highCard >= 11 {
+        // Ace with any card (Ace is powerful)
+        if highCard == 14 {
+            return .weak
+        }
+        
+        // One high card (K, Q, J, 10)
+        if highCard >= 10 {
             return .weak
         }
         
@@ -252,15 +296,30 @@ final class TexasHoldemAIService {
             let pairValue = pairs[0].value
             if pairValue >= 11 {
                 return .moderate  // High pair (J or better)
+            } else if pairValue >= 7 {
+                return .weak  // Medium pair (7-10)
             } else {
                 return .weak  // Low pair
             }
         }
         
-        // High card
+        // High card evaluation - be more generous
         let highCard = cards.map { $0.rank.value }.max() ?? 0
-        if highCard >= 12 {
+        let secondHighCard = cards.map { $0.rank.value }.sorted(by: >).dropFirst().first ?? 0
+        
+        // Ace high with good kicker
+        if highCard == 14 && secondHighCard >= 11 {
             return .weak
+        }
+        
+        // King or Ace high
+        if highCard >= 13 {
+            return .weak
+        }
+        
+        // Any face card
+        if highCard >= 10 {
+            return .veryWeak
         }
         
         return .veryWeak
