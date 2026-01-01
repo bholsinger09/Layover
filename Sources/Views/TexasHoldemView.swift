@@ -349,7 +349,7 @@ struct TexasHoldemView: View {
                             await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                         }
                     } label: {
-                        Label("Play vs Computer", systemImage: "cpu")
+                        Label("Player vs Computer", systemImage: "cpu")
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.orange)
@@ -669,8 +669,8 @@ struct TexasHoldemView: View {
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                // Deck - Click to advance phase (host only in SharePlay)
-                if game.gamePhase != .ended && game.gamePhase != .showdown {
+                // Deck - Click to advance phase (host only in SharePlay, hidden when playing vs computer)
+                if game.gamePhase != .ended && game.gamePhase != .showdown && viewModel.aiPlayerID == nil {
                     if !viewModel.sharePlayService.isSessionActive
                         || viewModel.sharePlayService.isHost
                     {
