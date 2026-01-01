@@ -593,11 +593,14 @@ struct TexasHoldemView: View {
     private func gameView(_ game: TexasHoldemGame) -> some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Opponent's hand (face down until showdown)
+                // Opponent's hand (face down until showdown or fold)
                 if let opponentPlayer = game.players.first(where: { $0.userID != currentUser.id }) {
+                    let shouldShowCards = game.gamePhase == .showdown || game.gamePhase == .ended || opponentPlayer.isFolded
                     opponentHandView(
                         opponentPlayer,
-                        showCards: game.gamePhase == .showdown || game.gamePhase == .ended)
+                        showCards: shouldShowCards,
+                        isAI: opponentPlayer.userID == viewModel.aiPlayerID
+                    )
                 }
                 // Game phase and pot
                 VStack(spacing: 8) {
@@ -864,14 +867,31 @@ struct TexasHoldemView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private func opponentHandView(_ player: TexasHoldemPlayer, showCards: Bool) -> some View {
+    private func opponentHandView(_ player: TexasHoldemPlayer, showCards: Bool, isAI: Bool) -> some View {
         VStack(spacing: 12) {
-            Text(showCards ? "Opponent's Hand" : "Opponent")
-                .font(.headline)
+            HStack(spacing: 8) {
+                Text(showCards ? (isAI ? "Computer's Hand" : "Opponent's Hand") : (isAI ? "Computer" : "Opponent"))
+                    .font(.headline)
+                
+                if isAI {
+                    Image(systemName: "cpu")
+                        .foregroundStyle(.orange)
+                        .font(.subheadline)
+                }
+                
+                // Show thinking indicator when AI is deciding
+                if isAI && viewModel.isAIThinking {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("thinking...")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
 
             HStack(spacing: 12) {
                 if showCards {
-                    // Showdown - reveal opponent's cards
+                    // Showdown or folded - reveal opponent's cards
                     ForEach(player.hand) { card in
                         CardView(card: card)
                     }
@@ -906,6 +926,17 @@ struct TexasHoldemView: View {
                     .font(.subheadline)
             }
             .foregroundStyle(.secondary)
+            
+            // Show fold status
+            if player.isFolded {
+                Text("Folded")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(Color.red.opacity(0.2))
+                    .cornerRadius(8)
+            }
         }
         .padding()
         .background(.ultraThinMaterial)

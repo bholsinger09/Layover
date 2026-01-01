@@ -8,10 +8,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
     private let gameService: TexasHoldemServiceProtocol
     let sharePlayService: TexasHoldemSharePlayService
     private let roomService: RoomServiceProtocol
+    private let aiService = TexasHoldemAIService()
 
     private(set) var currentGame: TexasHoldemGame?
     private(set) var isLoading = false
     var errorMessage: String?
+    
+    // AI opponent tracking
+    private(set) var aiPlayerID: UUID?
+    private(set) var isAIThinking = false
     
     // Test SharePlay connectivity
     private(set) var testMessages: [String] = []
@@ -297,6 +302,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
 
         isLoading = true
         errorMessage = nil
+        
+        // Detect AI player (if there are exactly 2 players and not in SharePlay)
+        if players.count == 2 && !sharePlayService.isSessionActive {
+            // The second player is likely the AI
+            aiPlayerID = players[1]
+            print("🤖 AI player detected: \(aiPlayerID!)")
+        } else {
+            aiPlayerID = nil
+        }
 
         do {
             let game = try await gameService.startGame(roomID: roomID, players: players)
@@ -311,8 +325,12 @@ final class TexasHoldemViewModel: LayoverViewModel {
             if let currentGame = currentGame {
                 for (index, player) in currentGame.players.enumerated() {
                     print("   Player \(index) (\(player.userID)): \(player.hand.count) cards")
-                    for card in player.hand {
-                        print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
+                    if player.userID == aiPlayerID {
+                        print("      [AI - cards hidden]")
+                    } else {
+                        for card in player.hand {
+                            print("      - \(card.rank.rawValue) of \(card.suit.rawValue)")
+                        }
                     }
                 }
             }
@@ -334,7 +352,15 @@ final class TexasHoldemViewModel: LayoverViewModel {
                 await broadcastGameState()
                 print("✅ Game state broadcasted")
             } else {
-                print("⚠️ SharePlay NOT active - cannot broadcast to other devices")
+                print("⚠️ SharePlay NOT active - local game mode")
+                
+                // If it's AI's turn to start, let AI play
+                if let game = currentGame, let aiID = aiPlayerID {
+                    if game.players[game.currentPlayerIndex].userID == aiID {
+                        print("🤖 AI starts first - executing AI turn")
+                        await executeAITurn()
+                    }
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -410,6 +436,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
             // Broadcast to all participants (if host in SharePlay)
             if sharePlayService.isSessionActive {
                 await broadcastGameState()
+            } else {
+                // Check if AI should play next
+                await checkAndExecuteAITurn()
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -448,6 +477,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     try? await Task.sleep(nanoseconds: 100_000_000)
                     await broadcastGameState()
                 }
+            } else {
+                // Check if AI should play next
+                await checkAndExecuteAITurn()
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -546,6 +578,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
                     try? await Task.sleep(nanoseconds: 100_000_000)
                     await broadcastGameState()
                 }
+            } else {
+                // Check if AI should play next
+                await checkAndExecuteAITurn()
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -1141,6 +1176,70 @@ final class TexasHoldemViewModel: LayoverViewModel {
             let endTime = Date()
             let elapsed = endTime.timeIntervalSince(startTime)
             testConnectionStatus = "✅ Connection successful (\(String(format: "%.1f", elapsed))s)"
+        }
+    }
+    
+    // MARK: - AI Opponent Methods
+    
+    /// Execute AI player's turn
+    private func executeAITurn() async {
+        guard let game = currentGame,
+              let aiID = aiPlayerID,
+              game.players[game.currentPlayerIndex].userID == aiID,
+              !isAIThinking else {
+            return
+        }
+        
+        print("🤖 ===== AI TURN START =====")
+        isAIThinking = true
+        
+        // Add a short delay to make it feel more natural
+        try? await Task.sleep(nanoseconds: 1_000_000_000)  // 1 second
+        
+        // Get AI decision
+        let decision = await aiService.makeDecision(game: game, aiPlayerID: aiID)
+        
+        print("🤖 AI decided: \(decision.description)")
+        
+        // Execute the decision
+        switch decision {
+        case .fold:
+            try? await gameService.fold(playerID: aiID)
+        case .check:
+            try? await gameService.check(playerID: aiID)
+        case .call:
+            try? await gameService.call(playerID: aiID)
+        case .bet(let amount):
+            try? await gameService.bet(playerID: aiID, amount: amount)
+        }
+        
+        // Update current game
+        currentGame = gameService.currentGame
+        saveGameState()
+        
+        isAIThinking = false
+        print("🤖 ===== AI TURN END =====")
+        
+        // Force UI update
+        sharePlayStateVersion += 1
+    }
+    
+    /// Check if it's AI's turn and execute if needed
+    private func checkAndExecuteAITurn() async {
+        guard let game = currentGame,
+              let aiID = aiPlayerID,
+              game.gamePhase != .showdown,
+              game.gamePhase != .ended else {
+            return
+        }
+        
+        // Check if it's AI's turn
+        if game.currentPlayerIndex < game.players.count {
+            let currentPlayer = game.players[game.currentPlayerIndex]
+            if currentPlayer.userID == aiID && !currentPlayer.isFolded {
+                print("🤖 It's AI's turn - executing")
+                await executeAITurn()
+            }
         }
     }
 }
