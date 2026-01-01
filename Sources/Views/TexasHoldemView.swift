@@ -308,7 +308,7 @@ struct TexasHoldemView: View {
                 // }
 
                 // Detect Players Button
-                if currentRoom.participantIDs.count < 2 {
+                if currentRoom.participantIDs.count < 2 && !viewModel.sharePlayService.isSessionActive {
                     Button {
                         Task {
                             await detectPlayers()
@@ -322,42 +322,70 @@ struct TexasHoldemView: View {
                             .cornerRadius(10)
                     }
                     .padding(.horizontal)
-                }
-
-                Button("Start Game") {
-                    Task {
-                        // First, end any existing game to ensure clean start
-                        if viewModel.currentGame != nil {
-                            await viewModel.endGame()
-                            print("🧹 Cleared existing game before starting new one")
-                        }
-
-                        var playerIDs = Array(currentRoom.participantIDs)
-
-                        // Ensure current user is in the player list
-                        if !playerIDs.contains(currentUser.id) {
-                            playerIDs.append(currentUser.id)
-                            print("➕ Added current user to player list: \(currentUser.id)")
-                        }
-
-                        // Always add AI/computer player if less than 2 players
-                        if playerIDs.count < 2 {
+                    
+                    Text("or")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.vertical, 8)
+                    
+                    // Play vs Computer Button
+                    Button {
+                        Task {
+                            // Clear existing game if any
+                            if viewModel.currentGame != nil {
+                                await viewModel.endGame()
+                            }
+                            
+                            // Add current user
+                            var playerIDs = [currentUser.id]
+                            
+                            // Add AI opponent
                             let aiPlayerID = UUID()
                             playerIDs.append(aiPlayerID)
-                            print("🤖 Added AI player: \(aiPlayerID)")
+                            
+                            print("🤖 Starting game vs computer: \(playerIDs)")
+                            await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
                         }
-
-                        print("🎮 Starting game with player IDs: \(playerIDs)")
-                        await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+                    } label: {
+                        Label("Play vs Computer", systemImage: "cpu")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.orange)
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
                     }
-                }
-                .buttonStyle(.borderedProminent)
-
-                if currentRoom.participantIDs.count < 2 {
-                    Text("Playing against computer opponent")
+                    .padding(.horizontal)
+                    
+                    Text("Practice against an AI opponent")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                } else {
+                        .padding(.top, 4)
+                }
+
+                // Start Game button (only show if 2+ players already detected)
+                if currentRoom.participantIDs.count >= 2 {
+                    Button("Start Game") {
+                        Task {
+                            // First, end any existing game to ensure clean start
+                            if viewModel.currentGame != nil {
+                                await viewModel.endGame()
+                                print("🧹 Cleared existing game before starting new one")
+                            }
+
+                            var playerIDs = Array(currentRoom.participantIDs)
+
+                            // Ensure current user is in the player list
+                            if !playerIDs.contains(currentUser.id) {
+                                playerIDs.append(currentUser.id)
+                                print("➕ Added current user to player list: \(currentUser.id)")
+                            }
+
+                            print("🎮 Starting game with player IDs: \(playerIDs)")
+                            await viewModel.startGame(roomID: currentRoom.id, players: playerIDs)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+
                     VStack(spacing: 4) {
                         Text("\(currentRoom.participantIDs.count) players ready")
                             .font(.caption)
