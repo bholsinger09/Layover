@@ -3,7 +3,7 @@ import OSLog
 
 /// Service for managing user's personal content library
 @MainActor
-protocol LibraryServiceProtocol: LayoverService {
+public protocol LibraryServiceProtocol: LayoverService {
     var library: UserLibrary { get }
     var musicLibrary: UserMusicLibrary { get }
     
@@ -33,50 +33,52 @@ protocol LibraryServiceProtocol: LayoverService {
 }
 
 @MainActor
-final class LibraryService: LibraryServiceProtocol {
+public final class LibraryService: LibraryServiceProtocol {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "LibraryService")
     private let userDefaults = UserDefaults.standard
     private let libraryKey = "userLibrary"
     private let musicLibraryKey = "userMusicLibrary"
     
-    private(set) var library: UserLibrary
-    private(set) var musicLibrary: UserMusicLibrary
+    public private(set) var library: UserLibrary
+    public private(set) var musicLibrary: UserMusicLibrary
     
-    init(userID: UUID = UUID()) {
+    public nonisolated init(userID: UUID = UUID()) {
         // Load existing library or create new one
         if let data = userDefaults.data(forKey: libraryKey),
            let decoded = try? JSONDecoder().decode(UserLibrary.self, from: data) {
             self.library = decoded
-            logger.info("📚 Loaded existing library with \(decoded.favorites.count) favorites and \(decoded.watchHistory.count) history items")
         } else {
             self.library = UserLibrary(userID: userID)
-            logger.info("📚 Created new library for user \(userID)")
         }
         
         // Load music library
         if let data = userDefaults.data(forKey: musicLibraryKey),
            let decoded = try? JSONDecoder().decode(UserMusicLibrary.self, from: data) {
             self.musicLibrary = decoded
-            logger.info("🎵 Loaded existing music library with \(decoded.favoriteTracks.count) favorite tracks")
         } else {
             self.musicLibrary = UserMusicLibrary(userID: userID)
-            logger.info("🎵 Created new music library for user \(userID)")
+        }
+        
+        // Log after initialization is complete
+        Task { @MainActor [library, musicLibrary, logger] in
+            logger.info("📚 Loaded library with \(library.favorites.count) favorites and \(library.watchHistory.count) history items")
+            logger.info("🎵 Loaded music library with \(musicLibrary.favoriteTracks.count) favorite tracks")
         }
     }
     
-    func addToFavorites(_ content: MediaContent) async {
+    public func addToFavorites(_ content: MediaContent) async {
         library.addToFavorites(content)
         await saveLibrary()
         logger.info("⭐ Added '\(content.title)' to favorites")
     }
     
-    func removeFromFavorites(_ content: MediaContent) async {
+    public func removeFromFavorites(_ content: MediaContent) async {
         library.removeFromFavorites(content)
         await saveLibrary()
         logger.info("⭐ Removed '\(content.title)' from favorites")
     }
     
-    func toggleFavorite(_ content: MediaContent) async {
+    public func toggleFavorite(_ content: MediaContent) async {
         if isFavorite(content) {
             await removeFromFavorites(content)
         } else {
@@ -84,11 +86,11 @@ final class LibraryService: LibraryServiceProtocol {
         }
     }
     
-    func isFavorite(_ content: MediaContent) -> Bool {
+    public func isFavorite(_ content: MediaContent) -> Bool {
         library.isFavorite(content)
     }
     
-    func addToWatchHistory(_ content: MediaContent, duration: TimeInterval = 0, completed: Bool = false) async {
+    public func addToWatchHistory(_ content: MediaContent, duration: TimeInterval = 0, completed: Bool = false) async {
         let item = WatchHistoryItem(
             content: content,
             watchedAt: Date(),
@@ -100,11 +102,11 @@ final class LibraryService: LibraryServiceProtocol {
         logger.info("📺 Added '\(content.title)' to watch history (duration: \(duration)s, completed: \(completed))")
     }
     
-    func getStats() -> LibraryStats {
+    public func getStats() -> LibraryStats {
         LibraryStats.from(library: library)
     }
     
-    func getRecommendations() -> [MediaContent] {
+    public func getRecommendations() -> [MediaContent] {
         // Simple recommendation algorithm based on favorites and watch history
         var recommendations: [MediaContent] = []
         
@@ -155,19 +157,19 @@ final class LibraryService: LibraryServiceProtocol {
     
     // MARK: - Music Library Functions
     
-    func addToFavorites(_ track: MusicTrack) async {
+    public func addToFavorites(_ track: MusicTrack) async {
         musicLibrary.addToFavorites(track)
         await saveMusicLibrary()
         logger.info("⭐ Added '\(track.title)' to favorite tracks")
     }
     
-    func removeFromFavorites(_ track: MusicTrack) async {
+    public func removeFromFavorites(_ track: MusicTrack) async {
         musicLibrary.removeFromFavorites(track)
         await saveMusicLibrary()
         logger.info("⭐ Removed '\(track.title)' from favorite tracks")
     }
     
-    func toggleFavorite(_ track: MusicTrack) async {
+    public func toggleFavorite(_ track: MusicTrack) async {
         if isFavorite(track) {
             await removeFromFavorites(track)
         } else {
@@ -175,23 +177,23 @@ final class LibraryService: LibraryServiceProtocol {
         }
     }
     
-    func isFavorite(_ track: MusicTrack) -> Bool {
+    public func isFavorite(_ track: MusicTrack) -> Bool {
         musicLibrary.isFavorite(track)
     }
     
-    func addToFavorites(_ album: MusicAlbum) async {
+    public func addToFavorites(_ album: MusicAlbum) async {
         musicLibrary.addToFavorites(album)
         await saveMusicLibrary()
         logger.info("⭐ Added '\(album.title)' to favorite albums")
     }
     
-    func removeFromFavorites(_ album: MusicAlbum) async {
+    public func removeFromFavorites(_ album: MusicAlbum) async {
         musicLibrary.removeFromFavorites(album)
         await saveMusicLibrary()
         logger.info("⭐ Removed '\(album.title)' from favorite albums")
     }
     
-    func toggleFavorite(_ album: MusicAlbum) async {
+    public func toggleFavorite(_ album: MusicAlbum) async {
         if isFavorite(album) {
             await removeFromFavorites(album)
         } else {
@@ -199,11 +201,11 @@ final class LibraryService: LibraryServiceProtocol {
         }
     }
     
-    func isFavorite(_ album: MusicAlbum) -> Bool {
+    public func isFavorite(_ album: MusicAlbum) -> Bool {
         musicLibrary.isFavorite(album)
     }
     
-    func createPlaylist(name: String, description: String?) async -> MusicPlaylist {
+    public func createPlaylist(name: String, description: String?) async -> MusicPlaylist {
         let playlist = MusicPlaylist(name: name, description: description)
         musicLibrary.addPlaylist(playlist)
         await saveMusicLibrary()
@@ -211,13 +213,13 @@ final class LibraryService: LibraryServiceProtocol {
         return playlist
     }
     
-    func deletePlaylist(_ playlist: MusicPlaylist) async {
+    public func deletePlaylist(_ playlist: MusicPlaylist) async {
         musicLibrary.removePlaylist(playlist)
         await saveMusicLibrary()
         logger.info("🗑️ Deleted playlist '\(playlist.name)'")
     }
     
-    func addTrackToPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+    public func addTrackToPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
         var updatedPlaylist = playlist
         if !updatedPlaylist.tracks.contains(where: { $0.id == track.id }) {
             updatedPlaylist.tracks.append(track)
@@ -227,7 +229,7 @@ final class LibraryService: LibraryServiceProtocol {
         }
     }
     
-    func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+    public func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
         var updatedPlaylist = playlist
         updatedPlaylist.tracks.removeAll { $0.id == track.id }
         musicLibrary.updatePlaylist(updatedPlaylist)
@@ -235,14 +237,14 @@ final class LibraryService: LibraryServiceProtocol {
         logger.info("➖ Removed '\(track.title)' from playlist '\(playlist.name)'")
     }
     
-    func addToListeningHistory(_ track: MusicTrack, duration: TimeInterval, completed: Bool) async {
+    public func addToListeningHistory(_ track: MusicTrack, duration: TimeInterval, completed: Bool) async {
         let item = MusicHistoryItem(track: track, playedAt: Date(), listenDuration: duration, completed: completed)
         musicLibrary.addToHistory(item)
         await saveMusicLibrary()
         logger.info("🎵 Added '\(track.title)' to listening history")
     }
     
-    func getMusicRecommendations() -> [MusicTrack] {
+    public func getMusicRecommendations() -> [MusicTrack] {
         // Simple recommendation: return sample tracks not in favorites
         let sampleTracks = getSampleMusicTracks()
         let favoriteIDs = Set(musicLibrary.favoriteTracks.map { $0.id })

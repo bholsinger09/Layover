@@ -95,9 +95,9 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
-            #if !os(macOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
@@ -240,9 +240,9 @@ struct AccountDeletionView: View {
             .padding()
         }
         .navigationTitle("Delete Account")
-        #if !os(macOS)
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
+#endif
         .alert("Final Confirmation", isPresented: $showingFinalConfirmation) {
             TextField("Type DELETE to confirm", text: $confirmationText)
             Button("Cancel", role: .cancel) {
@@ -377,9 +377,9 @@ struct PrivacyPolicyView: View {
             .padding()
         }
         .navigationTitle("Privacy Policy")
-        #if !os(macOS)
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
+#endif
     }
 }
 
@@ -460,9 +460,9 @@ struct TermsOfServiceView: View {
             .padding()
         }
         .navigationTitle("Terms of Service")
-        #if !os(macOS)
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
+#endif
     }
 }
 

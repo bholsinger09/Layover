@@ -1,15 +1,15 @@
 import Foundation
 
 /// Represents a music track
-struct MusicTrack: Codable, Identifiable, Equatable {
-    let id: String
-    let title: String
-    let artist: String
-    let album: String
-    let duration: TimeInterval
-    let artworkURL: String?
+public struct MusicTrack: Codable, Identifiable, Equatable {
+    public let id: String
+    public let title: String
+    public let artist: String
+    public let album: String
+    public let duration: TimeInterval
+    public let artworkURL: String?
     
-    init(id: String = UUID().uuidString, title: String, artist: String, album: String, duration: TimeInterval, artworkURL: String? = nil) {
+    public init(id: String = UUID().uuidString, title: String, artist: String, album: String, duration: TimeInterval, artworkURL: String? = nil) {
         self.id = id
         self.title = title
         self.artist = artist
@@ -18,27 +18,27 @@ struct MusicTrack: Codable, Identifiable, Equatable {
         self.artworkURL = artworkURL
     }
     
-    var formattedDuration: String {
+    public var formattedDuration: String {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
     
-    static func == (lhs: MusicTrack, rhs: MusicTrack) -> Bool {
+    public static func == (lhs: MusicTrack, rhs: MusicTrack) -> Bool {
         lhs.id == rhs.id
     }
 }
 
 /// Represents a music album
-struct MusicAlbum: Codable, Identifiable, Equatable {
-    let id: String
-    let title: String
-    let artist: String
-    let trackCount: Int
-    let releaseYear: Int?
-    let artworkURL: String?
+public struct MusicAlbum: Codable, Identifiable, Equatable {
+    public let id: String
+    public let title: String
+    public let artist: String
+    public let trackCount: Int
+    public let releaseYear: Int?
+    public let artworkURL: String?
     
-    init(id: String = UUID().uuidString, title: String, artist: String, trackCount: Int, releaseYear: Int? = nil, artworkURL: String? = nil) {
+    public init(id: String = UUID().uuidString, title: String, artist: String, trackCount: Int, releaseYear: Int? = nil, artworkURL: String? = nil) {
         self.id = id
         self.title = title
         self.artist = artist
@@ -47,21 +47,21 @@ struct MusicAlbum: Codable, Identifiable, Equatable {
         self.artworkURL = artworkURL
     }
     
-    static func == (lhs: MusicAlbum, rhs: MusicAlbum) -> Bool {
+    public static func == (lhs: MusicAlbum, rhs: MusicAlbum) -> Bool {
         lhs.id == rhs.id
     }
 }
 
 /// Represents a music playlist
-struct MusicPlaylist: Codable, Identifiable, Equatable {
-    let id: String
-    var name: String
-    var description: String?
-    var tracks: [MusicTrack]
-    let createdAt: Date
-    var updatedAt: Date
+public struct MusicPlaylist: Codable, Identifiable, Equatable {
+    public let id: String
+    public var name: String
+    public var description: String?
+    public var tracks: [MusicTrack]
+    public let createdAt: Date
+    public var updatedAt: Date
     
-    init(id: String = UUID().uuidString, name: String, description: String? = nil, tracks: [MusicTrack] = [], createdAt: Date = Date(), updatedAt: Date = Date()) {
+    public init(id: String = UUID().uuidString, name: String, description: String? = nil, tracks: [MusicTrack] = [], createdAt: Date = Date(), updatedAt: Date = Date()) {
         self.id = id
         self.name = name
         self.description = description
@@ -70,11 +70,11 @@ struct MusicPlaylist: Codable, Identifiable, Equatable {
         self.updatedAt = updatedAt
     }
     
-    var duration: TimeInterval {
+    public var duration: TimeInterval {
         tracks.reduce(0) { $0 + $1.duration }
     }
     
-    var formattedDuration: String {
+    public var formattedDuration: String {
         let hours = Int(duration) / 3600
         let minutes = (Int(duration) % 3600) / 60
         if hours > 0 {
@@ -84,20 +84,20 @@ struct MusicPlaylist: Codable, Identifiable, Equatable {
         }
     }
     
-    static func == (lhs: MusicPlaylist, rhs: MusicPlaylist) -> Bool {
+    public static func == (lhs: MusicPlaylist, rhs: MusicPlaylist) -> Bool {
         lhs.id == rhs.id
     }
 }
 
 /// Represents a music listening history item
-struct MusicHistoryItem: Codable, Identifiable {
-    let id: UUID
-    let track: MusicTrack
-    let playedAt: Date
-    let listenDuration: TimeInterval
-    let completed: Bool
+public struct MusicHistoryItem: Codable, Identifiable {
+    public let id: UUID
+    public let track: MusicTrack
+    public let playedAt: Date
+    public let listenDuration: TimeInterval
+    public let completed: Bool
     
-    init(id: UUID = UUID(), track: MusicTrack, playedAt: Date = Date(), listenDuration: TimeInterval = 0, completed: Bool = false) {
+    public init(id: UUID = UUID(), track: MusicTrack, playedAt: Date = Date(), listenDuration: TimeInterval = 0, completed: Bool = false) {
         self.id = id
         self.track = track
         self.playedAt = playedAt
@@ -105,7 +105,7 @@ struct MusicHistoryItem: Codable, Identifiable {
         self.completed = completed
     }
     
-    var formattedDate: String {
+    public var formattedDate: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: playedAt, relativeTo: Date())
@@ -113,14 +113,14 @@ struct MusicHistoryItem: Codable, Identifiable {
 }
 
 /// User's music library data
-struct UserMusicLibrary: Codable {
-    var favoriteTracks: [MusicTrack]
-    var favoriteAlbums: [MusicAlbum]
-    var playlists: [MusicPlaylist]
-    var listeningHistory: [MusicHistoryItem]
-    var userID: UUID
+public struct UserMusicLibrary: Codable {
+    public var favoriteTracks: [MusicTrack]
+    public var favoriteAlbums: [MusicAlbum]
+    public var playlists: [MusicPlaylist]
+    public var listeningHistory: [MusicHistoryItem]
+    public var userID: UUID
     
-    init(userID: UUID) {
+    public init(userID: UUID) {
         self.userID = userID
         self.favoriteTracks = []
         self.favoriteAlbums = []
@@ -128,11 +128,11 @@ struct UserMusicLibrary: Codable {
         self.listeningHistory = []
     }
     
-    var totalListenTime: TimeInterval {
+    public var totalListenTime: TimeInterval {
         listeningHistory.reduce(0) { $0 + $1.listenDuration }
     }
     
-    var formattedListenTime: String {
+    public var formattedListenTime: String {
         let hours = Int(totalListenTime) / 3600
         let minutes = (Int(totalListenTime) % 3600) / 60
         
@@ -143,47 +143,47 @@ struct UserMusicLibrary: Codable {
         }
     }
     
-    var recentlyPlayed: [MusicHistoryItem] {
+    public var recentlyPlayed: [MusicHistoryItem] {
         listeningHistory
             .sorted { $0.playedAt > $1.playedAt }
             .prefix(20)
             .map { $0 }
     }
     
-    var topArtists: [String] {
+    public var topArtists: [String] {
         let artistCounts = listeningHistory.reduce(into: [String: Int]()) { counts, item in
             counts[item.track.artist, default: 0] += 1
         }
         return artistCounts.sorted { $0.value > $1.value }.prefix(5).map { $0.key }
     }
     
-    mutating func addToFavorites(_ track: MusicTrack) {
+    public mutating func addToFavorites(_ track: MusicTrack) {
         guard !favoriteTracks.contains(where: { $0.id == track.id }) else { return }
         favoriteTracks.append(track)
     }
     
-    mutating func removeFromFavorites(_ track: MusicTrack) {
+    public mutating func removeFromFavorites(_ track: MusicTrack) {
         favoriteTracks.removeAll { $0.id == track.id }
     }
     
-    mutating func addToFavorites(_ album: MusicAlbum) {
+    public mutating func addToFavorites(_ album: MusicAlbum) {
         guard !favoriteAlbums.contains(where: { $0.id == album.id }) else { return }
         favoriteAlbums.append(album)
     }
     
-    mutating func removeFromFavorites(_ album: MusicAlbum) {
+    public mutating func removeFromFavorites(_ album: MusicAlbum) {
         favoriteAlbums.removeAll { $0.id == album.id }
     }
     
-    mutating func addPlaylist(_ playlist: MusicPlaylist) {
+    public mutating func addPlaylist(_ playlist: MusicPlaylist) {
         playlists.append(playlist)
     }
     
-    mutating func removePlaylist(_ playlist: MusicPlaylist) {
+    public mutating func removePlaylist(_ playlist: MusicPlaylist) {
         playlists.removeAll { $0.id == playlist.id }
     }
     
-    mutating func updatePlaylist(_ playlist: MusicPlaylist) {
+    public mutating func updatePlaylist(_ playlist: MusicPlaylist) {
         if let index = playlists.firstIndex(where: { $0.id == playlist.id }) {
             var updated = playlist
             updated.updatedAt = Date()
@@ -191,15 +191,15 @@ struct UserMusicLibrary: Codable {
         }
     }
     
-    mutating func addToHistory(_ item: MusicHistoryItem) {
+    public mutating func addToHistory(_ item: MusicHistoryItem) {
         listeningHistory.append(item)
     }
     
-    func isFavorite(_ track: MusicTrack) -> Bool {
+    public func isFavorite(_ track: MusicTrack) -> Bool {
         favoriteTracks.contains(where: { $0.id == track.id })
     }
     
-    func isFavorite(_ album: MusicAlbum) -> Bool {
+    public func isFavorite(_ album: MusicAlbum) -> Bool {
         favoriteAlbums.contains(where: { $0.id == album.id })
     }
 }

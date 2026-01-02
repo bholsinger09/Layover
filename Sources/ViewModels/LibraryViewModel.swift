@@ -5,36 +5,36 @@ import Observation
 /// ViewModel for the user's personal library
 @MainActor
 @Observable
-final class LibraryViewModel {
+public final class LibraryViewModel {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "LibraryViewModel")
     private let libraryService: LibraryServiceProtocol
     private let aiService: AIRecommendationServiceProtocol
     
-    private(set) var favorites: [MediaContent] = []
-    private(set) var recentlyWatched: [WatchHistoryItem] = []
-    private(set) var stats: LibraryStats?
-    private(set) var recommendations: [MediaContent] = []
-    private(set) var isLoading = false
+    public private(set) var favorites: [MediaContent] = []
+    public private(set) var recentlyWatched: [WatchHistoryItem] = []
+    public private(set) var stats: LibraryStats?
+    public private(set) var recommendations: [MediaContent] = []
+    public private(set) var isLoading = false
     
     // Music Library
-    private(set) var favoriteTracks: [MusicTrack] = []
-    private(set) var favoriteAlbums: [MusicAlbum] = []
-    private(set) var playlists: [MusicPlaylist] = []
-    private(set) var musicHistory: [MusicHistoryItem] = []
-    private(set) var musicRecommendations: [MusicTrack] = []
+    public private(set) var favoriteTracks: [MusicTrack] = []
+    public private(set) var favoriteAlbums: [MusicAlbum] = []
+    public private(set) var playlists: [MusicPlaylist] = []
+    public private(set) var musicHistory: [MusicHistoryItem] = []
+    public private(set) var musicRecommendations: [MusicTrack] = []
     
     // AI Search Results
-    private(set) var aiMovieResults: [MediaContent] = []
-    private(set) var aiMusicResults: [MusicTrack] = []
-    private(set) var isSearching = false
+    public private(set) var aiMovieResults: [MediaContent] = []
+    public private(set) var aiMusicResults: [MusicTrack] = []
+    public private(set) var isSearching = false
     
-    init(libraryService: LibraryServiceProtocol, aiService: AIRecommendationServiceProtocol? = nil) {
+    public init(libraryService: LibraryServiceProtocol, aiService: AIRecommendationServiceProtocol? = nil) {
         self.libraryService = libraryService
         self.aiService = aiService ?? AIRecommendationService()
         loadLibraryData()
     }
     
-    func loadLibraryData() {
+    public func loadLibraryData() {
         isLoading = true
         logger.info("📚 Loading library data...")
         
@@ -55,7 +55,7 @@ final class LibraryViewModel {
         isLoading = false
     }
     
-    func toggleFavorite(_ content: MediaContent) async {
+    public func toggleFavorite(_ content: MediaContent) async {
         if libraryService.isFavorite(content) {
             await libraryService.removeFromFavorites(content)
             logger.info("⭐ Removed from favorites: \(content.title)")
@@ -66,30 +66,30 @@ final class LibraryViewModel {
         loadLibraryData()
     }
     
-    func isFavorite(_ content: MediaContent) -> Bool {
+    public func isFavorite(_ content: MediaContent) -> Bool {
         libraryService.isFavorite(content)
     }
     
-    func addToWatchHistory(_ content: MediaContent, duration: TimeInterval = 0, completed: Bool = false) async {
+    public func addToWatchHistory(_ content: MediaContent, duration: TimeInterval = 0, completed: Bool = false) async {
         await libraryService.addToWatchHistory(content, duration: duration, completed: completed)
         logger.info("📺 Added to watch history: \(content.title)")
         loadLibraryData()
     }
     
-    func removeFromFavorites(_ content: MediaContent) async {
+    public func removeFromFavorites(_ content: MediaContent) async {
         await libraryService.removeFromFavorites(content)
         logger.info("🗑️ Removed from favorites: \(content.title)")
         loadLibraryData()
     }
     
-    func clearHistory() async {
+    public func clearHistory() async {
         // This would need to be implemented in the service
         logger.warning("⚠️ Clear history not yet implemented")
     }
     
     // MARK: - Music Functions
     
-    func toggleFavorite(_ track: MusicTrack) async {
+    public func toggleFavorite(_ track: MusicTrack) async {
         let wasFavorite = libraryService.isFavorite(track)
         logger.info("🎵 Toggling favorite for '\(track.title)' - currently favorite: \(wasFavorite)")
         
@@ -102,44 +102,44 @@ final class LibraryViewModel {
         logger.info("🎵 Reloaded library data - favoriteTracks count: \(self.favoriteTracks.count)")
     }
     
-    func toggleFavorite(_ album: MusicAlbum) async {
+    public func toggleFavorite(_ album: MusicAlbum) async {
         await libraryService.toggleFavorite(album)
         loadLibraryData()
     }
     
-    func isFavorite(_ track: MusicTrack) -> Bool {
+    public func isFavorite(_ track: MusicTrack) -> Bool {
         let result = libraryService.isFavorite(track)
         return result
     }
     
-    func isFavorite(_ album: MusicAlbum) -> Bool {
+    public func isFavorite(_ album: MusicAlbum) -> Bool {
         libraryService.isFavorite(album)
     }
     
-    func createPlaylist(name: String, description: String? = nil) async -> MusicPlaylist {
+    public func createPlaylist(name: String, description: String? = nil) async -> MusicPlaylist {
         let playlist = await libraryService.createPlaylist(name: name, description: description)
         loadLibraryData()
         return playlist
     }
     
-    func deletePlaylist(_ playlist: MusicPlaylist) async {
+    public func deletePlaylist(_ playlist: MusicPlaylist) async {
         await libraryService.deletePlaylist(playlist)
         loadLibraryData()
     }
     
-    func addTrackToPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+    public func addTrackToPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
         await libraryService.addTrackToPlaylist(track, playlist: playlist)
         loadLibraryData()
     }
     
-    func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
+    public func removeTrackFromPlaylist(_ track: MusicTrack, playlist: MusicPlaylist) async {
         await libraryService.removeTrackFromPlaylist(track, playlist: playlist)
         loadLibraryData()
     }
     
     // MARK: - AI Search Functions
     
-    func searchMoviesWithAI(query: String) async {
+    public func searchMoviesWithAI(query: String) async {
         guard !query.isEmpty else {
             aiMovieResults = []
             return
@@ -159,7 +159,7 @@ final class LibraryViewModel {
         isSearching = false
     }
     
-    func searchMusicWithAI(query: String) async {
+    public func searchMusicWithAI(query: String) async {
         guard !query.isEmpty else {
             aiMusicResults = []
             return
@@ -185,7 +185,7 @@ final class LibraryViewModel {
         print("🔍 VIEWMODEL: Search complete, isSearching = false")
     }
     
-    func clearAIResults() {
+    public func clearAIResults() {
         aiMovieResults = []
         aiMusicResults = []
     }

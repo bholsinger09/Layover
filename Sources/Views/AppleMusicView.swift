@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// View for Apple Music listening rooms
-struct AppleMusicView: View {
-    let room: Room
-    let currentUser: User
-    let sharePlayService: SharePlayServiceProtocol
+public struct AppleMusicView: View {
+    public let room: Room
+    public let currentUser: User
+    public let sharePlayService: SharePlayServiceProtocol
 
     @State private var viewModel: AppleMusicViewModel
     @State private var showingContentPicker = false
@@ -13,14 +13,14 @@ struct AppleMusicView: View {
     @State private var isSharePlayActive = false
     @State private var showingSearch = false
     
-    init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol) {
+    public init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol) {
         self.room = room
         self.currentUser = currentUser
         self.sharePlayService = sharePlayService
         self._viewModel = State(initialValue: AppleMusicViewModel(musicService: AppleMusicService()))
     }
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             // SharePlay prompt banner
             if !isSharePlayActive {
@@ -59,9 +59,18 @@ struct AppleMusicView: View {
             }
         }
         .navigationTitle(room.name)
-        #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
-        #endif
+#if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+#endif
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") {
+                viewModel.clearError()
+            }
+        } message: {
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -146,7 +155,11 @@ struct AppleMusicView: View {
     private var searchView: some View {
         VStack {
             TextField("Search music...", text: $viewModel.searchQuery)
+#if os(tvOS)
+                .textFieldStyle(.plain)
+#else
                 .textFieldStyle(.roundedBorder)
+#endif
                 .padding()
                 .onChange(of: viewModel.searchQuery) { _, _ in
                     Task {
@@ -303,11 +316,20 @@ struct AppleMusicView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 
-                // Title
-                Text(content.title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .lineLimit(1)
+                // Title and Artist
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(content.title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                    
+                    if let artist = content.artist {
+                        Text(artist)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
                 
                 Spacer()
                 
@@ -482,9 +504,15 @@ struct MusicListRow: View {
                         .fontWeight(.medium)
                         .lineLimit(1)
                     
-                    Text(content.contentType.rawValue.capitalized)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if let artist = content.artist, content.contentType == .song {
+                        Text(artist)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(content.contentType.rawValue.capitalized)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
                 Spacer()
@@ -510,7 +538,9 @@ struct MusicCreatePlaylistView: View {
                 TextField("Playlist Name", text: $playlistName)
             }
             .navigationTitle("New Playlist")
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

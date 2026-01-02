@@ -4,7 +4,7 @@ import OSLog
 
 /// Service for managing Apple Music playback
 @MainActor
-protocol AppleMusicServiceProtocol: LayoverService {
+public protocol AppleMusicServiceProtocol: LayoverService {
     var currentContent: MediaContent? { get }
     var isAuthorized: Bool { get async }
 
@@ -29,32 +29,88 @@ protocol AppleMusicServiceProtocol: LayoverService {
 }
 
 @MainActor
-final class AppleMusicService: AppleMusicServiceProtocol {
+public final class AppleMusicService: AppleMusicServiceProtocol {
     private let logger = Logger(
         subsystem: "com.bholsinger.LayoverLounge", category: "AppleMusicService")
-    private(set) var currentContent: MediaContent?
+    public private(set) var currentContent: MediaContent?
     private let musicPlayer = ApplicationMusicPlayer.shared
     
     // Cache of MusicKit items for playback
     private var songCache: [String: Song] = [:]
     private var albumCache: [String: Album] = [:]
     private var playlistCache: [String: Playlist] = [:]
+    
+    // State change callback
+    var onPlaybackStateChanged: ((Bool) -> Void)?
+    var onCurrentEntryChanged: ((MediaContent?) -> Void)?
+    
+    // Timer for polling playback state
+    private var stateMonitoringTimer: Timer?
+    
+    public init() {
+        setupStateMonitoring()
+    }
+    
+    private func setupStateMonitoring() {
+        // Poll playback state every 0.5 seconds
+        stateMonitoringTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                await self.checkPlaybackState()
+            }
+        }
+    }
+    
+    private func checkPlaybackState() async {
+        let state = musicPlayer.state
+        let isPlaying = state.playbackStatus == .playing
+        onPlaybackStateChanged?(isPlaying)
+        
+        // Check if current entry changed and update current content
+        if let currentEntry = musicPlayer.queue.currentEntry {
+            // Get the item and check if it's a Song
+            if let song = currentEntry.item as? Song {
+                // Only update if it's a different song
+                if currentContent?.contentID != song.id.rawValue {
+                    let content = MediaContent(
+                        title: song.title,
+                        artist: song.artistName,
+                        contentID: song.id.rawValue,
+                        artworkURL: song.artwork?.url(width: 300, height: 300),
+                        duration: song.duration ?? 0,
+                        contentType: .song
+                    )
+                    self.currentContent = content
+                    onCurrentEntryChanged?(content)
+                    logger.info("Updated current song: \(song.title) by \(song.artistName)")
+                }
+            }
+        }
+    }
+    
+    private func updateCurrentContent(from entry: ApplicationMusicPlayer.Queue.Entry) async {
+        // This method is no longer needed but keeping for compatibility
+    }
+    
+    deinit {
+        stateMonitoringTimer?.invalidate()
+    }
 
-    var isAuthorized: Bool {
+    public var isAuthorized: Bool {
         get async {
             let status = MusicAuthorization.currentStatus
             return status == .authorized
         }
     }
 
-    func requestAuthorization() async throws {
+    public func requestAuthorization() async throws {
         let status = await MusicAuthorization.request()
         guard status == .authorized else {
             throw MusicError.authorizationDenied
         }
     }
 
-    func loadContent(_ content: MediaContent) async throws {
+    public func loadContent(_ content: MediaContent) async throws {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -95,21 +151,77 @@ final class AppleMusicService: AppleMusicServiceProtocol {
                     logger.warning("Album not found in cache: \(content.contentID)")
                 }
             case .playlist:
-                if let playlist = playlistCache[content.contentID] {
-                    logger.info("Found playlist in cache")
-                    // Access tracks directly - this will load them if needed
-                    do {
+                logger.info("Loading playlist: \(content.contentID)")
+                
+                // Determine if it's a library playlist (user's own) or catalog playlist
+                // Catalog playlists: start with "pl." (e.g., "pl.u-" for user-curated catalog playlists)
+                // Library playlists: everything else (numeric IDs or "p." prefix)
+                let isCatalogPlaylist = content.contentID.starts(with: "pl.")
+                
+                if !isCatalogPlaylist {
+                    // Load from user's library
+                    logger.info("Attempting to load as library playlist")
+                    var libraryRequest = MusicLibraryRequest<Playlist>()
+                    libraryRequest.filter(matching: \.id, equalTo: MusicItemID(content.contentID))
+                    let libraryResponse = try await libraryRequest.response()
+                    
+                    if let playlist = libraryResponse.items.first {
+                        logger.info("Found library playlist: \(playlist.name)")
+                        
+                        // Load the playlist with tracks using the with() method
+                        do {
+                            let detailedPlaylist = try await playlist.with([.tracks])
+                            
+                            if let tracks = detailedPlaylist.tracks, !tracks.isEmpty {
+                                logger.info("Library playlist has \(tracks.count) tracks, setting queue")
+                                musicPlayer.queue = ApplicationMusicPlayer.Queue(for: tracks)
+                                try await musicPlayer.prepareToPlay()
+                                logger.info("Player prepared to play")
+                            } else {
+                                logger.error("Library playlist has no tracks after loading")
+                                throw MusicError.loadFailed
+                            }
+                        } catch {
+                            logger.error("Error loading playlist with tracks: \(error.localizedDescription)")
+                            
+                            // Fallback: try checking if tracks are already available
+                            if let tracks = playlist.tracks, !tracks.isEmpty {
+                                logger.info("Using already-loaded tracks: \(tracks.count)")
+                                musicPlayer.queue = ApplicationMusicPlayer.Queue(for: tracks)
+                                try await musicPlayer.prepareToPlay()
+                                logger.info("Player prepared to play")
+                            } else {
+                                logger.error("No tracks available in playlist")
+                                throw MusicError.loadFailed
+                            }
+                        }
+                    } else {
+                        logger.error("Library playlist not found")
+                        throw MusicError.loadFailed
+                    }
+                } else {
+                    // Load from catalog
+                    logger.info("Attempting to load as catalog playlist")
+                    var catalogRequest = MusicCatalogResourceRequest<Playlist>(matching: \.id, equalTo: MusicItemID(content.contentID))
+                    catalogRequest.properties = [.tracks]
+                    let catalogResponse = try await catalogRequest.response()
+                    
+                    if let playlist = catalogResponse.items.first {
+                        logger.info("Found catalog playlist: \(playlist.name)")
+                        
                         if let tracks = playlist.tracks, !tracks.isEmpty {
-                            logger.info("Playlist has \(tracks.count) tracks")
+                            logger.info("Catalog playlist has \(tracks.count) tracks, setting queue")
                             musicPlayer.queue = ApplicationMusicPlayer.Queue(for: tracks)
                             try await musicPlayer.prepareToPlay()
                             logger.info("Player prepared to play")
                         } else {
-                            logger.warning("Playlist has no tracks")
+                            logger.error("Catalog playlist has no tracks")
+                            throw MusicError.loadFailed
                         }
+                    } else {
+                        logger.error("Catalog playlist not found")
+                        throw MusicError.loadFailed
                     }
-                } else {
-                    logger.warning("Playlist not found in cache: \(content.contentID)")
                 }
             default:
                 logger.warning("Unsupported content type: \(String(describing: content.contentType))")
@@ -121,7 +233,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
     }
 
-    func play() async {
+    public func play() async {
         do {
             logger.info("Starting playback, queue has \(self.musicPlayer.queue.entries.count) items")
             try await self.musicPlayer.play()
@@ -131,11 +243,11 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
     }
 
-    func pause() async {
+    public func pause() async {
         self.musicPlayer.pause()
     }
     
-    func skipToNext() async {
+    public func skipToNext() async {
         do {
             try await musicPlayer.skipToNextEntry()
         } catch {
@@ -143,7 +255,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
     }
     
-    func skipToPrevious() async {
+    public func skipToPrevious() async {
         do {
             try await musicPlayer.skipToPreviousEntry()
         } catch {
@@ -153,7 +265,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
     
     // MARK: - Library Browsing
     
-    func fetchRecentlyPlayed() async throws -> [MediaContent] {
+    public func fetchRecentlyPlayed() async throws -> [MediaContent] {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -167,6 +279,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             
             return MediaContent(
                 title: song.title,
+                artist: song.artistName,
                 contentID: song.id.rawValue,
                 artworkURL: song.artwork?.url(width: 300, height: 300),
                 duration: song.duration ?? 0,
@@ -175,7 +288,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
     }
     
-    func fetchRecommendations() async throws -> [MediaContent] {
+    public func fetchRecommendations() async throws -> [MediaContent] {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -203,7 +316,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         return results
     }
     
-    func fetchPlaylists() async throws -> [MediaContent] {
+    public func fetchPlaylists() async throws -> [MediaContent] {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -215,6 +328,8 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             // Cache the playlist for playback
             playlistCache[playlist.id.rawValue] = playlist
             
+            logger.info("Fetched playlist: \(playlist.name), ID: \(playlist.id.rawValue), has tracks: \(playlist.tracks != nil)")
+            
             return MediaContent(
                 title: playlist.name,
                 contentID: playlist.id.rawValue,
@@ -225,7 +340,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
     }
     
-    func fetchSongs(limit: Int = 50) async throws -> [MediaContent] {
+    public func fetchSongs(limit: Int = 50) async throws -> [MediaContent] {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -239,6 +354,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             
             return MediaContent(
                 title: song.title,
+                artist: song.artistName,
                 contentID: song.id.rawValue,
                 artworkURL: song.artwork?.url(width: 300, height: 300),
                 duration: song.duration ?? 0,
@@ -247,7 +363,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
     }
     
-    func fetchAlbums(limit: Int = 50) async throws -> [MediaContent] {
+    public func fetchAlbums(limit: Int = 50) async throws -> [MediaContent] {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -269,7 +385,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         }
     }
     
-    func searchMusic(query: String) async throws -> [MediaContent] {
+    public func searchMusic(query: String) async throws -> [MediaContent] {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -286,6 +402,7 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             
             results.append(MediaContent(
                 title: song.title,
+                artist: song.artistName,
                 contentID: song.id.rawValue,
                 artworkURL: song.artwork?.url(width: 300, height: 300),
                 duration: song.duration ?? 0,
@@ -310,11 +427,12 @@ final class AppleMusicService: AppleMusicServiceProtocol {
         return results
     }
     
-    func createPlaylist(name: String) async throws -> MediaContent {
+    public func createPlaylist(name: String) async throws -> MediaContent {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
         
+        #if os(iOS)
         let playlist = try await MusicLibrary.shared.createPlaylist(name: name, description: nil)
         
         return MediaContent(
@@ -324,9 +442,13 @@ final class AppleMusicService: AppleMusicServiceProtocol {
             duration: 0,
             contentType: .playlist
         )
+        #else
+        // macOS doesn't support creating playlists via MusicKit
+        throw MusicError.loadFailed
+        #endif
     }
     
-    func addToPlaylist(playlistID: String, content: MediaContent) async throws {
+    public func addToPlaylist(playlistID: String, content: MediaContent) async throws {
         guard await isAuthorized else {
             throw MusicError.notAuthorized
         }
@@ -337,12 +459,12 @@ final class AppleMusicService: AppleMusicServiceProtocol {
     }
 }
 
-enum MusicError: LocalizedError {
+public enum MusicError: LocalizedError {
     case notAuthorized
     case authorizationDenied
     case loadFailed
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .notAuthorized:
             return "Music authorization required"

@@ -1,10 +1,14 @@
 import SwiftUI
 
 /// Row view for displaying a room in a list
-struct RoomRowView: View {
-    let room: Room
+public struct RoomRowView: View {
+    public let room: Room
+    
+    public init(room: Room) {
+        self.room = room
+    }
 
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(room.name)

@@ -3,7 +3,7 @@ import OSLog
 
 /// Service for managing rooms
 @MainActor
-protocol RoomServiceProtocol: LayoverService {
+public protocol RoomServiceProtocol: LayoverService {
     var rooms: [Room] { get }
 
     func createRoom(name: String, host: User, activityType: RoomActivityType) async throws -> Room
@@ -23,24 +23,26 @@ protocol RoomServiceProtocol: LayoverService {
 }
 
 @MainActor
-final class RoomService: RoomServiceProtocol {
+public final class RoomService: RoomServiceProtocol {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "RoomService")
-    private(set) var rooms: [Room] = []
+    public private(set) var rooms: [Room] = []
     private let defaults = NSUbiquitousKeyValueStore.default
     private let roomsKey = "layoverlounge.rooms"
     private let gamesKey = "layoverlounge.games"
     private(set) var games: [UUID: TexasHoldemGame] = [:] // gameID -> game
 
-    init() {
-        loadRooms()
-        loadGames()
-        // Observe changes from other devices
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(cloudDataChanged),
-            name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-            object: defaults
-        )
+    public nonisolated init() {
+        Task { @MainActor in
+            loadRooms()
+            loadGames()
+            // Observe changes from other devices
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(cloudDataChanged),
+                name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+                object: defaults
+            )
+        }
     }
 
     @objc private func cloudDataChanged() {
@@ -75,7 +77,7 @@ final class RoomService: RoomServiceProtocol {
         defaults.synchronize()
     }
 
-    func createRoom(name: String, host: User, activityType: RoomActivityType) async throws -> Room {
+    public func createRoom(name: String, host: User, activityType: RoomActivityType) async throws -> Room {
         let room = Room(
             name: name,
             hostID: host.id,
@@ -89,7 +91,7 @@ final class RoomService: RoomServiceProtocol {
         return room
     }
 
-    func updateRoom(roomID: UUID, name: String, isPrivate: Bool, maxParticipants: Int) async throws
+    public func updateRoom(roomID: UUID, name: String, isPrivate: Bool, maxParticipants: Int) async throws
     {
         guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
             throw RoomError.roomNotFound
@@ -103,7 +105,7 @@ final class RoomService: RoomServiceProtocol {
         saveRooms()
     }
 
-    func joinRoom(roomID: UUID, user: User) async throws {
+    public func joinRoom(roomID: UUID, user: User) async throws {
         guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
             throw RoomError.roomNotFound
         }
@@ -122,7 +124,7 @@ final class RoomService: RoomServiceProtocol {
         saveRooms()
     }
 
-    func leaveRoom(roomID: UUID, userID: UUID) async throws {
+    public func leaveRoom(roomID: UUID, userID: UUID) async throws {
         guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
             throw RoomError.roomNotFound
         }
@@ -140,7 +142,7 @@ final class RoomService: RoomServiceProtocol {
         saveRooms()
     }
 
-    func promoteToSubHost(roomID: UUID, userID: UUID) async throws {
+    public func promoteToSubHost(roomID: UUID, userID: UUID) async throws {
         guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
             throw RoomError.roomNotFound
         }
@@ -151,7 +153,7 @@ final class RoomService: RoomServiceProtocol {
         saveRooms()
     }
 
-    func demoteSubHost(roomID: UUID, userID: UUID) async throws {
+    public func demoteSubHost(roomID: UUID, userID: UUID) async throws {
         guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
             throw RoomError.roomNotFound
         }
@@ -162,7 +164,7 @@ final class RoomService: RoomServiceProtocol {
         saveRooms()
     }
 
-    func deleteRoom(roomID: UUID) async throws {
+    public func deleteRoom(roomID: UUID) async throws {
         guard let index = rooms.firstIndex(where: { $0.id == roomID }) else {
             throw RoomError.roomNotFound
         }
@@ -171,14 +173,14 @@ final class RoomService: RoomServiceProtocol {
         saveRooms()
     }
 
-    func fetchRooms() async throws -> [Room] {
+    public func fetchRooms() async throws -> [Room] {
         loadRooms()
         return rooms
     }
     
     // MARK: - Game Sync Methods
     
-    func saveGame(_ game: TexasHoldemGame) {
+    public func saveGame(_ game: TexasHoldemGame) {
         logger.info("💾 Saving game \(game.id) to iCloud...")
         games[game.id] = game
         saveGames()
@@ -193,7 +195,7 @@ final class RoomService: RoomServiceProtocol {
         logger.info("   ✅ Game saved successfully. Total games: \(self.games.count)")
     }
     
-    func getGame(gameID: UUID) -> TexasHoldemGame? {
+    public func getGame(gameID: UUID) -> TexasHoldemGame? {
         logger.info("🔍 Looking for game: \(gameID)")
         let game = games[gameID]
         if game == nil {
@@ -204,7 +206,7 @@ final class RoomService: RoomServiceProtocol {
         return game
     }
     
-    func getActiveGame(for roomID: UUID) -> TexasHoldemGame? {
+    public func getActiveGame(for roomID: UUID) -> TexasHoldemGame? {
         logger.info("🔍 Looking for active game in room: \(roomID)")
         guard let room = rooms.first(where: { $0.id == roomID }) else {
             logger.info("   ❌ Room not found")
@@ -225,7 +227,7 @@ final class RoomService: RoomServiceProtocol {
         return game
     }
     
-    func deleteGame(_ game: TexasHoldemGame) {
+    public func deleteGame(_ game: TexasHoldemGame) {
         logger.info("🗑️ Deleting game: \(game.id)")
         games.removeValue(forKey: game.id)
         

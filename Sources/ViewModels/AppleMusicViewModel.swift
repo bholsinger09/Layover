@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-enum MusicBrowseSection: String, CaseIterable {
+public enum MusicBrowseSection: String, CaseIterable {
     case recentlyPlayed = "Recently Played"
     case recommendations = "For You"
     case playlists = "Playlists"
@@ -12,35 +12,54 @@ enum MusicBrowseSection: String, CaseIterable {
 /// ViewModel for Apple Music listening rooms
 @MainActor
 @Observable
-final class AppleMusicViewModel: LayoverViewModel {
+public final class AppleMusicViewModel: LayoverViewModel {
     private let musicService: AppleMusicServiceProtocol
 
-    private(set) var currentContent: MediaContent?
-    private(set) var isPlaying = false
-    private(set) var isAuthorized = false
-    private(set) var isLoading = false
-    private(set) var errorMessage: String?
+    public private(set) var currentContent: MediaContent?
+    public private(set) var isPlaying = false
+    public private(set) var isAuthorized = false
+    public private(set) var isLoading = false
+    public private(set) var errorMessage: String?
     
     // Library content
-    private(set) var recentlyPlayed: [MediaContent] = []
-    private(set) var recommendations: [MediaContent] = []
-    private(set) var playlists: [MediaContent] = []
-    private(set) var songs: [MediaContent] = []
-    private(set) var albums: [MediaContent] = []
-    private(set) var searchResults: [MediaContent] = []
+    public private(set) var recentlyPlayed: [MediaContent] = []
+    public private(set) var recommendations: [MediaContent] = []
+    public private(set) var playlists: [MediaContent] = []
+    public private(set) var songs: [MediaContent] = []
+    public private(set) var albums: [MediaContent] = []
+    public private(set) var searchResults: [MediaContent] = []
     
     // UI state
-    var searchQuery = ""
-    var selectedSection: MusicBrowseSection = .recentlyPlayed
+    public var searchQuery = ""
+    public var selectedSection: MusicBrowseSection = .recentlyPlayed
 
     nonisolated init(musicService: AppleMusicServiceProtocol) {
         self.musicService = musicService
         Task { @MainActor in
             self.isAuthorized = await musicService.isAuthorized
+            self.setupStateObservers()
+        }
+    }
+    
+    private func setupStateObservers() {
+        if let service = musicService as? AppleMusicService {
+            service.onPlaybackStateChanged = { [weak self] isPlaying in
+                Task { @MainActor in
+                    self?.isPlaying = isPlaying
+                }
+            }
+            
+            service.onCurrentEntryChanged = { [weak self] content in
+                Task { @MainActor in
+                    if let content = content {
+                        self?.currentContent = content
+                    }
+                }
+            }
         }
     }
 
-    func requestAuthorization() async {
+    public func requestAuthorization() async {
         isLoading = true
         errorMessage = nil
 
@@ -54,31 +73,37 @@ final class AppleMusicViewModel: LayoverViewModel {
         isLoading = false
     }
 
-    func loadContent(_ content: MediaContent) async {
+    public func loadContent(_ content: MediaContent) async {
         isLoading = true
         errorMessage = nil
 
         do {
-            try await musicService.loadContent(content)
             currentContent = content
-        } catch {
+            try await musicService.loadContent(content)
+            // Success - ensure error is cleared
+            errorMessage = nil
+        } catch let error as MusicError {
             errorMessage = error.localizedDescription
+        } catch {
+            errorMessage = "Failed to load: \(error.localizedDescription)"
         }
 
         isLoading = false
     }
 
-    func play() async {
-        await musicService.play()
+    public func play() async {
+        errorMessage = nil // Clear any previous errors
         isPlaying = true
+        await musicService.play()
     }
 
-    func pause() async {
-        await musicService.pause()
+    public func pause() async {
+        errorMessage = nil // Clear any previous errors
         isPlaying = false
+        await musicService.pause()
     }
 
-    func togglePlayPause() async {
+    public func togglePlayPause() async {
         if isPlaying {
             await pause()
         } else {
@@ -86,17 +111,17 @@ final class AppleMusicViewModel: LayoverViewModel {
         }
     }
     
-    func skipToNext() async {
+    public func skipToNext() async {
         await musicService.skipToNext()
     }
     
-    func skipToPrevious() async {
+    public func skipToPrevious() async {
         await musicService.skipToPrevious()
     }
     
     // MARK: - Library Browsing
     
-    func loadLibraryContent() async {
+    public func loadLibraryContent() async {
         guard isAuthorized else { return }
         
         isLoading = true
@@ -111,7 +136,7 @@ final class AppleMusicViewModel: LayoverViewModel {
         isLoading = false
     }
     
-    func fetchRecentlyPlayed() async {
+    public func fetchRecentlyPlayed() async {
         do {
             recentlyPlayed = try await musicService.fetchRecentlyPlayed()
         } catch {
@@ -119,7 +144,7 @@ final class AppleMusicViewModel: LayoverViewModel {
         }
     }
     
-    func fetchRecommendations() async {
+    public func fetchRecommendations() async {
         do {
             recommendations = try await musicService.fetchRecommendations()
         } catch {
@@ -127,7 +152,7 @@ final class AppleMusicViewModel: LayoverViewModel {
         }
     }
     
-    func fetchPlaylists() async {
+    public func fetchPlaylists() async {
         do {
             playlists = try await musicService.fetchPlaylists()
         } catch {
@@ -135,7 +160,7 @@ final class AppleMusicViewModel: LayoverViewModel {
         }
     }
     
-    func fetchSongs() async {
+    public func fetchSongs() async {
         guard songs.isEmpty else { return }
         
         do {
@@ -145,7 +170,7 @@ final class AppleMusicViewModel: LayoverViewModel {
         }
     }
     
-    func fetchAlbums() async {
+    public func fetchAlbums() async {
         guard albums.isEmpty else { return }
         
         do {
@@ -155,7 +180,7 @@ final class AppleMusicViewModel: LayoverViewModel {
         }
     }
     
-    func search() async {
+    public func search() async {
         guard !searchQuery.isEmpty else {
             searchResults = []
             return
@@ -170,12 +195,16 @@ final class AppleMusicViewModel: LayoverViewModel {
         isLoading = false
     }
     
-    func createPlaylist(name: String) async {
+    public func createPlaylist(name: String) async {
         do {
             let playlist = try await musicService.createPlaylist(name: name)
             playlists.insert(playlist, at: 0)
         } catch {
             errorMessage = "Failed to create playlist: \(error.localizedDescription)"
         }
+    }
+    
+    public func clearError() {
+        errorMessage = nil
     }
 }

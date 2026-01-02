@@ -3,19 +3,21 @@ import OSLog
 
 /// AI-powered recommendation service for discovering new content
 @MainActor
-protocol AIRecommendationServiceProtocol {
+public protocol AIRecommendationServiceProtocol {
     func searchMoviesAndTV(query: String) async throws -> [MediaContent]
     func searchMusic(query: String) async throws -> [MusicTrack]
 }
 
 @MainActor
-final class AIRecommendationService: AIRecommendationServiceProtocol {
+public final class AIRecommendationService: AIRecommendationServiceProtocol {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AIRecommendationService")
     
     // TODO: Add your AI API key here (OpenAI, Anthropic, etc.)
     private let apiKey: String = ""
     
-    func searchMoviesAndTV(query: String) async throws -> [MediaContent] {
+    public init() {}
+    
+    public func searchMoviesAndTV(query: String) async throws -> [MediaContent] {
         logger.info("🤖 AI searching movies/TV for: \(query)")
         
         // For now, return curated results based on query
@@ -25,7 +27,7 @@ final class AIRecommendationService: AIRecommendationServiceProtocol {
         return results
     }
     
-    func searchMusic(query: String) async throws -> [MusicTrack] {
+    public func searchMusic(query: String) async throws -> [MusicTrack] {
         logger.info("🤖 AI searching music for: \(query)")
         print("🔍 SERVICE: searchMusic called with query: \(query)")
         

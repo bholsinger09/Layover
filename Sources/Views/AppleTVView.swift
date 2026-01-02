@@ -13,16 +13,16 @@ private enum UITiming {
 }
 
 /// View for Apple TV+ watching rooms
-struct AppleTVView: View {
-    let room: Room
-    let currentUser: User
-    let sharePlayService: SharePlayServiceProtocol
-    let libraryService: LibraryServiceProtocol
+public struct AppleTVView: View {
+    public let room: Room
+    public let currentUser: User
+    public let sharePlayService: SharePlayServiceProtocol
+    public let libraryService: LibraryServiceProtocol
 
     @State private var viewModel: AppleTVViewModel
     @State private var showingContentPicker = false
     
-    init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol, libraryService: LibraryServiceProtocol) {
+    public init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol, libraryService: LibraryServiceProtocol = LibraryService()) {
         self.room = room
         self.currentUser = currentUser
         self.sharePlayService = sharePlayService
@@ -40,7 +40,7 @@ struct AppleTVView: View {
 
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVView")
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 0) {
             // SharePlay status banner
             if isSharePlayActive {
@@ -199,9 +199,9 @@ struct AppleTVView: View {
 
         }
         .navigationTitle(room.name)
-        #if !os(macOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-        #endif
+#endif
         .onAppear {
             logger.info("🎬 ═══════════════════════════════════")
             logger.info("🎬 AppleTVView appeared for room: \(room.name)")

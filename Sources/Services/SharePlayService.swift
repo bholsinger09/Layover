@@ -5,7 +5,7 @@ import OSLog
 
 /// Service for managing SharePlay sessions and coordination
 @MainActor
-protocol SharePlayServiceProtocol: LayoverService {
+public protocol SharePlayServiceProtocol: LayoverService {
     var currentSession: GroupSession<LayoverActivity>? { get }
     var isSessionActive: Bool { get }
     var isSessionHost: Bool { get }
@@ -23,10 +23,10 @@ protocol SharePlayServiceProtocol: LayoverService {
 }
 
 @MainActor
-final class SharePlayService: SharePlayServiceProtocol {
+public final class SharePlayService: SharePlayServiceProtocol {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "SharePlay")
 
-    private(set) var currentSession: GroupSession<LayoverActivity>?
+    public private(set) var currentSession: GroupSession<LayoverActivity>?
     private var groupStateObserver: Task<Void, Never>?
     private var sessionTask: Task<Void, Never>?
     private var playbackCoordinator: AVPlaybackCoordinator?
@@ -34,14 +34,14 @@ final class SharePlayService: SharePlayServiceProtocol {
     private var messageTask: Task<Void, Never>?
     
     // Track if this device initiated the session or joined via invitation
-    private(set) var isSessionHost: Bool = false
+    public private(set) var isSessionHost: Bool = false
 
-    var onRoomReceived: ((Room) -> Void)?
-    var onParticipantJoined: ((User, UUID) -> Void)?
-    var onContentReceived: ((MediaContent) -> Void)?
+    public var onRoomReceived: ((Room) -> Void)?
+    public var onParticipantJoined: ((User, UUID) -> Void)?
+    public var onContentReceived: ((MediaContent) -> Void)?
     private var sessionStateObservers: [(Bool) -> Void] = []
 
-    func addSessionStateObserver(_ observer: @escaping (Bool) -> Void) {
+    public func addSessionStateObserver(_ observer: @escaping (Bool) -> Void) {
         sessionStateObservers.append(observer)
         // Immediately call with current state
         observer(isSessionActive)
@@ -53,12 +53,14 @@ final class SharePlayService: SharePlayServiceProtocol {
         }
     }
 
-    var isSessionActive: Bool {
+    public var isSessionActive: Bool {
         currentSession != nil
     }
 
-    init() {
-        setupSessionObserver()
+    public nonisolated init() {
+        Task { @MainActor in
+            setupSessionObserver()
+        }
     }
 
     deinit {
@@ -123,7 +125,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         }
     }
 
-    func startActivity(_ activity: LayoverActivity) async throws {
+    public func startActivity(_ activity: LayoverActivity) async throws {
         logger.info("🎬 SharePlay: Preparing activity for '\(activity.metadata.title ?? "unknown")'")
         logger.info("   This device is STARTING the session (will be the host)")
 
@@ -161,7 +163,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         }
     }
 
-    func leaveSession() async {
+    public func leaveSession() async {
         currentSession?.leave()
         currentSession = nil
         messenger = nil
@@ -220,7 +222,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         logger.info("📨 ═══════════════════════════════════")
     }
 
-    func shareRoom(_ room: Room) async {
+    public func shareRoom(_ room: Room) async {
         guard let messenger = messenger else {
             logger.warning("⚠️ SharePlay: No messenger available to share room")
             logger.info("   Current session exists: \(self.currentSession != nil)")
@@ -239,7 +241,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         }
     }
 
-    func shareUserJoined(_ user: User, roomID: UUID) async {
+    public func shareUserJoined(_ user: User, roomID: UUID) async {
         guard let messenger = messenger else {
             logger.warning("⚠️ SharePlay: No messenger available to share user joined")
             return
@@ -254,7 +256,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         }
     }
 
-    func shareContent(_ content: MediaContent) async {
+    public func shareContent(_ content: MediaContent) async {
         logger.info("📤 ═══════════════════════════════════")
         logger.info("📤 shareContent() called")
         logger.info("📤 Content: \(content.title)")
@@ -287,7 +289,7 @@ final class SharePlayService: SharePlayServiceProtocol {
         logger.info("📤 ═══════════════════════════════════")
     }
 
-    func setupPlaybackCoordinator(player: AVPlayer) async throws {
+    public func setupPlaybackCoordinator(player: AVPlayer) async throws {
         guard let session = currentSession else {
             throw SharePlayError.noActiveSession
         }

@@ -2,11 +2,11 @@ import Foundation
 
 /// AI service for computer opponents in Texas Hold'em
 @MainActor
-final class TexasHoldemAIService {
+public final class TexasHoldemAIService {
     
     /// Make an AI decision based on current game state
     /// Returns the action the AI should take
-    func makeDecision(
+    public func makeDecision(
         game: TexasHoldemGame,
         aiPlayerID: UUID
     ) async -> AIAction {
@@ -327,7 +327,7 @@ final class TexasHoldemAIService {
 }
 
 /// Hand strength categories
-enum HandStrength: String {
+public enum HandStrength: String {
     case veryStrong = "Very Strong"
     case strong = "Strong"
     case moderate = "Moderate"
@@ -336,13 +336,13 @@ enum HandStrength: String {
 }
 
 /// AI actions
-enum AIAction: Equatable {
+public enum AIAction: Equatable {
     case fold
     case check
     case call
     case bet(amount: Int)
     
-    var description: String {
+    public var description: String {
         switch self {
         case .fold: return "Fold"
         case .check: return "Check"

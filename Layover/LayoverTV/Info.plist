@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Layover needs access to Apple Music to play songs together with your group.</string>
+	<key>NSGroupActivitiesUsageDescription</key>
+	<string>Layover uses SharePlay to create synchronized group experiences across movies, music, and games.</string>
+</dict>
+</plist>

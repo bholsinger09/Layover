@@ -801,9 +801,9 @@ struct CreatePlaylistView: View {
                 }
             }
             .navigationTitle("New Playlist")
-            #if !os(macOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -878,9 +878,9 @@ struct PlaylistDetailView: View {
                 }
             }
             .navigationTitle(playlist.name)
-            #if !os(macOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
@@ -1131,6 +1131,7 @@ struct FavoritesListView: View {
                     
                     Spacer()
                 }
+#if !os(tvOS)
                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                     Button(role: .destructive) {
                         Task {
@@ -1140,12 +1141,13 @@ struct FavoritesListView: View {
                         Label("Remove", systemImage: "trash")
                     }
                 }
+#endif
             }
         }
         .navigationTitle("Favorites")
-        #if !os(macOS)
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
+#endif
     }
 }
 
@@ -1200,9 +1202,9 @@ struct WatchHistoryView: View {
             }
         }
         .navigationTitle("Watch History")
-        #if !os(macOS)
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
+#endif
     }
 }
 

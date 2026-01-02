@@ -2,16 +2,16 @@ import Foundation
 import GroupActivities
 
 /// SharePlay activity specifically for Texas Hold'em poker game
-struct TexasHoldemActivity: GroupActivity {
+public struct TexasHoldemActivity: GroupActivity {
     // IMPORTANT: This identifier must match exactly across all devices and builds
     // Format: <bundle-id>.<activity-name>
-    static let activityIdentifier = "com.bholsinger.LayoverLounge.texasholdem"
+    public static let activityIdentifier = "com.bholsinger.LayoverLounge.texasholdem"
     
-    let roomID: UUID
-    let gameID: UUID
-    let roomName: String?
+    public let roomID: UUID
+    public let gameID: UUID
+    public let roomName: String?
     
-    var metadata: GroupActivityMetadata {
+    public var metadata: GroupActivityMetadata {
         var meta = GroupActivityMetadata()
         
         if let name = roomName {
@@ -29,7 +29,7 @@ struct TexasHoldemActivity: GroupActivity {
 }
 
 /// Messages that can be sent between participants in a Texas Hold'em game
-enum TexasHoldemMessage: Codable {
+public enum TexasHoldemMessage: Codable {
     case gameStarted(roomID: UUID, gameID: UUID, playerIDs: [UUID])
     case gameStateUpdate(TexasHoldemGameState)
     case playerAction(PlayerAction)
@@ -38,7 +38,7 @@ enum TexasHoldemMessage: Codable {
     case testPing(from: String, message: String, senderID: UUID)
     case testPong(from: String, message: String, senderID: UUID)
     
-    enum PlayerAction: Codable {
+    public enum PlayerAction: Codable {
         case fold(playerID: UUID)
         case check(playerID: UUID)
         case bet(playerID: UUID, amount: Int)
@@ -46,7 +46,7 @@ enum TexasHoldemMessage: Codable {
         case raise(playerID: UUID, amount: Int)
     }
     
-    enum GamePhase: String, Codable {
+    public enum GamePhase: String, Codable {
         case preFlop
         case flop
         case turn
@@ -56,28 +56,28 @@ enum TexasHoldemMessage: Codable {
 }
 
 /// Simplified game state for SharePlay synchronization
-struct TexasHoldemGameState: Codable {
-    let gameID: UUID
-    let currentPlayerIndex: Int
-    let pot: Int
-    let currentBet: Int
-    let phase: String
-    let communityCards: [PlayingCardData]
-    let playerStates: [PlayerState]
-    let winnerID: UUID?  // ID of the winning player (set during showdown)
-    let winningAmount: Int  // Amount won
+public struct TexasHoldemGameState: Codable {
+    public let gameID: UUID
+    public let currentPlayerIndex: Int
+    public let pot: Int
+    public let currentBet: Int
+    public let phase: String
+    public let communityCards: [PlayingCardData]
+    public let playerStates: [PlayerState]
+    public let winnerID: UUID?  // ID of the winning player (set during showdown)
+    public let winningAmount: Int  // Amount won
     
-    struct PlayerState: Codable {
-        let id: UUID
-        let chips: Int
-        let currentBet: Int
-        let hasFolded: Bool
-        let cards: [PlayingCardData]? // nil for other players until showdown
+    public struct PlayerState: Codable {
+        public let id: UUID
+        public let chips: Int
+        public let currentBet: Int
+        public let hasFolded: Bool
+        public let cards: [PlayingCardData]? // nil for other players until showdown
     }
 }
 
 /// Simplified playing card for Codable conformance
-struct PlayingCardData: Codable {
-    let rank: String
-    let suit: String
+public struct PlayingCardData: Codable {
+    public let rank: String
+    public let suit: String
 }

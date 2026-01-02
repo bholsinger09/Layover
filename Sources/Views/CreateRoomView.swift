@@ -1,17 +1,22 @@
 import SwiftUI
 
 /// View for creating a new room
-struct CreateRoomView: View {
+public struct CreateRoomView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let currentUser: User
-    let onCreate: (String, RoomActivityType) async -> Void
+    public let currentUser: User
+    public let onCreate: (String, RoomActivityType) async -> Void
+    
+    public init(currentUser: User, onCreate: @escaping (String, RoomActivityType) async -> Void) {
+        self.currentUser = currentUser
+        self.onCreate = onCreate
+    }
 
     @State private var roomName = ""
     @State private var selectedActivity: RoomActivityType = .appleTVPlus
     @State private var isCreating = false
 
-    var body: some View {
+    public var body: some View {
         NavigationStack {
             Form {
                 Section("Room Details") {
@@ -38,9 +43,9 @@ struct CreateRoomView: View {
                 }
             }
             .navigationTitle("Create Room")
-            #if !os(macOS)
-                .navigationBarTitleDisplayMode(.inline)
-            #endif
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

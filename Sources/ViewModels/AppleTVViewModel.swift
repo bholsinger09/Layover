@@ -6,32 +6,34 @@ import Observation
 /// ViewModel for Apple TV+ viewing rooms
 @MainActor
 @Observable
-final class AppleTVViewModel: LayoverViewModel {
+public final class AppleTVViewModel: LayoverViewModel {
     private let logger = Logger(
         subsystem: "com.bholsinger.LayoverLounge", category: "AppleTVViewModel")
     private let tvService: AppleTVServiceProtocol
-    let sharePlayService: SharePlayServiceProtocol
+    public let sharePlayService: SharePlayServiceProtocol
     private var isLoadingFromSharePlay = false
-    var onTVAppOpened: (() -> Void)?
+    public var onTVAppOpened: (() -> Void)?
 
-    private(set) var currentContent: MediaContent?
-    private(set) var isPlaying = false
-    private(set) var isLoading = false
-    private(set) var errorMessage: String?
-    var player: AVPlayer? {
+    public private(set) var currentContent: MediaContent?
+    public private(set) var isPlaying = false
+    public private(set) var isLoading = false
+    public private(set) var errorMessage: String?
+    public var player: AVPlayer? {
         tvService.player
     }
 
-    init(
+    public nonisolated init(
         tvService: AppleTVServiceProtocol,
         sharePlayService: SharePlayServiceProtocol
     ) {
         self.tvService = tvService
         self.sharePlayService = sharePlayService
-
-        logger.info("🎬 AppleTVViewModel initialized")
+    }
+    
+    public func setupSharePlayCallbacks() {
+        logger.info("🎬 AppleTVViewModel setting up SharePlay callbacks")
         logger.info("🔌 Setting up onContentReceived callback...")
-        logger.info("   SharePlay session active: \(sharePlayService.isSessionActive)")
+        logger.info("   SharePlay session active: \(self.sharePlayService.isSessionActive)")
 
         // Set up callback to receive content from other participants
         self.sharePlayService.onContentReceived = { [weak self] content in
@@ -61,7 +63,7 @@ final class AppleTVViewModel: LayoverViewModel {
     }
     
     // TEST FUNCTION: Send content without opening TV app
-    func testShareContent() async {
+    public func testShareContent() async {
         logger.info("🧪 TEST: Sending test content via SharePlay...")
         let testContent = MediaContent(
             title: "TEST_CONTENT_\(Date().timeIntervalSince1970)",
@@ -80,7 +82,7 @@ final class AppleTVViewModel: LayoverViewModel {
         }
     }
 
-    func loadContent(_ content: MediaContent) async {
+    public func loadContent(_ content: MediaContent) async {
         logger.info("🎬 ═══════════════════════════════════")
         logger.info("🎬 loadContent() called")
         logger.info("🎬 Content: \(content.title)")
@@ -134,21 +136,21 @@ final class AppleTVViewModel: LayoverViewModel {
         logger.info("🎬 loadContent() completed")
     }
 
-    func play() async {
+    public func play() async {
         await tvService.play()
         isPlaying = true
     }
 
-    func pause() async {
+    public func pause() async {
         await tvService.pause()
         isPlaying = false
     }
 
-    func seek(to time: TimeInterval) async {
+    public func seek(to time: TimeInterval) async {
         await tvService.seek(to: time)
     }
 
-    func togglePlayPause() async {
+    public func togglePlayPause() async {
         if isPlaying {
             await pause()
         } else {
@@ -156,7 +158,7 @@ final class AppleTVViewModel: LayoverViewModel {
         }
     }
 
-    func openContentInTVApp(_ content: MediaContent) async {
+    public func openContentInTVApp(_ content: MediaContent) async {
         do {
             try await tvService.openInTVApp(content)
         } catch {

@@ -2,7 +2,7 @@ import Foundation
 
 /// Service for managing Texas Hold'em games
 @MainActor
-protocol TexasHoldemServiceProtocol: LayoverService {
+public protocol TexasHoldemServiceProtocol: LayoverService {
     var currentGame: TexasHoldemGame? { get }
 
     func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame
@@ -22,11 +22,13 @@ protocol TexasHoldemServiceProtocol: LayoverService {
 }
 
 @MainActor
-final class TexasHoldemService: TexasHoldemServiceProtocol {
-    private(set) var currentGame: TexasHoldemGame?
+public final class TexasHoldemService: TexasHoldemServiceProtocol {
+    public private(set) var currentGame: TexasHoldemGame?
     private var deck: [PlayingCard] = []
+    
+    public nonisolated init() {}
 
-    func loadGame(_ game: TexasHoldemGame) {
+    public func loadGame(_ game: TexasHoldemGame) {
         currentGame = game
         // Recreate deck based on cards already dealt
         deck = createDeck()
@@ -39,7 +41,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         }
     }
 
-    func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame {
+    public func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame {
         guard players.count >= 2 && players.count <= 10 else {
             throw GameError.invalidPlayerCount
         }
@@ -59,7 +61,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         return game
     }
 
-    func dealCards() async throws {
+    public func dealCards() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -83,7 +85,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         currentGame = game
     }
 
-    func bet(playerID: UUID, amount: Int) async throws {
+    public func bet(playerID: UUID, amount: Int) async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -115,7 +117,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         await checkAndAdvancePhase()
     }
 
-    func fold(playerID: UUID) async throws {
+    public func fold(playerID: UUID) async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -134,7 +136,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         await checkAndAdvancePhase()
     }
 
-    func call(playerID: UUID) async throws {
+    public func call(playerID: UUID) async throws {
         guard let game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -157,7 +159,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         // bet() already calls advanceTurn(), so we don't need to call it again
     }
 
-    func raise(playerID: UUID, amount: Int) async throws {
+    public func raise(playerID: UUID, amount: Int) async throws {
         guard let game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -172,7 +174,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         // bet() already calls advanceTurn(), so we don't need to call it again
     }
 
-    func nextPhase() async throws {
+    public func nextPhase() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -201,12 +203,12 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         currentGame = game
     }
 
-    func endGame() async {
+    public func endGame() async {
         currentGame = nil
         deck = []
     }
 
-    func check(playerID: UUID) async throws {
+    public func check(playerID: UUID) async throws {
         guard let game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -227,7 +229,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         await checkAndAdvancePhase()
     }
 
-    func dealFlop() async throws {
+    public func dealFlop() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -247,7 +249,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         print("🎴 Flop dealt: \(game.communityCards.map { "\($0.rank.rawValue)\($0.suit.rawValue)" }.joined(separator: " "))")
     }
 
-    func dealTurn() async throws {
+    public func dealTurn() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -268,7 +270,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         print("🎴 Turn dealt: \(turnCard.rank.rawValue)\(turnCard.suit.rawValue)")
     }
 
-    func dealRiver() async throws {
+    public func dealRiver() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -289,7 +291,7 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
         print("🎴 River dealt: \(riverCard.rank.rawValue)\(riverCard.suit.rawValue)")
     }
 
-    func showdown() async throws {
+    public func showdown() async throws {
         guard var game = currentGame else {
             throw GameError.noActiveGame
         }
@@ -484,14 +486,14 @@ final class TexasHoldemService: TexasHoldemServiceProtocol {
     }
 }
 
-enum GameError: LocalizedError {
+public enum GameError: LocalizedError {
     case noActiveGame
     case invalidPlayerCount
     case playerNotFound
     case insufficientChips
     case invalidMove
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .noActiveGame:
             return "No active game"

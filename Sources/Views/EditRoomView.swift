@@ -25,8 +25,25 @@ struct EditRoomView: View {
                 Section("Room Details") {
                     TextField("Room Name", text: $roomName)
 
+#if !os(tvOS)
                     Stepper(
                         "Max Participants: \(maxParticipants)", value: $maxParticipants, in: 2...50)
+#else
+                    HStack {
+                        Text("Max Participants: \(maxParticipants)")
+                        Spacer()
+                        Button("-") {
+                            if maxParticipants > 2 {
+                                maxParticipants -= 1
+                            }
+                        }
+                        Button("+") {
+                            if maxParticipants < 50 {
+                                maxParticipants += 1
+                            }
+                        }
+                    }
+#endif
 
                     Toggle("Private Room", isOn: $isPrivate)
                 }

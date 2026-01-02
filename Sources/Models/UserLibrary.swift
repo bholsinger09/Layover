@@ -1,19 +1,19 @@
 import Foundation
 
 /// Represents a user's personal content library
-struct UserLibrary: Codable {
-    var favorites: [MediaContent]
-    var watchHistory: [WatchHistoryItem]
-    var userID: UUID
+public struct UserLibrary: Codable {
+    public var favorites: [MediaContent]
+    public var watchHistory: [WatchHistoryItem]
+    public var userID: UUID
     
-    init(userID: UUID) {
+    public init(userID: UUID) {
         self.userID = userID
         self.favorites = []
         self.watchHistory = []
     }
     
     /// Get unique content from watch history (no duplicates)
-    var uniqueWatchedContent: [MediaContent] {
+    public var uniqueWatchedContent: [MediaContent] {
         var seen = Set<String>()
         return watchHistory.compactMap { item in
             guard !seen.contains(item.content.contentID) else { return nil }
@@ -23,12 +23,12 @@ struct UserLibrary: Codable {
     }
     
     /// Calculate total watch time in seconds
-    var totalWatchTime: TimeInterval {
+    public var totalWatchTime: TimeInterval {
         watchHistory.reduce(0) { $0 + $1.watchDuration }
     }
     
     /// Get favorite genres based on watch history
-    var favoriteGenres: [String] {
+    public var favoriteGenres: [String] {
         let genreCounts = watchHistory.reduce(into: [String: Int]()) { counts, item in
             let genre = item.content.contentType == .movie ? "Movies" : "TV Shows"
             counts[genre, default: 0] += 1
@@ -37,7 +37,7 @@ struct UserLibrary: Codable {
     }
     
     /// Get most watched content
-    var mostWatchedContent: [MediaContent] {
+    public var mostWatchedContent: [MediaContent] {
         let contentCounts = watchHistory.reduce(into: [String: (content: MediaContent, count: Int)]()) { counts, item in
             let id = item.content.contentID
             if let existing = counts[id] {
@@ -53,7 +53,7 @@ struct UserLibrary: Codable {
     }
     
     /// Get recently watched content
-    var recentlyWatched: [WatchHistoryItem] {
+    public var recentlyWatched: [WatchHistoryItem] {
         watchHistory
             .sorted { $0.watchedAt > $1.watchedAt }
             .prefix(20)
@@ -61,36 +61,36 @@ struct UserLibrary: Codable {
     }
     
     /// Check if content is in favorites
-    func isFavorite(_ content: MediaContent) -> Bool {
+    public func isFavorite(_ content: MediaContent) -> Bool {
         favorites.contains { $0.contentID == content.contentID }
     }
     
     /// Add content to favorites
-    mutating func addToFavorites(_ content: MediaContent) {
+    public mutating func addToFavorites(_ content: MediaContent) {
         guard !isFavorite(content) else { return }
         favorites.append(content)
     }
     
     /// Remove content from favorites
-    mutating func removeFromFavorites(_ content: MediaContent) {
+    public mutating func removeFromFavorites(_ content: MediaContent) {
         favorites.removeAll { $0.contentID == content.contentID }
     }
     
     /// Add to watch history
-    mutating func addToHistory(_ item: WatchHistoryItem) {
+    public mutating func addToHistory(_ item: WatchHistoryItem) {
         watchHistory.append(item)
     }
 }
 
 /// Represents a single watch history entry
-struct WatchHistoryItem: Codable, Identifiable {
-    let id: UUID
-    let content: MediaContent
-    let watchedAt: Date
-    let watchDuration: TimeInterval // How long was watched in seconds
-    let completed: Bool // Whether they finished watching
+public struct WatchHistoryItem: Codable, Identifiable {
+    public let id: UUID
+    public let content: MediaContent
+    public let watchedAt: Date
+    public let watchDuration: TimeInterval // How long was watched in seconds
+    public let completed: Bool // Whether they finished watching
     
-    init(content: MediaContent, watchedAt: Date = Date(), watchDuration: TimeInterval = 0, completed: Bool = false) {
+    public init(content: MediaContent, watchedAt: Date = Date(), watchDuration: TimeInterval = 0, completed: Bool = false) {
         self.id = UUID()
         self.content = content
         self.watchedAt = watchedAt
@@ -99,7 +99,7 @@ struct WatchHistoryItem: Codable, Identifiable {
     }
     
     /// Formatted date string
-    var formattedDate: String {
+    public var formattedDate: String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: watchedAt, relativeTo: Date())
@@ -107,17 +107,17 @@ struct WatchHistoryItem: Codable, Identifiable {
 }
 
 /// User statistics and insights
-struct LibraryStats {
-    let totalWatchTime: TimeInterval
-    let favoriteGenres: [String]
-    let totalMovies: Int
-    let totalTVShows: Int
-    let totalFavorites: Int
-    let mostWatchedContent: [MediaContent]
-    let recentStreak: Int // Days watched in a row
+public struct LibraryStats {
+    public let totalWatchTime: TimeInterval
+    public let favoriteGenres: [String]
+    public let totalMovies: Int
+    public let totalTVShows: Int
+    public let totalFavorites: Int
+    public let mostWatchedContent: [MediaContent]
+    public let recentStreak: Int // Days watched in a row
     
     /// Format watch time as human readable
-    var formattedWatchTime: String {
+    public var formattedWatchTime: String {
         let hours = Int(totalWatchTime) / 3600
         let minutes = (Int(totalWatchTime) % 3600) / 60
         
@@ -128,7 +128,7 @@ struct LibraryStats {
         }
     }
     
-    static func from(library: UserLibrary) -> LibraryStats {
+    public static func from(library: UserLibrary) -> LibraryStats {
         let movieCount = library.watchHistory.filter { $0.content.contentType == .movie }.count
         let tvShowCount = library.watchHistory.filter { $0.content.contentType == .tvShow }.count
         

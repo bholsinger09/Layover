@@ -1,20 +1,20 @@
 import Foundation
 
 /// Texas Hold'em game state
-struct TexasHoldemGame: LayoverModel {
-    let id: UUID
-    var roomID: UUID
-    var players: [TexasHoldemPlayer]
-    var dealerIndex: Int
-    var currentBet: Int
-    var pot: Int
-    var communityCards: [PlayingCard]
-    var gamePhase: GamePhase
-    var currentPlayerIndex: Int
-    var winnerID: UUID?  // ID of the winning player (set during showdown)
-    var winningAmount: Int = 0  // Amount won by the winner
+public struct TexasHoldemGame: LayoverModel {
+    public let id: UUID
+    public var roomID: UUID
+    public var players: [TexasHoldemPlayer]
+    public var dealerIndex: Int
+    public var currentBet: Int
+    public var pot: Int
+    public var communityCards: [PlayingCard]
+    public var gamePhase: GamePhase
+    public var currentPlayerIndex: Int
+    public var winnerID: UUID?  // ID of the winning player (set during showdown)
+    public var winningAmount: Int = 0  // Amount won by the winner
 
-    enum GamePhase: String, Codable, Sendable {
+    public enum GamePhase: String, Codable, Sendable {
         case preFlop
         case flop
         case turn
@@ -23,7 +23,7 @@ struct TexasHoldemGame: LayoverModel {
         case ended
     }
 
-    init(
+    public init(
         id: UUID = UUID(),
         roomID: UUID,
         players: [TexasHoldemPlayer] = [],
@@ -51,16 +51,16 @@ struct TexasHoldemGame: LayoverModel {
 }
 
 /// Player in a Texas Hold'em game
-struct TexasHoldemPlayer: Identifiable, Codable, Hashable, Sendable {
-    let id: UUID
-    var userID: UUID
-    var chips: Int
-    var currentBet: Int
-    var hand: [PlayingCard]
-    var isFolded: Bool
-    var position: Int
+public struct TexasHoldemPlayer: Identifiable, Codable, Hashable, Sendable {
+    public let id: UUID
+    public var userID: UUID
+    public var chips: Int
+    public var currentBet: Int
+    public var hand: [PlayingCard]
+    public var isFolded: Bool
+    public var position: Int
 
-    init(
+    public init(
         id: UUID = UUID(),
         userID: UUID,
         chips: Int = 500,
@@ -80,12 +80,12 @@ struct TexasHoldemPlayer: Identifiable, Codable, Hashable, Sendable {
 }
 
 /// Playing card model
-struct PlayingCard: Identifiable, Codable, Hashable, Sendable {
-    let id: UUID
-    let rank: Rank
-    let suit: Suit
+public struct PlayingCard: Identifiable, Codable, Hashable, Sendable {
+    public let id: UUID
+    public let rank: Rank
+    public let suit: Suit
 
-    enum Rank: String, Codable, CaseIterable, Sendable {
+    public enum Rank: String, Codable, CaseIterable, Sendable {
         case two = "2"
         case three = "3"
         case four = "4"
@@ -100,7 +100,7 @@ struct PlayingCard: Identifiable, Codable, Hashable, Sendable {
         case king = "K"
         case ace = "A"
 
-        var value: Int {
+        public var value: Int {
             switch self {
             case .two: return 2
             case .three: return 3
@@ -116,14 +116,14 @@ struct PlayingCard: Identifiable, Codable, Hashable, Sendable {
         }
     }
 
-    enum Suit: String, Codable, CaseIterable, Sendable {
+    public enum Suit: String, Codable, CaseIterable, Sendable {
         case hearts = "♥️"
         case diamonds = "♦️"
         case clubs = "♣️"
         case spades = "♠️"
     }
 
-    init(id: UUID = UUID(), rank: Rank, suit: Suit) {
+    public init(id: UUID = UUID(), rank: Rank, suit: Suit) {
         self.id = id
         self.rank = rank
         self.suit = suit

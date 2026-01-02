@@ -6,19 +6,19 @@ import OSLog
 /// Service for managing SharePlay sessions specifically for Texas Hold'em
 @MainActor
 @Observable
-final class TexasHoldemSharePlayService {
+public final class TexasHoldemSharePlayService {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "TexasHoldemSharePlay")
     
-    private(set) var currentSession: GroupSession<TexasHoldemActivity>?
+    public private(set) var currentSession: GroupSession<TexasHoldemActivity>?
     private var messenger: GroupSessionMessenger?
     private var sessionTask: Task<Void, Never>?
     private var messageTask: Task<Void, Never>?
     private var participantsTask: Task<Void, Never>?
     
-    private(set) var participantCount: Int = 0
-    private(set) var isSessionActive: Bool = false
+    public private(set) var participantCount: Int = 0
+    public private(set) var isSessionActive: Bool = false
     
-    var isHost: Bool = false {
+    public var isHost: Bool = false {
         didSet {
             print("🔄 isHost changed from \(oldValue) to \(isHost)")
             print("   Stack trace:")
@@ -36,28 +36,30 @@ final class TexasHoldemSharePlayService {
     private let deviceID = UUID()
     
     // Callbacks
-    var onSessionActivated: (() -> Void)?
-    var onGameStarted: ((UUID, UUID, [UUID]) -> Void)?
-    var onGameStateUpdate: ((TexasHoldemGameState) -> Void)?
-    var onPlayerAction: ((TexasHoldemMessage.PlayerAction) -> Void)?
-    var onPhaseAdvanced: ((TexasHoldemMessage.GamePhase) -> Void)?
-    var onGameEnded: ((UUID?) -> Void)?
-    var onParticipantJoined: (() -> Void)?
-    var onParticipantCountChanged: ((Int) -> Void)?
-    var onTestPingReceived: ((String, String, UUID) -> Void)?
-    var onTestPongReceived: ((String, String, UUID) -> Void)?
+    public var onSessionActivated: (() -> Void)?
+    public var onGameStarted: ((UUID, UUID, [UUID]) -> Void)?
+    public var onGameStateUpdate: ((TexasHoldemGameState) -> Void)?
+    public var onPlayerAction: ((TexasHoldemMessage.PlayerAction) -> Void)?
+    public var onPhaseAdvanced: ((TexasHoldemMessage.GamePhase) -> Void)?
+    public var onGameEnded: ((UUID?) -> Void)?
+    public var onParticipantJoined: (() -> Void)?
+    public var onParticipantCountChanged: ((Int) -> Void)?
+    public var onTestPingReceived: ((String, String, UUID) -> Void)?
+    public var onTestPongReceived: ((String, String, UUID) -> Void)?
     
-    init() {
+    public nonisolated init() {
         // Don't start observer here - will be started when callbacks are configured
-        logger.info("🎯 TexasHoldemSharePlayService initialized")
-        print(String(repeating: "=", count: 80))
-        print("🎯 ===== TEXAS HOLDEM SHAREPLAY SERVICE INIT =====")
-        print("🎯 Device ID: \(deviceID)")
-        print("🎯 This device is ready to observe for SharePlay sessions")
-        print(String(repeating: "=", count: 80))
+        Task { @MainActor in
+            logger.info("🎯 TexasHoldemSharePlayService initialized")
+            print(String(repeating: "=", count: 80))
+            print("🎯 ===== TEXAS HOLDEM SHAREPLAY SERVICE INIT =====")
+            print("🎯 Device ID: \(deviceID)")
+            print("🎯 This device is ready to observe for SharePlay sessions")
+            print(String(repeating: "=", count: 80))
+        }
     }
     
-    func startObserving() {
+    public func startObserving() {
         logger.info("🔍 Starting SharePlay session observer...")
         print("🔍 ===== STARTING SHAREPLAY OBSERVER =====")
         print("🔍 startObserving() called")
@@ -318,7 +320,7 @@ final class TexasHoldemSharePlayService {
     // MARK: - Public Methods
     
     /// Start a new Texas Hold'em SharePlay session
-    func startActivity(roomID: UUID, gameID: UUID, roomName: String?) async throws {
+    public func startActivity(roomID: UUID, gameID: UUID, roomName: String?) async throws {
         logger.info("🎬 Starting Texas Hold'em SharePlay activity")
         print("🎬 ===== STARTING SHAREPLAY ACTIVITY =====")
         print("   Room ID: \(roomID)")
@@ -373,7 +375,7 @@ final class TexasHoldemSharePlayService {
     }
     
     /// Send a message to all participants
-    func sendMessage(_ message: TexasHoldemMessage) async {
+    public func sendMessage(_ message: TexasHoldemMessage) async {
         guard let messenger = messenger else {
             logger.warning("⚠️ Cannot send message: no messenger available")
             print("⚠️ Cannot send message: no messenger available")
@@ -398,7 +400,7 @@ final class TexasHoldemSharePlayService {
     }
     
     /// Leave the current SharePlay session
-    func leaveSession() async {
+    public func leaveSession() async {
         logger.info("👋 Leaving Texas Hold'em SharePlay session")
         
         messageTask?.cancel()
@@ -416,21 +418,21 @@ final class TexasHoldemSharePlayService {
     }
     
     /// Send a test ping message to verify connectivity
-    func sendTestPing(from: String, message: String) async {
+    public func sendTestPing(from: String, message: String) async {
         print("📤 sendTestPing called - from: \(from), message: \(message), deviceID: \(deviceID)")
         await sendMessage(.testPing(from: from, message: message, senderID: deviceID))
         print("📤 sendTestPing message sent")
     }
     
     /// Send a test pong response message
-    func sendTestPong(from: String, message: String) async {
+    public func sendTestPong(from: String, message: String) async {
         print("📤 sendTestPong called - from: \(from), message: \(message), deviceID: \(deviceID)")
         await sendMessage(.testPong(from: from, message: message, senderID: deviceID))
         print("📤 sendTestPong message sent")
     }
     
     /// Get detailed diagnostic information about the SharePlay session
-    func getDiagnostics() -> [String: Any] {
+    public func getDiagnostics() -> [String: Any] {
         var diagnostics: [String: Any] = [:]
         
         diagnostics["deviceID"] = deviceID.uuidString
@@ -465,12 +467,12 @@ final class TexasHoldemSharePlayService {
     }
 }
 
-enum TexasHoldemSharePlayError: LocalizedError {
+public enum TexasHoldemSharePlayError: LocalizedError {
     case sharePlayDisabled
     case userCancelled
     case unknown
     
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .sharePlayDisabled:
             return "SharePlay is disabled. Please enable it in Settings."

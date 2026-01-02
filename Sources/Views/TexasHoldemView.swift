@@ -3,25 +3,26 @@ import OSLog
 import SwiftUI
 
 /// View for Texas Hold'em game rooms
-struct TexasHoldemView: View {
+public struct TexasHoldemView: View {
     private let logger = Logger(
         subsystem: "com.bholsinger.LayoverLounge", category: "TexasHoldemView")
-    let room: Room
-    let currentUser: User
+    public let room: Room
+    public let currentUser: User
 
-    @State private var viewModel = TexasHoldemViewModel(gameService: TexasHoldemService())
+    @State private var viewModel: TexasHoldemViewModel
     @State private var betAmount = 10
     @State private var sharePlayStarted = false
     @State private var currentRoom: Room
     @State private var refreshTimer: Timer?
 
-    init(room: Room, currentUser: User) {
+    public init(room: Room, currentUser: User, sharePlayService: SharePlayServiceProtocol = SharePlayService()) {
         self.room = room
         self.currentUser = currentUser
         self._currentRoom = State(initialValue: room)
+        self._viewModel = State(initialValue: TexasHoldemViewModel(gameService: TexasHoldemService()))
     }
 
-    var body: some View {
+    public var body: some View {
         let _ = print("🟢 TexasHoldemView body rendering")
         let _ = print("   Room participants: \(currentRoom.participantIDs.count)")
         let _ = print("   SharePlay active: \(viewModel.sharePlayService.isSessionActive)")
@@ -73,9 +74,9 @@ struct TexasHoldemView: View {
             }
         }
         .navigationTitle(room.name)
-        #if !os(macOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-        #endif
+#endif
         .onAppear {
             print("🟢 TexasHoldemView appeared - setting up callbacks")
             print("🟢 Current SharePlay state:")
@@ -968,6 +969,23 @@ struct TexasHoldemView: View {
                         .foregroundStyle(.green)
                 }
 
+#if os(tvOS)
+                HStack {
+                    Button("-") {
+                        if betAmount > 10 {
+                            betAmount -= 10
+                        }
+                    }
+                    .disabled(!isMyTurn)
+                    
+                    Button("+") {
+                        if betAmount < 100 {
+                            betAmount += 10
+                        }
+                    }
+                    .disabled(!isMyTurn)
+                }
+#else
                 Slider(
                     value: Binding(
                         get: { Double(betAmount) },
@@ -976,6 +994,7 @@ struct TexasHoldemView: View {
                 )
                 .tint(.green)
                 .disabled(!isMyTurn)
+#endif
             }
             .padding(.horizontal)
             .padding(.vertical, 8)

@@ -1,14 +1,14 @@
 import Foundation
 
 /// Constants for room configuration
-enum RoomConstants {
-    static let defaultMaxParticipants = 20
-    static let minParticipants = 2
-    static let maxPossibleParticipants = 100
+public enum RoomConstants {
+    public static let defaultMaxParticipants = 20
+    public static let minParticipants = 2
+    public static let maxPossibleParticipants = 100
 }
 
 /// Types of activities available in a room
-enum RoomActivityType: String, Codable, Sendable {
+public enum RoomActivityType: String, Codable, Sendable {
     case appleTVPlus = "tv_plus"
     case appleMusic = "music"
     case texasHoldem = "texas_holdem"
@@ -16,21 +16,21 @@ enum RoomActivityType: String, Codable, Sendable {
 }
 
 /// Represents a room where users can participate in activities
-struct Room: LayoverModel {
-    let id: UUID
-    var name: String
-    var hostID: UUID
-    var subHostIDs: Set<UUID>
-    var participantIDs: Set<UUID>
-    var participants: [User]
-    var activityType: RoomActivityType
-    var maxParticipants: Int
-    var isPrivate: Bool
-    var createdAt: Date
-    var metadata: [String: String]
-    var activeGameID: UUID? // Track active Texas Hold'em game
+public struct Room: LayoverModel {
+    public let id: UUID
+    public var name: String
+    public var hostID: UUID
+    public var subHostIDs: Set<UUID>
+    public var participantIDs: Set<UUID>
+    public var participants: [User]
+    public var activityType: RoomActivityType
+    public var maxParticipants: Int
+    public var isPrivate: Bool
+    public var createdAt: Date
+    public var metadata: [String: String]
+    public var activeGameID: UUID? // Track active Texas Hold'em game
 
-    init(
+    public init(
         id: UUID = UUID(),
         name: String,
         hostID: UUID,
@@ -58,29 +58,29 @@ struct Room: LayoverModel {
         self.activeGameID = activeGameID
     }
 
-    var isHost: Bool {
+    public var isHost: Bool {
         participantIDs.contains(hostID)
     }
 
-    func isSubHost(userID: UUID) -> Bool {
+    public func isSubHost(userID: UUID) -> Bool {
         subHostIDs.contains(userID)
     }
 
-    mutating func addParticipant(_ userID: UUID) {
+    public mutating func addParticipant(_ userID: UUID) {
         participantIDs.insert(userID)
     }
 
-    mutating func removeParticipant(_ userID: UUID) {
+    public mutating func removeParticipant(_ userID: UUID) {
         participantIDs.remove(userID)
     }
 
-    mutating func promoteToSubHost(_ userID: UUID) {
+    public mutating func promoteToSubHost(_ userID: UUID) {
         if participantIDs.contains(userID) {
             subHostIDs.insert(userID)
         }
     }
 
-    mutating func demoteSubHost(_ userID: UUID) {
+    public mutating func demoteSubHost(_ userID: UUID) {
         subHostIDs.remove(userID)
     }
 }

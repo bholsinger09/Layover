@@ -2,14 +2,14 @@ import Foundation
 import GroupActivities
 
 /// SharePlay activity for synchronized group experiences
-struct LayoverActivity: GroupActivity {
-    static let activityIdentifier = "com.bholsinger.LayoverLounge.activity"
+public struct LayoverActivity: GroupActivity {
+    public static let activityIdentifier = "com.bholsinger.LayoverLounge.activity"
     
-    let roomID: UUID
-    let activityType: RoomActivityType
-    let customMetadata: [String: String]
+    public let roomID: UUID
+    public let activityType: RoomActivityType
+    public let customMetadata: [String: String]
     
-    var metadata: GroupActivityMetadata {
+    public var metadata: GroupActivityMetadata {
         var meta = GroupActivityMetadata()
         
         // Set title based on room name if available

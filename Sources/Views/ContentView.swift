@@ -176,6 +176,7 @@ public struct ContentView: View {
                     NavigationLink(value: room) {
                         RoomRowView(room: room)
                     }
+#if !os(tvOS)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             Task {
@@ -213,6 +214,7 @@ public struct ContentView: View {
                         }
                         .tint(.green)
                     }
+#endif
                     .contextMenu {
                         Button {
                             Task {

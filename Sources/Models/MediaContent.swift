@@ -4,6 +4,7 @@ import Foundation
 public struct MediaContent: LayoverModel {
     public let id: UUID
     public var title: String
+    public var artist: String?
     public var contentID: String
     public var streamURL: URL?
     public var artworkURL: URL?
@@ -24,6 +25,7 @@ public struct MediaContent: LayoverModel {
     public init(
         id: UUID = UUID(),
         title: String,
+        artist: String? = nil,
         contentID: String,
         streamURL: URL? = nil,
         artworkURL: URL? = nil,
@@ -32,6 +34,7 @@ public struct MediaContent: LayoverModel {
     ) {
         self.id = id
         self.title = title
+        self.artist = artist
         self.contentID = contentID
         self.streamURL = streamURL
         self.artworkURL = artworkURL

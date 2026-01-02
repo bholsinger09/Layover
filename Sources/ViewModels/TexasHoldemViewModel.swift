@@ -4,47 +4,47 @@ import Observation
 /// ViewModel for Texas Hold'em game rooms
 @MainActor
 @Observable
-final class TexasHoldemViewModel: LayoverViewModel {
+public final class TexasHoldemViewModel: LayoverViewModel {
     private let gameService: TexasHoldemServiceProtocol
-    let sharePlayService: TexasHoldemSharePlayService
+    public let sharePlayService: TexasHoldemSharePlayService
     private let roomService: RoomServiceProtocol
     private let aiService = TexasHoldemAIService()
 
-    private(set) var currentGame: TexasHoldemGame?
-    private(set) var isLoading = false
-    var errorMessage: String?
+    public private(set) var currentGame: TexasHoldemGame?
+    public private(set) var isLoading = false
+    public var errorMessage: String?
     
     // AI opponent tracking
-    private(set) var aiPlayerID: UUID?
-    private(set) var isAIThinking = false
+    public private(set) var aiPlayerID: UUID?
+    public private(set) var isAIThinking = false
     
     // Test SharePlay connectivity
-    private(set) var testMessages: [String] = []
-    private(set) var testConnectionStatus: String = ""
-    private(set) var isTestingConnection = false
+    public private(set) var testMessages: [String] = []
+    public private(set) var testConnectionStatus: String = ""
+    public private(set) var isTestingConnection = false
 
     // Trigger for SharePlay state changes
-    private(set) var sharePlayStateVersion: Int = 0
+    public private(set) var sharePlayStateVersion: Int = 0
 
-    var currentPhase: TexasHoldemGame.GamePhase {
+    public var currentPhase: TexasHoldemGame.GamePhase {
         currentGame?.gamePhase ?? .preFlop
     }
 
-    var pot: Int {
+    public var pot: Int {
         currentGame?.pot ?? 0
     }
 
-    var communityCards: [PlayingCard] {
+    public var communityCards: [PlayingCard] {
         currentGame?.communityCards ?? []
     }
 
-    init(gameService: TexasHoldemServiceProtocol, roomService: RoomServiceProtocol? = nil) {
+    public nonisolated init(gameService: TexasHoldemServiceProtocol, roomService: RoomServiceProtocol? = nil) {
         self.gameService = gameService
         self.sharePlayService = TexasHoldemSharePlayService()
         self.roomService = roomService ?? RoomService()
     }
 
-    func setupSharePlayCallbacks() {
+    public func setupSharePlayCallbacks() {
         print("🔧 ===== SETTING UP SHAREPLAY CALLBACKS =====")
         print("🔧 Setting up SharePlay callbacks...")
         print("   Current session active: \(sharePlayService.isSessionActive)")
@@ -293,7 +293,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         print("✅ The session observer should now be listening for sessions from other devices")
     }
 
-    func startGame(roomID: UUID, players: [UUID]) async {
+    public func startGame(roomID: UUID, players: [UUID]) async {
         print("🎮 Starting game...")
         print("   Room ID: \(roomID)")
         print("   Players: \(players)")
@@ -370,7 +370,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         isLoading = false
     }
 
-    func bet(playerID: UUID, amount: Int) async {
+    public func bet(playerID: UUID, amount: Int) async {
         print("💰 BET called: playerID=\(playerID), amount=$\(amount)")
         print("   Is host: \(sharePlayService.isHost)")
         print("   SharePlay active: \(sharePlayService.isSessionActive)")
@@ -416,7 +416,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func fold(playerID: UUID) async {
+    public func fold(playerID: UUID) async {
         errorMessage = nil
 
         // If guest in SharePlay, only send action request to host
@@ -445,7 +445,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func call(playerID: UUID) async {
+    public func call(playerID: UUID) async {
         errorMessage = nil
 
         // If guest in SharePlay, only send action request to host
@@ -486,7 +486,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func raise(playerID: UUID, amount: Int) async {
+    public func raise(playerID: UUID, amount: Int) async {
         errorMessage = nil
 
         // If guest in SharePlay, only send action request to host
@@ -512,7 +512,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func nextPhase() async {
+    public func nextPhase() async {
         errorMessage = nil
 
         do {
@@ -523,7 +523,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func endGame() async {
+    public func endGame() async {
         if let game = currentGame {
             // Clear game from iCloud
             roomService.deleteGame(game)
@@ -533,7 +533,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         currentGame = nil
     }
 
-    func getPlayer(for userID: UUID) -> TexasHoldemPlayer? {
+    public func getPlayer(for userID: UUID) -> TexasHoldemPlayer? {
         print("🔍 getPlayer looking for userID: \(userID)")
         if let game = currentGame {
             print("   Available players: \(game.players.map { $0.userID })")
@@ -547,7 +547,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         return player
     }
 
-    func check(playerID: UUID) async {
+    public func check(playerID: UUID) async {
         errorMessage = nil
 
         // If guest in SharePlay, only send action request to host
@@ -587,7 +587,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func dealFlop() async {
+    public func dealFlop() async {
         errorMessage = nil
 
         // Only host should deal community cards
@@ -623,7 +623,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func dealTurn() async {
+    public func dealTurn() async {
         errorMessage = nil
 
         // Only host should deal community cards
@@ -646,7 +646,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func dealRiver() async {
+    public func dealRiver() async {
         errorMessage = nil
 
         // Only host should deal community cards
@@ -669,7 +669,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         }
     }
 
-    func showdown() async {
+    public func showdown() async {
         errorMessage = nil
 
         do {
@@ -688,7 +688,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
 
     // MARK: - SharePlay Methods
 
-    func startSharePlay(roomID: UUID, roomName: String?) async throws {
+    public func startSharePlay(roomID: UUID, roomName: String?) async throws {
         print("📱 Activating SharePlay session...")
         // Start SharePlay activity - game doesn't need to exist yet
         // We'll use a temporary gameID and update when the actual game starts
@@ -904,7 +904,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
         print("💾 Saved game state to iCloud")
     }
 
-    func startWatchingForGameUpdates(roomID: UUID) {
+    public func startWatchingForGameUpdates(roomID: UUID) {
         print("👀 Starting to watch for game updates in room: \(roomID)")
 
         Task { @MainActor in
@@ -994,7 +994,7 @@ final class TexasHoldemViewModel: LayoverViewModel {
     // MARK: - Test SharePlay Connectivity
     
     /// Simple ping to the other user - host pings guest, guest pings host
-    func sendPingToOtherUser() async {
+    public func sendPingToOtherUser() async {
         print("🏓 ========== PING TO OTHER USER ==========")
         
         // Clear previous messages for a fresh start
@@ -1038,11 +1038,9 @@ final class TexasHoldemViewModel: LayoverViewModel {
         print("🏓 ========================================")
     }
     
-    func testSharePlayConnection() async {
+    public func testSharePlayConnection() async {
         print("🧪 ========== BUTTON PRESSED ==========")
         print("🧪 Testing SharePlay connection...")
-        print("🧪 Current thread: \(Thread.current)")
-        print("🧪 Is main thread: \(Thread.isMainThread)")
         
         testMessages = []
         testConnectionStatus = ""
