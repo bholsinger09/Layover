@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import LayoverKit
 
 @main
 struct LayoverAppleTvApp: App {

@@ -18,52 +18,87 @@ public struct CreateRoomView: View {
 
     public var body: some View {
         NavigationStack {
-            Form {
-                Section("Room Details") {
-                    TextField("Room Name", text: $roomName)
-                        .textContentType(.none)
-                        .autocorrectionDisabled()
-                }
-
-                Section("Activity Type") {
-                    Picker("Activity", selection: $selectedActivity) {
-                        Label("Apple TV+", systemImage: "tv.fill")
-                            .tag(RoomActivityType.appleTVPlus)
-
-                        Label("Apple Music", systemImage: "music.note")
-                            .tag(RoomActivityType.appleMusic)
-
-                        Label("Texas Hold'em", systemImage: "suit.spade.fill")
-                            .tag(RoomActivityType.texasHoldem)
-
-                        Label("Chess", systemImage: "square.grid.3x3.fill")
-                            .tag(RoomActivityType.chess)
+            VStack(spacing: 0) {
+                Form {
+                    Section("Room Details") {
+                        TextField("Room Name", text: $roomName)
+                            .textContentType(.none)
+                            .autocorrectionDisabled()
                     }
-                    .pickerStyle(.inline)
+
+                    Section("Activity Type") {
+                        Picker("Activity", selection: $selectedActivity) {
+                            Label("Apple TV+", systemImage: "tv.fill")
+                                .tag(RoomActivityType.appleTVPlus)
+
+                            Label("Apple Music", systemImage: "music.note")
+                                .tag(RoomActivityType.appleMusic)
+
+                            Label("Texas Hold'em", systemImage: "suit.spade.fill")
+                                .tag(RoomActivityType.texasHoldem)
+
+                            Label("Chess", systemImage: "square.grid.3x3.fill")
+                                .tag(RoomActivityType.chess)
+                        }
+                        .pickerStyle(.inline)
+                    }
                 }
-            }
-            .navigationTitle("Create Room")
-#if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-#endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                
+                // Custom large action buttons
+                HStack(spacing: 30) {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                            .background(Color.gray.opacity(0.3))
+                            .cornerRadius(16)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.green, lineWidth: 6)
+                            )
                     }
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
+                    .buttonStyle(.plain)
+                    
+                    Button {
                         Task {
                             isCreating = true
                             await onCreate(roomName, selectedActivity)
                             isCreating = false
                         }
+                    } label: {
+                        if isCreating {
+                            ProgressView()
+                                .tint(.red)
+                                .scaleEffect(2)
+                        } else {
+                            Text("Create")
+                                .font(.system(size: 48, weight: .bold))
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 100)
+                                .background(roomName.isEmpty ? Color.gray.opacity(0.3) : Color.blue.opacity(0.5))
+                                .cornerRadius(16)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.green, lineWidth: 6)
+                                )
+                        }
                     }
+                    .buttonStyle(.plain)
                     .disabled(roomName.isEmpty || isCreating)
                 }
+                .padding(.horizontal, 40)
+                .padding(.vertical, 30)
+                .background(Color(white: 0.1))
             }
+            .navigationTitle("Create Room")
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+#endif
         }
     }
 }

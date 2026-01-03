@@ -73,4 +73,108 @@ public final class AuthenticationViewModel: ObservableObject {
             }
         }
     }
+    
+    /// Check authentication state on app launch
+    public func checkAuthenticationState() async {
+        // Check if we have a stored user
+        if currentUser != nil {
+            isAuthenticated = true
+            // Optionally check credential state for Apple sign in users
+            if currentUser?.appleUserID != nil {
+                await checkCredentialState()
+            }
+        } else {
+            isAuthenticated = false
+        }
+    }
+    
+    /// Sign in with email and password (demo implementation)
+    public func signIn(email: String, password: String) async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            // For demo purposes, accept any valid email/password
+            guard email.contains("@"), !password.isEmpty else {
+                throw NSError(domain: "AuthenticationError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid email or password"])
+            }
+            
+            // Extract username from email
+            let username = String(email.split(separator: "@").first ?? "User")
+            
+            // Create user
+            let user = User(
+                id: UUID(),
+                appleUserID: nil,
+                username: username,
+                email: email,
+                isHost: false,
+                isSubHost: false
+            )
+            
+            // Store user
+            if let authService = authService as? AuthenticationService {
+                authService.storeUser(user)
+            }
+            
+            currentUser = user
+            isAuthenticated = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    /// Register new user (demo implementation)
+    public func register(username: String, email: String, password: String) async {
+        print("🔵 AuthViewModel: Starting registration for \(username)")
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            // Validate input
+            guard username.count >= 2 else {
+                throw NSError(domain: "AuthenticationError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Username must be at least 2 characters"])
+            }
+            
+            guard email.contains("@") else {
+                throw NSError(domain: "AuthenticationError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid email address"])
+            }
+            
+            guard password.count >= 6 else {
+                throw NSError(domain: "AuthenticationError", code: -1, userInfo: [NSLocalizedDescriptionKey: "Password must be at least 6 characters"])
+            }
+            
+            // Create user
+            let user = User(
+                id: UUID(),
+                appleUserID: nil,
+                username: username,
+                email: email,
+                isHost: false,
+                isSubHost: false
+            )
+            
+            print("🔵 AuthViewModel: User object created")
+            
+            // Store user
+            if let authService = authService as? AuthenticationService {
+                authService.storeUser(user)
+                print("🔵 AuthViewModel: User stored")
+            }
+            
+            currentUser = user
+            isAuthenticated = true
+            print("🔵 AuthViewModel: Set currentUser and isAuthenticated=true")
+            print("🔵 AuthViewModel: currentUser is now \(currentUser?.username ?? "nil")")
+            print("🔵 AuthViewModel: isAuthenticated is now \(isAuthenticated)")
+        } catch {
+            print("❌ AuthViewModel: Registration error - \(error.localizedDescription)")
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+        print("🔵 AuthViewModel: Registration complete")
+    }
 }

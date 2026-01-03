@@ -9,13 +9,13 @@ public final class RoomListViewModel: LayoverViewModel {
     private let logger = Logger(
         subsystem: "com.bholsinger.LayoverLounge", category: "RoomListViewModel")
     private let roomService: RoomServiceProtocol
-    let sharePlayService: SharePlayServiceProtocol
+    public let sharePlayService: SharePlayServiceProtocol
 
     public private(set) var rooms: [Room] = []
-    private(set) var isLoading = false
-    var errorMessage: String?
-    var onRoomReceivedForNavigation: ((Room) -> Void)?
-    private(set) var isSharePlayActive = false
+    public private(set) var isLoading = false
+    public var errorMessage: String?
+    public var onRoomReceivedForNavigation: ((Room) -> Void)?
+    public private(set) var isSharePlayActive = false
 
     public nonisolated init(
         roomService: RoomServiceProtocol,

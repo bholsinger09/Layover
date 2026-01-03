@@ -1,17 +1,17 @@
 import SwiftUI
 
 /// Main library view showing favorites, history, stats, and recommendations
-struct LibraryView: View {
+public struct LibraryView: View {
     @State private var viewModel: LibraryViewModel
     @State private var selectedTab = 0
     @State private var searchText = ""
     @Environment(\.dismiss) private var dismiss
     
-    init(libraryService: LibraryServiceProtocol) {
+    public init(libraryService: LibraryServiceProtocol) {
         self._viewModel = State(initialValue: LibraryViewModel(libraryService: libraryService))
     }
     
-    var body: some View {
+    public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Tab Picker

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// View for editing room details
-struct EditRoomView: View {
+public struct EditRoomView: View {
     @Environment(\.dismiss) private var dismiss
     let room: Room
     let onUpdate: (String, Bool, Int) async -> Void
@@ -11,7 +11,7 @@ struct EditRoomView: View {
     @State private var maxParticipants: Int
     @State private var isUpdating = false
 
-    init(room: Room, onUpdate: @escaping (String, Bool, Int) async -> Void) {
+    public init(room: Room, onUpdate: @escaping (String, Bool, Int) async -> Void) {
         self.room = room
         self.onUpdate = onUpdate
         _roomName = State(initialValue: room.name)
@@ -19,7 +19,7 @@ struct EditRoomView: View {
         _maxParticipants = State(initialValue: room.maxParticipants)
     }
 
-    var body: some View {
+    public var body: some View {
         NavigationStack {
             Form {
                 Section("Room Details") {
