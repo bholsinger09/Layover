@@ -384,6 +384,29 @@ public struct TexasHoldemView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.top, 4)
+                    
+                    #if targetEnvironment(simulator) && os(tvOS)
+                    // Simulator limitation note
+                    VStack(spacing: 6) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundStyle(.blue)
+                            Text("Simulator Note")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                        }
+                        Text("Voice commands not available in Simulator. Use Siri Remote buttons to navigate game controls.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    #endif
                 }
 
                 // Start Game button (only show if 2+ players already detected)
@@ -616,12 +639,14 @@ public struct TexasHoldemView: View {
 
     private func gameView(_ game: TexasHoldemGame) -> some View {
         #if os(tvOS)
-        // tvOS: No ScrollView needed, larger screen - minimal padding to maximize screen usage
-        VStack(spacing: 20) {
-            gameContent(game)
+        // tvOS: Use ScrollView as content can exceed screen height
+        ScrollView {
+            VStack(spacing: 16) {
+                gameContent(game)
+            }
+            .padding(.horizontal, 40)
+            .padding(.vertical, 20)
         }
-        .padding(.horizontal, 40)
-        .padding(.vertical, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         #else
         // iOS/macOS: Use ScrollView for smaller screens
@@ -651,12 +676,12 @@ public struct TexasHoldemView: View {
         }
         
         // Game phase and pot
-        VStack(spacing: 8) {
+        VStack(spacing: phasePotSpacing) {
             Text(game.gamePhase.rawValue.capitalized)
-                .font(.headline)
+                .font(phaseFont)
 
             Text("Pot: $\(game.pot)")
-                .font(.title2)
+                .font(potFont)
                 .fontWeight(.bold)
             
             // Winner announcement (showdown phase)
@@ -1133,6 +1158,9 @@ public struct TexasHoldemView: View {
     private var deckFrameSize: CGFloat { 200 }
     private var deckCornerRadius: CGFloat { 20 }
     private var cardSpacing: CGFloat { 20 }
+    private var phasePotSpacing: CGFloat { 6 }
+    private var phaseFont: Font { .title3 }
+    private var potFont: Font { .title2 }
     private var handTitleFont: Font { .system(size: 32, weight: .semibold) }
     private var handInfoFont: Font { .system(size: 24) }
     private var handPadding: CGFloat { 32 }
@@ -1155,6 +1183,9 @@ public struct TexasHoldemView: View {
     private var deckFrameSize: CGFloat { 100 }
     private var deckCornerRadius: CGFloat { 12 }
     private var cardSpacing: CGFloat { 10 }
+    private var phasePotSpacing: CGFloat { 8 }
+    private var phaseFont: Font { .headline }
+    private var potFont: Font { .title2 }
     private var handTitleFont: Font { .headline }
     private var handInfoFont: Font { .subheadline }
     private var handPadding: CGFloat { 16 }
@@ -1177,6 +1208,9 @@ public struct TexasHoldemView: View {
     private var deckFrameSize: CGFloat { 100 }
     private var deckCornerRadius: CGFloat { 12 }
     private var cardSpacing: CGFloat { 8 }
+    private var phasePotSpacing: CGFloat { 8 }
+    private var phaseFont: Font { .headline }
+    private var potFont: Font { .title2 }
     private var handTitleFont: Font { .headline }
     private var handInfoFont: Font { .subheadline }
     private var handPadding: CGFloat { 16 }
