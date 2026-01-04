@@ -30,65 +30,23 @@ public struct TexasHoldemView: View {
         let _ = print("   SharePlay count: \(viewModel.sharePlayService.participantCount)")
         let _ = print("   SharePlay version: \(viewModel.sharePlayStateVersion)")
         
-        VStack(spacing: 0) {
-            // Participant count and SharePlay indicator
-            HStack {
-                Image(systemName: "person.2.fill")
-                    .foregroundStyle(.blue)
-                Text(
-                    "\(currentRoom.participantIDs.count) player\(currentRoom.participantIDs.count == 1 ? "" : "s")"
-                )
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-                Spacer()
-
-                // SharePlay status indicator
-                if viewModel.sharePlayService.isSessionActive {
-                    HStack(spacing: 4) {
-                        Image(systemName: "shareplay")
-                            .foregroundStyle(.green)
-                        Text("SharePlay Active")
-                            .font(.caption)
-                            .foregroundStyle(.green)
-                        Text("•")
-                            .foregroundStyle(.secondary)
-                        Text(viewModel.sharePlayService.isHost ? "Host" : "Guest")
-                            .font(.caption)
-                            .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
-                            .fontWeight(.semibold)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.green.opacity(0.15))
-                    .cornerRadius(6)
-                }
-            }
-            .padding(.horizontal)
-            .padding(.top, 8)
-
-            if let game = viewModel.currentGame {
-                gameView(game)
-            } else {
-                startGameView
-            }
-        }
-        .navigationTitle(room.name)
+        mainContent
+            .navigationTitle(room.name)
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
-        .onAppear {
-            print("🟢 TexasHoldemView appeared - setting up callbacks")
-            print("🟢 Current SharePlay state:")
-            print("   Is active: \(viewModel.sharePlayService.isSessionActive)")
-            print("   Is host: \(viewModel.sharePlayService.isHost)")
-            
-            // Setup SharePlay callbacks - critical for observer to start
-            viewModel.setupSharePlayCallbacks()
-            
-            print("🟢 SharePlay observer should now be listening for sessions")
-        }
-        .task {
+            .onAppear {
+                print("🟢 TexasHoldemView appeared - setting up callbacks")
+                print("🟢 Current SharePlay state:")
+                print("   Is active: \(viewModel.sharePlayService.isSessionActive)")
+                print("   Is host: \(viewModel.sharePlayService.isHost)")
+                
+                // Setup SharePlay callbacks - critical for observer to start
+                viewModel.setupSharePlayCallbacks()
+                
+                print("🟢 SharePlay observer should now be listening for sessions")
+            }
+            .task {
             print("📋 TexasHoldemView .task started")
 
             // Add current user to room participants if not already there
@@ -143,6 +101,69 @@ public struct TexasHoldemView: View {
         } message: {
             if let error = viewModel.errorMessage {
                 Text(error)
+            }
+        }
+    }
+
+    private var mainContent: some View {
+        #if os(tvOS)
+        // tvOS: Full screen layout
+        ZStack {
+            Color.clear
+            VStack(spacing: 0) {
+                contentBody
+            }
+        }
+        .ignoresSafeArea(.all, edges: .all)
+        #else
+        VStack(spacing: 0) {
+            contentBody
+        }
+        #endif
+    }
+    
+    private var contentBody: some View {
+        Group {
+            // Participant count and SharePlay indicator
+            HStack {
+                Image(systemName: "person.2.fill")
+                    .foregroundStyle(.blue)
+                Text(
+                    "\(currentRoom.participantIDs.count) player\(currentRoom.participantIDs.count == 1 ? "" : "s")"
+                )
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+                Spacer()
+
+                // SharePlay status indicator
+                if viewModel.sharePlayService.isSessionActive {
+                    HStack(spacing: 4) {
+                        Image(systemName: "shareplay")
+                            .foregroundStyle(.green)
+                        Text("SharePlay Active")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                        Text("•")
+                            .foregroundStyle(.secondary)
+                        Text(viewModel.sharePlayService.isHost ? "Host" : "Guest")
+                            .font(.caption)
+                            .foregroundStyle(viewModel.sharePlayService.isHost ? .blue : .purple)
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.green.opacity(0.15))
+                    .cornerRadius(6)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+
+            if let game = viewModel.currentGame {
+                gameView(game)
+            } else {
+                startGameView
             }
         }
     }
@@ -595,12 +616,13 @@ public struct TexasHoldemView: View {
 
     private func gameView(_ game: TexasHoldemGame) -> some View {
         #if os(tvOS)
-        // tvOS: No ScrollView needed, larger screen
-        VStack(spacing: 24) {
+        // tvOS: No ScrollView needed, larger screen - minimal padding to maximize screen usage
+        VStack(spacing: 20) {
             gameContent(game)
         }
-        .padding(.horizontal, 60)
-        .padding(.vertical, 40)
+        .padding(.horizontal, 40)
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         #else
         // iOS/macOS: Use ScrollView for smaller screens
         ScrollView {
@@ -715,6 +737,9 @@ public struct TexasHoldemView: View {
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: deckCornerRadius))
                 }
+                #if os(tvOS)
+                .buttonStyle(.card)
+                #endif
             } else {
                 // Waiting indicator for non-host participants
                 VStack(spacing: 8) {
@@ -994,6 +1019,7 @@ public struct TexasHoldemView: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(!isMyTurn)
+                    .hoverEffect()
                     
                     Button("+") {
                         if betAmount < 100 {
@@ -1002,6 +1028,7 @@ public struct TexasHoldemView: View {
                     }
                     .buttonStyle(.bordered)
                     .disabled(!isMyTurn)
+                    .hoverEffect()
                 }
 #else
                 Slider(
@@ -1032,6 +1059,9 @@ public struct TexasHoldemView: View {
                     .tint(.red)
                     .frame(maxWidth: .infinity)
                     .frame(height: buttonHeight)
+                    #if os(tvOS)
+                    .hoverEffect()
+                    #endif
 
                     Button("Check") {
                         Task {
@@ -1043,6 +1073,9 @@ public struct TexasHoldemView: View {
                     .frame(height: buttonHeight)
                     .disabled(!isMyTurn || phase == .preFlop || phase == .flop)
                     .opacity((!isMyTurn || phase == .preFlop || phase == .flop) ? 0.5 : 1.0)
+                    #if os(tvOS)
+                    .hoverEffect()
+                    #endif
                 }
 
                 HStack(spacing: buttonSpacing) {
@@ -1054,6 +1087,9 @@ public struct TexasHoldemView: View {
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
                     .frame(height: buttonHeight)
+                    #if os(tvOS)
+                    .hoverEffect()
+                    #endif
 
                     Button("Raise $\(betAmount)") {
                         Task {
@@ -1064,6 +1100,9 @@ public struct TexasHoldemView: View {
                     .tint(.green)
                     .frame(maxWidth: .infinity)
                     .frame(height: buttonHeight)
+                    #if os(tvOS)
+                    .hoverEffect()
+                    #endif
                 }
             }
             .disabled(!isMyTurn)
