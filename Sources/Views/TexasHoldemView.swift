@@ -594,8 +594,30 @@ public struct TexasHoldemView: View {
     }
 
     private func gameView(_ game: TexasHoldemGame) -> some View {
+        #if os(tvOS)
+        // tvOS: No ScrollView needed, larger screen
+        VStack(spacing: 24) {
+            gameContent(game)
+        }
+        .padding(.horizontal, 60)
+        .padding(.vertical, 40)
+        #else
+        // iOS/macOS: Use ScrollView for smaller screens
         ScrollView {
             VStack(spacing: 16) {
+                gameContent(game)
+            }
+            .padding()
+            .padding(.bottom, 20)
+        }
+        #if os(macOS)
+            .frame(minHeight: 600)
+        #endif
+        #endif
+    }
+    
+    @ViewBuilder
+    private func gameContent(_ game: TexasHoldemGame) -> some View {
                 // Opponent's hand (face down until showdown or fold)
                 if let opponentPlayer = game.players.first(where: { $0.userID != currentUser.id }) {
                     let shouldShowCards = game.gamePhase == .showdown || game.gamePhase == .ended || opponentPlayer.isFolded
@@ -682,29 +704,29 @@ public struct TexasHoldemView: View {
                         } label: {
                             VStack(spacing: 8) {
                                 Image(systemName: "square.stack.3d.up.fill")
-                                    .font(.system(size: 50))
+                                    .font(.system(size: deckIconSize))
                                     .foregroundStyle(.blue)
                                 Text("Tap to deal")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
-                            .frame(width: 100, height: 100)
+                            .frame(width: deckFrameSize, height: deckFrameSize)
                             .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: deckCornerRadius))
                         }
                     } else {
                         // Waiting indicator for non-host participants
                         VStack(spacing: 8) {
                             Image(systemName: "square.stack.3d.up.fill")
-                                .font(.system(size: 50))
+                                .font(.system(size: deckIconSize))
                                 .foregroundStyle(.gray)
                             Text("Waiting for host")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
-                        .frame(width: 100, height: 100)
+                        .frame(width: deckFrameSize, height: deckFrameSize)
                         .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(RoundedRectangle(cornerRadius: deckCornerRadius))
                     }
                 }
 
@@ -806,12 +828,7 @@ public struct TexasHoldemView: View {
                     .buttonStyle(.borderedProminent)
                 }
             }
-            .padding()
-            .padding(.bottom, 20)
         }
-        #if os(macOS)
-            .frame(minHeight: 600)
-        #endif
     }
 
     private func advancePhase() async {
@@ -836,7 +853,7 @@ public struct TexasHoldemView: View {
     }
 
     private func communityCardsView(_ cards: [PlayingCard]) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: cardSpacing) {
             ForEach(cards) { card in
                 CardView(card: card)
             }
@@ -846,9 +863,9 @@ public struct TexasHoldemView: View {
     private func playerHandView(_ player: TexasHoldemPlayer) -> some View {
         VStack(spacing: 12) {
             Text("Your Hand")
-                .font(.headline)
+                .font(handTitleFont)
 
-            HStack(spacing: 12) {
+            HStack(spacing: cardSpacing) {
                 ForEach(player.hand) { card in
                     CardView(card: card)
                 }
@@ -856,43 +873,43 @@ public struct TexasHoldemView: View {
 
             HStack {
                 Text("Chips: $\(player.chips)")
-                    .font(.subheadline)
+                    .font(handInfoFont)
 
                 Spacer()
 
                 Text("Current Bet: $\(player.currentBet)")
-                    .font(.subheadline)
+                    .font(handInfoFont)
             }
             .foregroundStyle(.secondary)
         }
-        .padding()
+        .padding(handPadding)
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: handCornerRadius))
     }
 
     private func opponentHandView(_ player: TexasHoldemPlayer, showCards: Bool, isAI: Bool) -> some View {
         VStack(spacing: 12) {
             HStack(spacing: 8) {
                 Text(showCards ? (isAI ? "Computer's Hand" : "Opponent's Hand") : (isAI ? "Computer" : "Opponent"))
-                    .font(.headline)
+                    .font(handTitleFont)
                 
                 if isAI {
                     Image(systemName: "cpu")
                         .foregroundStyle(.orange)
-                        .font(.subheadline)
+                        .font(handInfoFont)
                 }
                 
                 // Show thinking indicator when AI is deciding
                 if isAI && viewModel.isAIThinking {
                     ProgressView()
-                        .scaleEffect(0.8)
+                        .scaleEffect(progressScale)
                     Text("thinking...")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: cardSpacing) {
                 if showCards {
                     // Showdown or folded - reveal opponent's cards
                     ForEach(player.hand) { card in
@@ -901,7 +918,7 @@ public struct TexasHoldemView: View {
                 } else {
                     // Show card backs (face down)
                     ForEach(0..<2, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: cardBackCornerRadius)
                             .fill(
                                 LinearGradient(
                                     colors: [.blue, .blue.opacity(0.7)],
@@ -909,10 +926,10 @@ public struct TexasHoldemView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(width: 60, height: 84)
+                            .frame(width: cardBackWidth, height: cardBackHeight)
                             .overlay {
                                 Image(systemName: "suit.spade.fill")
-                                    .font(.title)
+                                    .font(cardBackIconFont)
                                     .foregroundStyle(.white.opacity(0.3))
                             }
                     }
@@ -921,12 +938,12 @@ public struct TexasHoldemView: View {
 
             HStack {
                 Text("Chips: $\(player.chips)")
-                    .font(.subheadline)
+                    .font(handInfoFont)
 
                 Spacer()
 
                 Text("Current Bet: $\(player.currentBet)")
-                    .font(.subheadline)
+                    .font(handInfoFont)
             }
             .foregroundStyle(.secondary)
             
@@ -941,19 +958,19 @@ public struct TexasHoldemView: View {
                     .cornerRadius(8)
             }
         }
-        .padding()
+        .padding(handPadding)
         .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: handCornerRadius))
     }
 
     private func gameControls(game: TexasHoldemGame, phase: TexasHoldemGame.GamePhase, isMyTurn: Bool) -> some View {
         let myPlayerID = getMyPlayerID(game: game)
         
-        return VStack(spacing: 12) {
+        return VStack(spacing: controlSpacing) {
             // Show waiting message when not your turn, but keep controls visible (disabled)
             if !isMyTurn {
                 Text("Waiting for opponent...")
-                    .font(.subheadline)
+                    .font(controlLabelFont)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 4)
             }
@@ -962,20 +979,21 @@ public struct TexasHoldemView: View {
             VStack(spacing: 8) {
                 HStack {
                     Text("Bet Amount:")
-                        .font(.subheadline)
+                        .font(controlLabelFont)
                     Spacer()
                     Text("$\(betAmount)")
-                        .font(.headline)
+                        .font(controlValueFont)
                         .foregroundStyle(.green)
                 }
 
 #if os(tvOS)
-                HStack {
+                HStack(spacing: buttonSpacing) {
                     Button("-") {
                         if betAmount > 10 {
                             betAmount -= 10
                         }
                     }
+                    .buttonStyle(.bordered)
                     .disabled(!isMyTurn)
                     
                     Button("+") {
@@ -983,6 +1001,7 @@ public struct TexasHoldemView: View {
                             betAmount += 10
                         }
                     }
+                    .buttonStyle(.bordered)
                     .disabled(!isMyTurn)
                 }
 #else
@@ -996,15 +1015,15 @@ public struct TexasHoldemView: View {
                 .disabled(!isMyTurn)
 #endif
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            .padding(.horizontal, sliderPadding)
+            .padding(.vertical, sliderVerticalPadding)
             .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(RoundedRectangle(cornerRadius: sliderCornerRadius))
             .opacity(isMyTurn ? 1.0 : 0.6)
 
             // All poker actions available - always visible
-            VStack(spacing: 12) {
-                HStack(spacing: 12) {
+            VStack(spacing: buttonSpacing) {
+                HStack(spacing: buttonSpacing) {
                     Button("Fold") {
                         Task {
                             await viewModel.fold(playerID: myPlayerID)
@@ -1013,6 +1032,7 @@ public struct TexasHoldemView: View {
                     .buttonStyle(.bordered)
                     .tint(.red)
                     .frame(maxWidth: .infinity)
+                    .frame(height: buttonHeight)
 
                     Button("Check") {
                         Task {
@@ -1021,11 +1041,12 @@ public struct TexasHoldemView: View {
                     }
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
+                    .frame(height: buttonHeight)
                     .disabled(!isMyTurn || phase == .preFlop || phase == .flop)
                     .opacity((!isMyTurn || phase == .preFlop || phase == .flop) ? 0.5 : 1.0)
                 }
 
-                HStack(spacing: 12) {
+                HStack(spacing: buttonSpacing) {
                     Button(game.currentBet == 0 ? "Bet $10" : "Call $\(game.currentBet)") {
                         Task {
                             await viewModel.call(playerID: myPlayerID)
@@ -1033,6 +1054,7 @@ public struct TexasHoldemView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
+                    .frame(height: buttonHeight)
 
                     Button("Raise $\(betAmount)") {
                         Task {
@@ -1042,6 +1064,7 @@ public struct TexasHoldemView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.green)
                     .frame(maxWidth: .infinity)
+                    .frame(height: buttonHeight)
                 }
             }
             .disabled(!isMyTurn)
@@ -1060,6 +1083,76 @@ public struct TexasHoldemView: View {
             print("❌ Failed to start Texas Hold'em SharePlay: \(error)")
         }
     }
+    
+    // MARK: - Platform-Specific Styling
+    
+    #if os(tvOS)
+    private var cardBackWidth: CGFloat { 140 }
+    private var cardBackHeight: CGFloat { 200 }
+    private var cardBackCornerRadius: CGFloat { 16 }
+    private var cardBackIconFont: Font { .system(size: 80) }
+    private var deckIconSize: CGFloat { 100 }
+    private var deckFrameSize: CGFloat { 200 }
+    private var deckCornerRadius: CGFloat { 20 }
+    private var cardSpacing: CGFloat { 20 }
+    private var handTitleFont: Font { .system(size: 32, weight: .semibold) }
+    private var handInfoFont: Font { .system(size: 24) }
+    private var handPadding: CGFloat { 32 }
+    private var handCornerRadius: CGFloat { 20 }
+    private var progressScale: CGFloat { 1.5 }
+    private var controlSpacing: CGFloat { 20 }
+    private var controlLabelFont: Font { .system(size: 28) }
+    private var controlValueFont: Font { .system(size: 32, weight: .semibold) }
+    private var sliderPadding: CGFloat { 24 }
+    private var sliderVerticalPadding: CGFloat { 16 }
+    private var sliderCornerRadius: CGFloat { 16 }
+    private var buttonSpacing: CGFloat { 20 }
+    private var buttonHeight: CGFloat { 80 }
+    #elseif os(macOS)
+    private var cardBackWidth: CGFloat { 70 }
+    private var cardBackHeight: CGFloat { 100 }
+    private var cardBackCornerRadius: CGFloat { 8 }
+    private var cardBackIconFont: Font { .title }
+    private var deckIconSize: CGFloat { 50 }
+    private var deckFrameSize: CGFloat { 100 }
+    private var deckCornerRadius: CGFloat { 12 }
+    private var cardSpacing: CGFloat { 10 }
+    private var handTitleFont: Font { .headline }
+    private var handInfoFont: Font { .subheadline }
+    private var handPadding: CGFloat { 16 }
+    private var handCornerRadius: CGFloat { 12 }
+    private var progressScale: CGFloat { 1.0 }
+    private var controlSpacing: CGFloat { 12 }
+    private var controlLabelFont: Font { .subheadline }
+    private var controlValueFont: Font { .headline }
+    private var sliderPadding: CGFloat { 16 }
+    private var sliderVerticalPadding: CGFloat { 8 }
+    private var sliderCornerRadius: CGFloat { 8 }
+    private var buttonSpacing: CGFloat { 12 }
+    private var buttonHeight: CGFloat { 44 }
+    #else // iOS
+    private var cardBackWidth: CGFloat { 60 }
+    private var cardBackHeight: CGFloat { 84 }
+    private var cardBackCornerRadius: CGFloat { 8 }
+    private var cardBackIconFont: Font { .title }
+    private var deckIconSize: CGFloat { 50 }
+    private var deckFrameSize: CGFloat { 100 }
+    private var deckCornerRadius: CGFloat { 12 }
+    private var cardSpacing: CGFloat { 8 }
+    private var handTitleFont: Font { .headline }
+    private var handInfoFont: Font { .subheadline }
+    private var handPadding: CGFloat { 16 }
+    private var handCornerRadius: CGFloat { 12 }
+    private var progressScale: CGFloat { 0.8 }
+    private var controlSpacing: CGFloat { 12 }
+    private var controlLabelFont: Font { .subheadline }
+    private var controlValueFont: Font { .headline }
+    private var sliderPadding: CGFloat { 16 }
+    private var sliderVerticalPadding: CGFloat { 8 }
+    private var sliderCornerRadius: CGFloat { 8 }
+    private var buttonSpacing: CGFloat { 12 }
+    private var buttonHeight: CGFloat { 50 }
+    #endif
 }
 
 /// Card view component
@@ -1067,20 +1160,47 @@ struct CardView: View {
     let card: PlayingCard
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: cardSpacing) {
             Text(card.rank.rawValue)
-                .font(.title2)
+                .font(rankFont)
                 .fontWeight(.bold)
 
             Text(card.suit.rawValue)
-                .font(.title3)
+                .font(suitFont)
         }
         .foregroundColor(card.suit == .hearts || card.suit == .diamonds ? .red : .black)
-        .frame(width: 60, height: 90)
+        .frame(width: cardWidth, height: cardHeight)
         .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .shadow(radius: 2)
+        .clipShape(RoundedRectangle(cornerRadius: cardCornerRadius))
+        .shadow(radius: cardShadowRadius)
     }
+    
+    // Platform-specific card dimensions
+    #if os(tvOS)
+    private var cardWidth: CGFloat { 140 }
+    private var cardHeight: CGFloat { 200 }
+    private var cardSpacing: CGFloat { 12 }
+    private var rankFont: Font { .system(size: 60, weight: .bold) }
+    private var suitFont: Font { .system(size: 50) }
+    private var cardCornerRadius: CGFloat { 16 }
+    private var cardShadowRadius: CGFloat { 6 }
+    #elseif os(macOS)
+    private var cardWidth: CGFloat { 70 }
+    private var cardHeight: CGFloat { 100 }
+    private var cardSpacing: CGFloat { 4 }
+    private var rankFont: Font { .title2 }
+    private var suitFont: Font { .title3 }
+    private var cardCornerRadius: CGFloat { 8 }
+    private var cardShadowRadius: CGFloat { 2 }
+    #else // iOS
+    private var cardWidth: CGFloat { 60 }
+    private var cardHeight: CGFloat { 90 }
+    private var cardSpacing: CGFloat { 4 }
+    private var rankFont: Font { .title2 }
+    private var suitFont: Font { .title3 }
+    private var cardCornerRadius: CGFloat { 8 }
+    private var cardShadowRadius: CGFloat { 2 }
+    #endif
 }
 
 #Preview {
