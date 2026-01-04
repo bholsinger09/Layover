@@ -24,19 +24,33 @@ public final class RoomListViewModel: LayoverViewModel {
         self.roomService = roomService
         self.sharePlayService = sharePlayService
 
+        print("🎯 ========== ROOMLISTVIEWMODEL INIT ==========")
+        print("🎯 SharePlayService instance created")
+        print("🎯 Setting up SharePlay callbacks...")
+        print("🎯 ============================================")
+        
         // Setup SharePlay callbacks asynchronously
         Task { @MainActor [sharePlayService] in
             sharePlayService.onRoomReceived = { [weak self] room in
                 guard let self = self else { return }
+                print("📥 ========== SHAREPLAY ROOM RECEIVED ==========")
+                print("📥 Room: \(room.name)")
+                print("📥 Room ID: \(room.id)")
+                print("📥 Activity: \(room.activityType)")
+                print("📥 Participants: \(room.participants.count)")
+                print("📥 This should appear on both iPhone & Apple TV Simulator")
+                print("📥 ============================================")
                 self.logger.info("📥 SharePlay: Received room '\(room.name)' from participant")
                 // Add room from SharePlay participant if not already in list
                 if !self.rooms.contains(where: { $0.id == room.id }) {
                     self.rooms.append(room)
                     self.logger.info("✅ Room added to list. Total rooms: \(self.rooms.count)")
+                    print("✅ Room added! Total rooms now: \(self.rooms.count)")
                     // Trigger navigation callback
                     self.onRoomReceivedForNavigation?(room)
                 } else {
                     self.logger.debug("⚠️ Room already exists in list")
+                    print("⚠️ Room already in list, not adding duplicate")
                 }
             }
 
@@ -62,6 +76,23 @@ public final class RoomListViewModel: LayoverViewModel {
             sharePlayService.addSessionStateObserver { [weak self] isActive in
                 // Callback already runs on MainActor from SharePlayService
                 guard let self = self else { return }
+                print("🔄 ========== SHAREPLAY SESSION STATE CHANGED ==========")
+                print("🔄 Active: \(isActive)")
+                print("🔄 Device Info:")
+                #if targetEnvironment(simulator)
+                print("   📱 Running on: SIMULATOR")
+                #else
+                print("   📱 Running on: PHYSICAL DEVICE")
+                #endif
+                #if os(tvOS)
+                print("   📺 Platform: tvOS")
+                #elseif os(iOS)
+                print("   📱 Platform: iOS")
+                #elseif os(macOS)
+                print("   💻 Platform: macOS")
+                #endif
+                print("🔄 Current Apple ID should match FaceTime participant")
+                print("🔄 ====================================================")
                 self.logger.info("🔄 RoomListViewModel: SharePlay session state changed to \(isActive)")
                 self.isSharePlayActive = isActive
             }

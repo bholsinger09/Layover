@@ -83,9 +83,10 @@ public struct LoginView: View {
                         .autocapitalization(.none)
                         .keyboardType(.emailAddress)
                     #endif
-                    #if os(macOS) || os(tvOS)
+                    #if os(macOS)
                         .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
+                    #elseif os(tvOS)
+                        .autocorrectionDisabled()
                     #endif
                     .padding(fieldPadding)
                     .background(fieldBackground)

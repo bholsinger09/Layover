@@ -6,6 +6,21 @@ import SwiftUI
     import AppKit
 #endif
 
+/// Platform detection helper
+private enum Platform {
+    static var current: String {
+        #if os(tvOS)
+        return "tvOS"
+        #elseif os(iOS)
+        return "iOS"
+        #elseif os(macOS)
+        return "macOS"
+        #else
+        return "Unknown"
+        #endif
+    }
+}
+
 /// Constants for AppleTVView UI timing
 private enum UITiming {
     static let messageDisplayDuration: UInt64 = 3_000_000_000  // 3 seconds
@@ -27,10 +42,20 @@ public struct AppleTVView: View {
         self.currentUser = currentUser
         self.sharePlayService = sharePlayService
         self.libraryService = libraryService
-        self._viewModel = State(initialValue: AppleTVViewModel(
+        
+        let vm = AppleTVViewModel(
             tvService: AppleTVService(),
             sharePlayService: sharePlayService
-        ))
+        )
+        
+        // Setup SharePlay callbacks immediately
+        print("🔧 ========== INITIALIZING APPLE TV VIEW ==========")
+        print("🔧 Setting up SharePlay callbacks for room: \(room.name)")
+        vm.setupSharePlayCallbacks()
+        print("🔧 SharePlay callbacks set up complete")
+        print("🔧 ================================================")
+        
+        self._viewModel = State(initialValue: vm)
     }
     @State private var sharePlayStarted = false
     @State private var sharePlayError: String?
@@ -79,18 +104,89 @@ public struct AppleTVView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Start SharePlay Session")
                                 .font(.headline)
+                            #if targetEnvironment(simulator)
+                            Text("⚠️ Simulator: SharePlay cross-device sync unavailable")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                            Text("Requires physical Apple TV for full testing")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            #else
                             Text("Make sure you're in a FaceTime call first")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                            #endif
                         }
 
                         Spacer()
                     }
+                    
+                    #if targetEnvironment(simulator)
+                    // Simulator-specific information panel
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("📱 Simulator Limitations")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                Text("Apple ID sign-in does not persist in tvOS Simulator")
+                                    .font(.caption)
+                            }
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                Text("SharePlay sessions cannot sync between Simulator and other devices")
+                                    .font(.caption)
+                            }
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                Text("FaceTime is not available in Simulator")
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundStyle(.secondary)
+                        
+                        Divider()
+                        
+                        Text("✅ For Full Testing")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                Text("Use physical Apple TV 4K (2nd gen or later) with tvOS 17+")
+                                    .font(.caption)
+                            }
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                Text("Test SharePlay between two physical iOS devices in FaceTime call")
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(10)
+                    #endif
 
                     Button {
-                        logger.debug("🔵 Button tapped!")
+                        logger.debug("🔵 SharePlay button tapped!")
+                        print("📱 ========== SHAREPLAY START REQUESTED ==========")
+                        print("📱 Platform: \(Platform.current)")
+                        print("📱 Room: \(room.name)")
+                        print("📱 User: \(currentUser.username)")
+                        #if targetEnvironment(simulator)
+                        print("📱 Device: SIMULATOR - Limited functionality")
+                        print("📱 Note: Cross-device sync requires physical devices")
+                        #else
+                        print("📱 Device: PHYSICAL - Full SharePlay support")
+                        #endif
+                        print("📱 ==============================================")
                         Task {
-                            logger.debug("🔵 Starting task...")
+                            logger.debug("🔵 Starting SharePlay task...")
                             await startSharePlay()
                         }
                     } label: {
@@ -291,6 +387,19 @@ public struct AppleTVView: View {
 
     private func startSharePlay() async {
         sharePlayError = nil
+        print("🎬 ========== STARTING SHAREPLAY ==========")
+        print("🎬 Room: \(room.name)")
+        print("🎬 Room ID: \(room.id)")
+        print("🎬 User: \(currentUser.username)")
+        print("🎬 Platform: \(Platform.current)")
+        #if targetEnvironment(simulator)
+        print("🎬 Environment: SIMULATOR")
+        print("🎬 Expected: Should join existing iPhone session via same Apple ID")
+        #else
+        print("🎬 Environment: PHYSICAL DEVICE")
+        #endif
+        print("🎬 Current session active: \(viewModel.sharePlayService.isSessionActive)")
+        print("🎬 ========================================")
         logger.info("🎬 Starting SharePlay for Apple TV room: \(room.name)")
 
         // Include content metadata if available for better TV app coordination
@@ -308,6 +417,7 @@ public struct AppleTVView: View {
         )
 
         do {
+            print("📡 Calling sharePlayService.startActivity...")
             try await viewModel.sharePlayService.startActivity(activity)
 
             // Update state on main actor to trigger UI updates
@@ -315,20 +425,25 @@ public struct AppleTVView: View {
                 sharePlayStarted = true
                 sharePlayError = nil
                 isSharePlayActive = viewModel.sharePlayService.isSessionActive
+                print("✅ SharePlay started! Session active: \(isSharePlayActive)")
                 logger.info(
                     "✅ SharePlay started successfully, session active: \(isSharePlayActive)")
             }
 
             // Share the room data with other participants
             logger.info("📤 Sending room data to SharePlay participants...")
+            print("📤 Sharing room data with participants...")
             await viewModel.sharePlayService.shareRoom(room)
 
             // If content is already selected, reload it with SharePlay coordination
             if let content = viewModel.currentContent {
                 logger.info("🔄 Reloading content with SharePlay coordination...")
+                print("🔄 Reloading content with SharePlay...")
                 await viewModel.loadContent(content)
             }
+            print("🎬 ========== SHAREPLAY START COMPLETE ==========")
         } catch let error as SharePlayError {
+            print("❌ SharePlay error: \(error.localizedDescription)")
             logger.error("❌ Failed to start SharePlay: \(error.localizedDescription)")
             await MainActor.run {
                 sharePlayError = error.localizedDescription

@@ -58,6 +58,10 @@ public final class SharePlayService: SharePlayServiceProtocol {
     }
 
     public nonisolated init() {
+        print("🌟 ========== SHAREPLAYSERVICE INIT ==========")
+        print("🌟 Creating new SharePlayService instance")
+        print("🌟 Will setup session observer on MainActor")
+        print("🌟 ==========================================")
         Task { @MainActor in
             setupSessionObserver()
         }
@@ -69,11 +73,43 @@ public final class SharePlayService: SharePlayServiceProtocol {
     }
 
     private func setupSessionObserver() {
+        print("🔍 ========== SHAREPLAY SESSION OBSERVER SETUP ==========")
+        #if os(tvOS)
+        print("🔍 Platform: tvOS")
+        #elseif os(iOS)
+        print("🔍 Platform: iOS")
+        #elseif os(macOS)
+        print("🔍 Platform: macOS")
+        #endif
+        #if targetEnvironment(simulator)
+        print("🔍 Environment: SIMULATOR")
+        print("🔍 NOTE: GroupActivities.sessions() will only detect sessions if:")
+        print("   1. This device is in an active FaceTime call, OR")
+        print("   2. Another device with SAME Apple ID starts a session")
+        print("🔍 ⚠️  CRITICAL: Check Settings > Apple ID - must match iPhone!")
+        #else
+        print("🔍 Environment: PHYSICAL DEVICE")
+        #endif
+        print("🔍 Starting async listener for LayoverActivity.sessions()...")
+        print("🔍 This will print a message when ANY session is detected")
+        print("🔍 ===================================================")
+        
         groupStateObserver = Task {
+            print("✅ Session observer task started - now listening...")
+            var sessionCount = 0
             for await session in LayoverActivity.sessions() {
+                sessionCount += 1
+                print("📨 ========== SESSION DETECTED (#\(sessionCount)) ==========")
+                print("📨 Session ID: \(session.id)")
+                print("📨 Active participants: \(session.activeParticipants.count)")
+                print("📨 State: \(session.state)")
+                print("📨 =======================================")
                 await handleSession(session)
             }
+            print("⚠️ Session observer loop ended (this shouldn't happen)")
         }
+        
+        print("✅ Session observer task created and running in background")
     }
 
     private func handleSession(_ session: GroupSession<LayoverActivity>) async {
