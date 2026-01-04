@@ -618,216 +618,215 @@ public struct TexasHoldemView: View {
     
     @ViewBuilder
     private func gameContent(_ game: TexasHoldemGame) -> some View {
-                // Opponent's hand (face down until showdown or fold)
-                if let opponentPlayer = game.players.first(where: { $0.userID != currentUser.id }) {
-                    let shouldShowCards = game.gamePhase == .showdown || game.gamePhase == .ended || opponentPlayer.isFolded
-                    opponentHandView(
-                        opponentPlayer,
-                        showCards: shouldShowCards,
-                        isAI: opponentPlayer.userID == viewModel.aiPlayerID
-                    )
-                }
-                // Game phase and pot
+        // Opponent's hand (face down until showdown or fold)
+        if let opponentPlayer = game.players.first(where: { $0.userID != currentUser.id }) {
+            let shouldShowCards = game.gamePhase == .showdown || game.gamePhase == .ended || opponentPlayer.isFolded
+            opponentHandView(
+                opponentPlayer,
+                showCards: shouldShowCards,
+                isAI: opponentPlayer.userID == viewModel.aiPlayerID
+            )
+        }
+        
+        // Game phase and pot
+        VStack(spacing: 8) {
+            Text(game.gamePhase.rawValue.capitalized)
+                .font(.headline)
+
+            Text("Pot: $\(game.pot)")
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            // Winner announcement (showdown phase)
+            if game.gamePhase == .showdown, let winnerID = game.winnerID {
                 VStack(spacing: 8) {
-                    Text(game.gamePhase.rawValue.capitalized)
-                        .font(.headline)
-
-                    Text("Pot: $\(game.pot)")
-                        .font(.title2)
+                    Text("🏆 Winner!")
+                        .font(.title)
                         .fontWeight(.bold)
+                        .foregroundStyle(.yellow)
                     
-                    // Winner announcement (showdown phase)
-                    if game.gamePhase == .showdown, let winnerID = game.winnerID {
-                        VStack(spacing: 8) {
-                            Text("🏆 Winner!")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.yellow)
-                            
-                            if winnerID == currentUser.id {
-                                Text("You won $\(game.winningAmount)!")
-                                    .font(.title3)
-                                    .foregroundStyle(.green)
-                            } else {
-                                Text("Opponent won $\(game.winningAmount)")
-                                    .font(.title3)
-                                    .foregroundStyle(.orange)
-                            }
-                        }
-                        .padding()
-                        .background(Color.yellow.opacity(0.2))
-                        .cornerRadius(12)
-                    } else if game.gamePhase == .showdown && game.winnerID == nil && game.winningAmount > 0 {
-                        // Tie game
-                        VStack(spacing: 8) {
-                            Text("🤝 It's a Tie!")
-                                .font(.title)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.blue)
-                            Text("Pot split: $\(game.winningAmount) each")
-                                .font(.title3)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding()
-                        .background(Color.blue.opacity(0.2))
-                        .cornerRadius(12)
-                    }
-
-                    // Turn indicator
-                    if game.currentPlayerIndex < game.players.count && game.gamePhase != .showdown {
-                        let isMyTurn = isMyTurnInGame(game: game)
-                        let _ = print("🎮 VIEW: isMyTurn=\(isMyTurn), currentPlayerIndex=\(game.currentPlayerIndex), isHost=\(viewModel.sharePlayService.isHost)")
-                        Text(isMyTurn ? "Your Turn" : "Opponent's Turn")
-                            .font(.subheadline)
-                            .foregroundStyle(isMyTurn ? .green : .orange)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 4)
-                            .background(
-                                isMyTurn ? Color.green.opacity(0.2) : Color.orange.opacity(0.2)
-                            )
-                            .cornerRadius(8)
+                    if winnerID == currentUser.id {
+                        Text("You won $\(game.winningAmount)!")
+                            .font(.title3)
+                            .foregroundStyle(.green)
+                    } else {
+                        Text("Opponent won $\(game.winningAmount)")
+                            .font(.title3)
+                            .foregroundStyle(.orange)
                     }
                 }
                 .padding()
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                // Deck - Click to advance phase (host only in SharePlay, hidden when playing vs computer)
-                if game.gamePhase != .ended && game.gamePhase != .showdown && viewModel.aiPlayerID == nil {
-                    if !viewModel.sharePlayService.isSessionActive
-                        || viewModel.sharePlayService.isHost
-                    {
-                        Button {
-                            Task {
-                                await advancePhase()
-                            }
-                        } label: {
-                            VStack(spacing: 8) {
-                                Image(systemName: "square.stack.3d.up.fill")
-                                    .font(.system(size: deckIconSize))
-                                    .foregroundStyle(.blue)
-                                Text("Tap to deal")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .frame(width: deckFrameSize, height: deckFrameSize)
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: deckCornerRadius))
-                        }
-                    } else {
-                        // Waiting indicator for non-host participants
-                        VStack(spacing: 8) {
-                            Image(systemName: "square.stack.3d.up.fill")
-                                .font(.system(size: deckIconSize))
-                                .foregroundStyle(.gray)
-                            Text("Waiting for host")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(width: deckFrameSize, height: deckFrameSize)
-                        .background(.ultraThinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: deckCornerRadius))
-                    }
+                .background(Color.yellow.opacity(0.2))
+                .cornerRadius(12)
+            } else if game.gamePhase == .showdown && game.winnerID == nil && game.winningAmount > 0 {
+                // Tie game
+                VStack(spacing: 8) {
+                    Text("🤝 It's a Tie!")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.blue)
+                    Text("Pot split: $\(game.winningAmount) each")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
                 }
+                .padding()
+                .background(Color.blue.opacity(0.2))
+                .cornerRadius(12)
+            }
 
-                // Community cards
-                if !game.communityCards.isEmpty {
-                    let _ = print("🎴 Displaying \(game.communityCards.count) community cards:")
-                    let _ = game.communityCards.forEach {
-                        print("   - \($0.rank.rawValue) of \($0.suit.rawValue)")
+            // Turn indicator
+            if game.currentPlayerIndex < game.players.count && game.gamePhase != .showdown {
+                let isMyTurn = isMyTurnInGame(game: game)
+                let _ = print("🎮 VIEW: isMyTurn=\(isMyTurn), currentPlayerIndex=\(game.currentPlayerIndex), isHost=\(viewModel.sharePlayService.isHost)")
+                Text(isMyTurn ? "Your Turn" : "Opponent's Turn")
+                    .font(.subheadline)
+                    .foregroundStyle(isMyTurn ? .green : .orange)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(
+                        isMyTurn ? Color.green.opacity(0.2) : Color.orange.opacity(0.2)
+                    )
+                    .cornerRadius(8)
+            }
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+        // Deck - Click to advance phase (host only in SharePlay, hidden when playing vs computer)
+        if game.gamePhase != .ended && game.gamePhase != .showdown && viewModel.aiPlayerID == nil {
+            if !viewModel.sharePlayService.isSessionActive
+                || viewModel.sharePlayService.isHost
+            {
+                Button {
+                    Task {
+                        await advancePhase()
                     }
-                    communityCardsView(game.communityCards)
+                } label: {
+                    VStack(spacing: 8) {
+                        Image(systemName: "square.stack.3d.up.fill")
+                            .font(.system(size: deckIconSize))
+                            .foregroundStyle(.blue)
+                        Text("Tap to deal")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(width: deckFrameSize, height: deckFrameSize)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: deckCornerRadius))
                 }
-
-                // Player's hand
-                if let player = viewModel.getPlayer(for: currentUser.id) {
-                    playerHandView(player)
-                    let _ = print("✅ Showing player hand for currentUser.id: \(currentUser.id)")
-                } else {
-                    // Fallback: if we can't find by currentUser.id, show the second player (participant)
-                    // or first player (host) depending on who we are
-                    if let game = viewModel.currentGame, game.players.count >= 2 {
-                        let playerIndex = viewModel.sharePlayService.isHost ? 0 : 1
-                        let fallbackPlayer = game.players[playerIndex]
-                        playerHandView(fallbackPlayer)
-                        let _ = print(
-                            "⚠️ Using fallback player[\(playerIndex)] for display (isHost=\(viewModel.sharePlayService.isHost)): \(fallbackPlayer.userID)"
-                        )
-                        let _ = print(
-                            "   Cards: \(fallbackPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })"
-                        )
-                    } else if let game = viewModel.currentGame, let firstPlayer = game.players.first
-                    {
-                        playerHandView(firstPlayer)
-                        let _ = print("⚠️ Using first player as fallback: \(firstPlayer.userID)")
-                        let _ = print(
-                            "   Cards: \(firstPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })"
-                        )
-                    }
-                }
-
-                // Controls
-                if game.gamePhase == .showdown {
-                    // Showdown - offer to start new hand
-                    VStack(spacing: 12) {
-                        Button("Start New Hand") {
-                            Task {
-                                // Reset game for new hand
-                                await viewModel.endGame()
-                                
-                                // Start new game with same players
-                                let playerIDs = game.players.map { $0.userID }
-                                await viewModel.startGame(roomID: room.id, players: playerIDs)
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                        
-                        Button("End Game") {
-                            Task {
-                                await viewModel.endGame()
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.red)
-                    }
-                } else if game.gamePhase != .ended {
-                    VStack(spacing: 12) {
-                        gameControls(
-                            game: game,
-                            phase: game.gamePhase,
-                            isMyTurn: isMyTurnInGame(game: game)
-                        )
-
-                        // New Game button
-                        Button("Start New Game") {
-                            Task {
-                                await viewModel.endGame()
-
-                                var playerIDs = Array(currentRoom.participantIDs)
-                                if !playerIDs.contains(currentUser.id) {
-                                    playerIDs.append(currentUser.id)
-                                }
-                                if playerIDs.count < 2 {
-                                    playerIDs.append(UUID())
-                                }
-
-                                await viewModel.startGame(
-                                    roomID: currentRoom.id, players: playerIDs)
-                            }
-                        }
-                        .buttonStyle(.bordered)
+            } else {
+                // Waiting indicator for non-host participants
+                VStack(spacing: 8) {
+                    Image(systemName: "square.stack.3d.up.fill")
+                        .font(.system(size: deckIconSize))
+                        .foregroundStyle(.gray)
+                    Text("Waiting for host")
                         .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(width: deckFrameSize, height: deckFrameSize)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: deckCornerRadius))
+            }
+        }
+
+        // Community cards
+        if !game.communityCards.isEmpty {
+            let _ = print("🎴 Displaying \(game.communityCards.count) community cards:")
+            let _ = game.communityCards.forEach {
+                print("   - \($0.rank.rawValue) of \($0.suit.rawValue)")
+            }
+            communityCardsView(game.communityCards)
+        }
+
+        // Player's hand
+        if let player = viewModel.getPlayer(for: currentUser.id) {
+            playerHandView(player)
+            let _ = print("✅ Showing player hand for currentUser.id: \(currentUser.id)")
+        } else {
+            // Fallback: if we can't find by currentUser.id, show the second player (participant)
+            // or first player (host) depending on who we are
+            if let game = viewModel.currentGame, game.players.count >= 2 {
+                let playerIndex = viewModel.sharePlayService.isHost ? 0 : 1
+                let fallbackPlayer = game.players[playerIndex]
+                playerHandView(fallbackPlayer)
+                let _ = print(
+                    "⚠️ Using fallback player[\(playerIndex)] for display (isHost=\(viewModel.sharePlayService.isHost)): \(fallbackPlayer.userID)"
+                )
+                let _ = print(
+                    "   Cards: \(fallbackPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })"
+                )
+            } else if let game = viewModel.currentGame, let firstPlayer = game.players.first
+            {
+                playerHandView(firstPlayer)
+                let _ = print("⚠️ Using first player as fallback: \(firstPlayer.userID)")
+                let _ = print(
+                    "   Cards: \(firstPlayer.hand.map { "\($0.rank.rawValue) of \($0.suit.rawValue)" })"
+                )
+            }
+        }
+
+        // Controls
+        if game.gamePhase == .showdown {
+            // Showdown - offer to start new hand
+            VStack(spacing: 12) {
+                Button("Start New Hand") {
+                    Task {
+                        // Reset game for new hand
+                        await viewModel.endGame()
+                        
+                        // Start new game with same players
+                        let playerIDs = game.players.map { $0.userID }
+                        await viewModel.startGame(roomID: room.id, players: playerIDs)
                     }
-                } else {
-                    Button("End Game") {
-                        Task {
-                            await viewModel.endGame()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+                
+                Button("End Game") {
+                    Task {
+                        await viewModel.endGame()
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+            }
+        } else if game.gamePhase != .ended {
+            VStack(spacing: 12) {
+                gameControls(
+                    game: game,
+                    phase: game.gamePhase,
+                    isMyTurn: isMyTurnInGame(game: game)
+                )
+
+                // New Game button
+                Button("Start New Game") {
+                    Task {
+                        await viewModel.endGame()
+
+                        var playerIDs = Array(currentRoom.participantIDs)
+                        if !playerIDs.contains(currentUser.id) {
+                            playerIDs.append(currentUser.id)
                         }
+                        if playerIDs.count < 2 {
+                            playerIDs.append(UUID())
+                        }
+
+                        await viewModel.startGame(
+                            roomID: currentRoom.id, players: playerIDs)
                     }
-                    .buttonStyle(.borderedProminent)
+                }
+                .buttonStyle(.bordered)
+                .font(.caption)
+            }
+        } else {
+            Button("End Game") {
+                Task {
+                    await viewModel.endGame()
                 }
             }
+            .buttonStyle(.borderedProminent)
         }
     }
 
