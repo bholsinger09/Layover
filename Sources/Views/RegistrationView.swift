@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// View for user registration
+/// Platform-responsive user registration view
 public struct RegistrationView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -20,27 +20,27 @@ public struct RegistrationView: View {
     public var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: contentSpacing) {
                     // Header
-                    VStack(spacing: 8) {
+                    VStack(spacing: headerSpacing) {
                         Image(systemName: "person.badge.plus")
-                            .font(.system(size: 50))
+                            .font(.system(size: iconSize))
                             .foregroundStyle(.blue)
 
                         Text("Create Account")
-                            .font(.title)
+                            .font(titleFont)
                             .fontWeight(.bold)
 
                         Text("Join LayoverLounge today")
-                            .font(.subheadline)
+                            .font(subtitleFont)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.bottom, 16)
+                    .padding(.bottom, headerBottomPadding)
 
                     // Username Field
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: fieldLabelSpacing) {
                         Text("Username")
-                            .font(.subheadline)
+                            .font(labelFont)
                             .fontWeight(.medium)
 
                         TextField("Choose a username", text: $username)
@@ -48,16 +48,20 @@ public struct RegistrationView: View {
                             #if os(iOS)
                                 .autocapitalization(.none)
                             #endif
-                            .padding()
-                            .background(Color(red: 0.95, green: 0.95, blue: 0.95))
-                            .cornerRadius(10)
-                            .colorScheme(.light)
+                            #if os(macOS) || os(tvOS)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+                            #endif
+                            .padding(fieldPadding)
+                            .background(fieldBackground)
+                            .cornerRadius(fieldCornerRadius)
+                            .overlay(fieldBorder)
                     }
 
                     // Email Field
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: fieldLabelSpacing) {
                         Text("Email")
-                            .font(.subheadline)
+                            .font(labelFont)
                             .fontWeight(.medium)
 
                         TextField("Enter your email", text: $email)
@@ -66,48 +70,52 @@ public struct RegistrationView: View {
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
                             #endif
-                            .padding()
-                            .background(Color(red: 0.95, green: 0.95, blue: 0.95))
-                            .cornerRadius(10)
-                            .colorScheme(.light)
+                            #if os(macOS) || os(tvOS)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+                            #endif
+                            .padding(fieldPadding)
+                            .background(fieldBackground)
+                            .cornerRadius(fieldCornerRadius)
+                            .overlay(fieldBorder)
                     }
 
                     // Password Field
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: fieldLabelSpacing) {
                         Text("Password")
-                            .font(.subheadline)
+                            .font(labelFont)
                             .fontWeight(.medium)
 
                         SecureField("Create a password", text: $password)
                             .textContentType(.newPassword)
-                            .padding()
-                            .background(Color(red: 0.95, green: 0.95, blue: 0.95))
-                            .cornerRadius(10)
-                            .colorScheme(.light)
+                            .padding(fieldPadding)
+                            .background(fieldBackground)
+                            .cornerRadius(fieldCornerRadius)
+                            .overlay(fieldBorder)
 
                         Text("Must be at least 6 characters")
-                            .font(.caption)
+                            .font(hintFont)
                             .foregroundStyle(.secondary)
                     }
 
                     // Confirm Password Field
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: fieldLabelSpacing) {
                         Text("Confirm Password")
-                            .font(.subheadline)
+                            .font(labelFont)
                             .fontWeight(.medium)
 
                         SecureField("Confirm your password", text: $confirmPassword)
                             .textContentType(.newPassword)
-                            .padding()
-                            .background(Color(red: 0.95, green: 0.95, blue: 0.95))
-                            .cornerRadius(10)
-                            .colorScheme(.light)
+                            .padding(fieldPadding)
+                            .background(fieldBackground)
+                            .cornerRadius(fieldCornerRadius)
+                            .overlay(fieldBorder)
                     }
 
                     // Error Message
                     if let errorMessage {
                         Text(errorMessage)
-                            .font(.caption)
+                            .font(errorFont)
                             .foregroundStyle(.red)
                             .padding(.horizontal)
                     }
@@ -121,25 +129,27 @@ public struct RegistrationView: View {
                         if isLoading {
                             ProgressView()
                                 .tint(.white)
+                                .scaleEffect(progressScale)
                         } else {
                             Text("Create Account")
                                 .fontWeight(.semibold)
+                                .font(buttonFont)
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .frame(height: buttonHeight)
                     .background((isLoading || !isFormValid) ? Color.blue.opacity(0.5) : Color.blue)
                     .foregroundStyle(.white)
-                    .cornerRadius(10)
+                    .cornerRadius(buttonCornerRadius)
                     .disabled(isLoading || !isFormValid)
 
                     // Terms
                     Text("By registering, you agree to our Terms of Service and Privacy Policy")
-                        .font(.caption)
+                        .font(termsFont)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
-                .padding()
+                .padding(contentPadding)
             }
             #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
@@ -202,6 +212,78 @@ public struct RegistrationView: View {
             }
         }
     }
+    
+    // Platform-specific styling
+    #if os(tvOS)
+    private var iconSize: CGFloat { 80 }
+    private var titleFont: Font { .system(size: 50, weight: .bold) }
+    private var subtitleFont: Font { .title2 }
+    private var headerSpacing: CGFloat { 16 }
+    private var contentSpacing: CGFloat { 40 }
+    private var headerBottomPadding: CGFloat { 30 }
+    private var labelFont: Font { .title3 }
+    private var fieldLabelSpacing: CGFloat { 12 }
+    private var fieldPadding: CGFloat { 20 }
+    private var fieldBackground: Color { Color.white.opacity(0.15) }
+    private var fieldCornerRadius: CGFloat { 12 }
+    private var fieldBorder: some View {
+        RoundedRectangle(cornerRadius: fieldCornerRadius)
+            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+    }
+    private var hintFont: Font { .caption }
+    private var errorFont: Font { .title3 }
+    private var progressScale: CGFloat { 1.5 }
+    private var buttonFont: Font { .system(size: 36, weight: .semibold) }
+    private var buttonHeight: CGFloat { 100 }
+    private var buttonCornerRadius: CGFloat { 16 }
+    private var termsFont: Font { .caption }
+    private var contentPadding: CGFloat { 80 }
+    #elseif os(macOS)
+    private var iconSize: CGFloat { 40 }
+    private var titleFont: Font { .title }
+    private var subtitleFont: Font { .subheadline }
+    private var headerSpacing: CGFloat { 8 }
+    private var contentSpacing: CGFloat { 20 }
+    private var headerBottomPadding: CGFloat { 16 }
+    private var labelFont: Font { .subheadline }
+    private var fieldLabelSpacing: CGFloat { 6 }
+    private var fieldPadding: CGFloat { 10 }
+    private var fieldBackground: Color { Color(NSColor.controlBackgroundColor) }
+    private var fieldCornerRadius: CGFloat { 8 }
+    private var fieldBorder: some View {
+        RoundedRectangle(cornerRadius: fieldCornerRadius)
+            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+    }
+    private var hintFont: Font { .caption }
+    private var errorFont: Font { .caption }
+    private var progressScale: CGFloat { 1.0 }
+    private var buttonFont: Font { .body }
+    private var buttonHeight: CGFloat { 40 }
+    private var buttonCornerRadius: CGFloat { 8 }
+    private var termsFont: Font { .caption }
+    private var contentPadding: CGFloat { 40 }
+    #else // iOS
+    private var iconSize: CGFloat { 50 }
+    private var titleFont: Font { .title }
+    private var subtitleFont: Font { .subheadline }
+    private var headerSpacing: CGFloat { 8 }
+    private var contentSpacing: CGFloat { 24 }
+    private var headerBottomPadding: CGFloat { 16 }
+    private var labelFont: Font { .subheadline }
+    private var fieldLabelSpacing: CGFloat { 8 }
+    private var fieldPadding: CGFloat { 16 }
+    private var fieldBackground: Color { Color(.systemGray6) }
+    private var fieldCornerRadius: CGFloat { 10 }
+    private var fieldBorder: some View { EmptyView() }
+    private var hintFont: Font { .caption }
+    private var errorFont: Font { .caption }
+    private var progressScale: CGFloat { 1.0 }
+    private var buttonFont: Font { .body }
+    private var buttonHeight: CGFloat { 50 }
+    private var buttonCornerRadius: CGFloat { 10 }
+    private var termsFont: Font { .caption }
+    private var contentPadding: CGFloat { 24 }
+    #endif
 }
 
 #Preview {
