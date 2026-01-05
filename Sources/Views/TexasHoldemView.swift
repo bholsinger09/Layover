@@ -836,6 +836,21 @@ public struct TexasHoldemView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
+                #if os(tvOS)
+                .onAppear {
+                    // Auto-restart for AI games after 3 seconds
+                    if viewModel.aiPlayerID != nil {
+                        Task {
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            if viewModel.currentGame?.gamePhase == .showdown {
+                                await viewModel.endGame()
+                                let playerIDs = game.players.map { $0.userID }
+                                await viewModel.startGame(roomID: room.id, players: playerIDs)
+                            }
+                        }
+                    }
+                }
+                #endif
                 
                 Button("End Game") {
                     Task {

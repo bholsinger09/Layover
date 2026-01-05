@@ -419,7 +419,28 @@ public final class TexasHoldemService: TexasHoldemServiceProtocol {
         
         // If only one player left, they win
         if activePlayers.count == 1 {
-            game.gamePhase = .ended
+            let winnerIndex = game.players.firstIndex(where: { !$0.isFolded })!
+            let potAmount = game.pot
+            
+            // Award pot to winner
+            game.players[winnerIndex].chips += potAmount
+            
+            // Set winner info for UI
+            game.winnerID = game.players[winnerIndex].userID
+            game.winningAmount = potAmount
+            game.gamePhase = .showdown  // Use showdown to display winner
+            
+            print("🏆 Player \(winnerIndex) wins by default (others folded)!")
+            print("   Won: $\(potAmount)")
+            print("   New chip count: $\(game.players[winnerIndex].chips)")
+            
+            // Reset pot and bets
+            game.pot = 0
+            game.currentBet = 0
+            for i in 0..<game.players.count {
+                game.players[i].currentBet = 0
+            }
+            
             currentGame = game
             return
         }
