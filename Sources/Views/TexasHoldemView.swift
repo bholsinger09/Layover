@@ -826,12 +826,15 @@ public struct TexasHoldemView: View {
             VStack(spacing: 12) {
                 Button("Start New Hand") {
                     Task {
+                        // Save current chip counts
+                        let chipCounts = Dictionary(uniqueKeysWithValues: game.players.map { ($0.userID, $0.chips) })
+                        
                         // Reset game for new hand
                         await viewModel.endGame()
                         
-                        // Start new game with same players
+                        // Start new game with same players and preserved chips
                         let playerIDs = game.players.map { $0.userID }
-                        await viewModel.startGame(roomID: room.id, players: playerIDs)
+                        await viewModel.startGame(roomID: room.id, players: playerIDs, preserveChips: chipCounts)
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -843,9 +846,12 @@ public struct TexasHoldemView: View {
                         Task {
                             try? await Task.sleep(nanoseconds: 3_000_000_000)
                             if viewModel.currentGame?.gamePhase == .showdown {
+                                // Save current chip counts
+                                let chipCounts = Dictionary(uniqueKeysWithValues: game.players.map { ($0.userID, $0.chips) })
+                                
                                 await viewModel.endGame()
                                 let playerIDs = game.players.map { $0.userID }
-                                await viewModel.startGame(roomID: room.id, players: playerIDs)
+                                await viewModel.startGame(roomID: room.id, players: playerIDs, preserveChips: chipCounts)
                             }
                         }
                     }

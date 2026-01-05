@@ -293,7 +293,7 @@ public final class TexasHoldemViewModel: LayoverViewModel {
         print("✅ The session observer should now be listening for sessions from other devices")
     }
 
-    public func startGame(roomID: UUID, players: [UUID]) async {
+    public func startGame(roomID: UUID, players: [UUID], preserveChips: [UUID: Int]? = nil) async {
         print("🎮 Starting game...")
         print("   Room ID: \(roomID)")
         print("   Players: \(players)")
@@ -313,7 +313,7 @@ public final class TexasHoldemViewModel: LayoverViewModel {
         }
 
         do {
-            let game = try await gameService.startGame(roomID: roomID, players: players)
+            let game = try await gameService.startGame(roomID: roomID, players: players, preserveChips: preserveChips)
             currentGame = game
             try await gameService.dealCards()
             currentGame = gameService.currentGame

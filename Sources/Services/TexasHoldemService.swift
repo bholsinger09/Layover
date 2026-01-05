@@ -5,7 +5,7 @@ import Foundation
 public protocol TexasHoldemServiceProtocol: LayoverService {
     var currentGame: TexasHoldemGame? { get }
 
-    func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame
+    func startGame(roomID: UUID, players: [UUID], preserveChips: [UUID: Int]?) async throws -> TexasHoldemGame
     func loadGame(_ game: TexasHoldemGame)
     func dealCards() async throws
     func bet(playerID: UUID, amount: Int) async throws
@@ -41,13 +41,18 @@ public final class TexasHoldemService: TexasHoldemServiceProtocol {
         }
     }
 
-    public func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame {
+    public func startGame(roomID: UUID, players: [UUID], preserveChips: [UUID: Int]? = nil) async throws -> TexasHoldemGame {
         guard players.count >= 2 && players.count <= 10 else {
             throw GameError.invalidPlayerCount
         }
 
         let holdemPlayers = players.enumerated().map { index, userID in
-            TexasHoldemPlayer(userID: userID, position: index)
+            var player = TexasHoldemPlayer(userID: userID, position: index)
+            // Preserve chips from previous game if available
+            if let preservedChips = preserveChips, let chipCount = preservedChips[userID] {
+                player.chips = chipCount
+            }
+            return player
         }
 
         let game = TexasHoldemGame(
