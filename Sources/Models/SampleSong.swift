@@ -9,6 +9,7 @@ public struct SampleSong: Identifiable {
     public let genre: MusicGenre
     public let duration: String
     public let colors: [Color]
+    public let audioURL: URL?
     
     public init(
         id: UUID = UUID(),
@@ -16,7 +17,8 @@ public struct SampleSong: Identifiable {
         artist: String,
         genre: MusicGenre,
         duration: String,
-        colors: [Color]
+        colors: [Color],
+        audioURL: URL? = nil
     ) {
         self.id = id
         self.title = title
@@ -24,6 +26,7 @@ public struct SampleSong: Identifiable {
         self.genre = genre
         self.duration = duration
         self.colors = colors
+        self.audioURL = audioURL
     }
 }
 
@@ -48,21 +51,24 @@ extension SampleSong {
             artist: "Pop Collective",
             genre: .nineties,
             duration: "3:45",
-            colors: [.pink, .purple]
+            colors: [.pink, .purple],
+            audioURL: URL(string: "https://ia804605.us.archive.org/18/items/freemusicarchive_201904/The_Kyoto_Connection_-_04_-_Wake_Up.mp3")
         ),
         SampleSong(
             title: "Dancing Dreams",
             artist: "The Melody Makers",
             genre: .nineties,
             duration: "4:12",
-            colors: [.blue, .cyan]
+            colors: [.blue, .cyan],
+            audioURL: URL(string: "https://ia804605.us.archive.org/18/items/freemusicarchive_201904/Broke_For_Free_-_01_-_Night_Owl.mp3")
         ),
         SampleSong(
             title: "Forever Young",
             artist: "Rhythm Nation",
             genre: .nineties,
             duration: "3:58",
-            colors: [.orange, .red]
+            colors: [.orange, .red],
+            audioURL: URL(string: "https://ia804605.us.archive.org/18/items/freemusicarchive_201904/Ketsa_-_02_-_Lets_Feel_Good_Today.mp3")
         ),
         SampleSong(
             title: "Starlight",
@@ -78,7 +84,8 @@ extension SampleSong {
             artist: "DJ ModernBeat",
             genre: .remix,
             duration: "3:32",
-            colors: [.purple, .blue]
+            colors: [.purple, .blue],
+            audioURL: URL(string: "https://ia804605.us.archive.org/18/items/freemusicarchive_201904/Tobin_Sprout_-_01_-_High_Flying_Cloud_Structures.mp3")
         ),
         SampleSong(
             title: "Come Together (House Mix)",

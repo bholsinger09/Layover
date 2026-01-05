@@ -84,10 +84,11 @@ public struct MusicPlayerView: View {
                 }
             }
         }
-        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-            Button("OK") {
-                viewModel.errorMessage = nil
-            }
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.clearError() } }
+        )) {
+            Button("OK") { }
         } message: {
             if let error = viewModel.errorMessage {
                 Text(error)
@@ -123,12 +124,14 @@ struct URLInputView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 TextField("Paste Spotify or YouTube URL", text: $urlInput)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isFocused)
                     #if os(iOS)
+                    .textFieldStyle(.roundedBorder)
                     .autocapitalization(.none)
                     .keyboardType(.URL)
+                    #else
+                    .textFieldStyle(.plain)
                     #endif
+                    .focused($isFocused)
                 
                 Text("Supported: Spotify playlists, YouTube videos, direct audio URLs")
                     .font(.caption)

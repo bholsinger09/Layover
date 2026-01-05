@@ -10,6 +10,21 @@
 	<string>Layover uses your camera for video chat during group activities.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Layover needs microphone access for voice chat during group activities.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>archive.org</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>UISupportsDocumentBrowser</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

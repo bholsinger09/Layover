@@ -13,9 +13,31 @@ public final class MusicPlayerViewModel {
     public private(set) var errorMessage: String?
     private var currentIndex = 0
     private let spotifyService = SpotifyService()
-    private var audioPlayer: AVPlayer?
+    nonisolated(unsafe) private var audioPlayer: AVPlayer?
     
-    public init() {}
+    public init() {
+        setupAudioSession()
+    }
+    
+    private func setupAudioSession() {
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback, mode: .default)
+            try audioSession.setActive(true)
+            print("✅ Audio session configured")
+        } catch {
+            print("❌ Failed to set up audio session: \(error)")
+        }
+    }
+    
+    deinit {
+        audioPlayer?.pause()
+        audioPlayer = nil
+    }
+    
+    public func clearError() {
+        errorMessage = nil
+    }
     
     public func playSong(_ song: SampleSong) {
         guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
@@ -24,34 +46,80 @@ public final class MusicPlayerViewModel {
         
         currentIndex = index
         currentSong = song
-        isPlaying = true
         
-        print("🎵 Now playing: \(song.title) by \(song.artist)")
+        // Play audio if URL exists
+        if let audioURL = song.audioURL {
+            print("🎵 Attempting to play: \(song.title) from \(audioURL)")
+            
+            audioPlayer?.pause()
+            audioPlayer = nil
+            
+            let player = AVPlayer(url: audioURL)
+            audioPlayer = player
+            
+            // Monitor player status
+            Task {
+                await monitorPlayerStatus(player)
+            }
+            
+            player.play()
+            isPlaying = true
+            
+            print("✅ Player created and play() called")
+        } else {
+            isPlaying = true
+            print("⚠️ No audio URL for: \(song.title) by \(song.artist)")
+        }
+    }
+    
+    private func monitorPlayerStatus(_ player: AVPlayer) async {
+        // Wait a bit for the player to load
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        switch player.status {
+        case .readyToPlay:
+            print("✅ Player ready to play")
+        case .failed:
+            let error = player.error?.localizedDescription ?? "unknown error"
+            print("❌ Player failed: \(error)")
+            await MainActor.run {
+                errorMessage = "Playback failed: \(error)"
+            }
+        case .unknown:
+            print("⏳ Player status unknown")
+        @unknown default:
+            break
+        }
     }
     
     public func togglePlayPause() {
-        isPlaying.toggle()
-        print(isPlaying ? "▶️ Playing" : "⏸️ Paused")
+        if isPlaying {
+            audioPlayer?.pause()
+            isPlaying = false
+            print("⏸️ Paused")
+        } else {
+            audioPlayer?.play()
+            isPlaying = true
+            print("▶️ Playing")
+        }
     }
     
     public func playNext() {
         guard !songs.isEmpty else { return }
         
         currentIndex = (currentIndex + 1) % songs.count
-        currentSong = songs[currentIndex]
-        isPlaying = true
-        
-        print("⏭️ Next: \(currentSong?.title ?? "")")
+        let nextSong = songs[currentIndex]
+        print("⏭️ Next: \(nextSong.title)")
+        playSong(nextSong)
     }
     
     public func playPrevious() {
         guard !songs.isEmpty else { return }
         
         currentIndex = currentIndex > 0 ? currentIndex - 1 : songs.count - 1
-        currentSong = songs[currentIndex]
-        isPlaying = true
-        
-        print("⏮️ Previous: \(currentSong?.title ?? "")")
+        let previousSong = songs[currentIndex]
+        print("⏮️ Previous: \(previousSong.title)")
+        playSong(previousSong)
     }    
     // MARK: - URL Playback
     
@@ -122,21 +190,17 @@ public final class MusicPlayerViewModel {
         
         print("🎵 Loading direct audio URL: \(url)")
         
-        // Create AVPlayer for direct audio URLs
-        audioPlayer = AVPlayer(url: url)
-        
         let audioSong = SampleSong(
             title: url.lastPathComponent,
             artist: "From URL",
             genre: .all,
             duration: "--:--",
-            colors: [.blue, .purple]
+            colors: [.blue, .purple],
+            audioURL: url
         )
         
         songs.insert(audioSong, at: 0)
-        currentSong = audioSong
-        isPlaying = true
-        audioPlayer?.play()
+        playSong(audioSong)
         
         print("✅ Playing audio from URL")
     }}
