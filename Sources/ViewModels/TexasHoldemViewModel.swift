@@ -81,7 +81,7 @@ public final class TexasHoldemViewModel: LayoverViewModel {
                     isLoading = true
                     do {
                         let game = try await gameService.startGame(
-                            roomID: roomID, players: playerIDs)
+                            roomID: roomID, players: playerIDs, preserveChips: nil)
                         
                         // DO NOT deal cards - guest will receive cards from host's broadcast
                         // Just create the game structure without cards
