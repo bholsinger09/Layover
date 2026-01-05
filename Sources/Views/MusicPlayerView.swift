@@ -5,11 +5,32 @@ import AVFoundation
 public struct MusicPlayerView: View {
     @State private var viewModel = MusicPlayerViewModel()
     @State private var selectedGenre: MusicGenre = .all
+    @State private var showURLInput = false
+    @State private var urlInput = ""
     
     public init() {}
     
     public var body: some View {
         VStack(spacing: 0) {
+            // URL Input Section
+            if showURLInput {
+                URLInputView(
+                    urlInput: $urlInput,
+                    isLoading: viewModel.isLoading,
+                    onSubmit: {
+                        Task {
+                            await viewModel.playFromURL(urlInput)
+                            showURLInput = false
+                            urlInput = ""
+                        }
+                    },
+                    onCancel: {
+                        showURLInput = false
+                        urlInput = ""
+                    }
+                )
+            }
+            
             // Genre filter tabs
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -54,11 +75,84 @@ public struct MusicPlayerView: View {
             }
         }
         .navigationTitle("Music Player")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showURLInput.toggle()
+                } label: {
+                    Label("Add URL", systemImage: "link")
+                }
+            }
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") {
+                viewModel.errorMessage = nil
+            }
+        } message: {
+            if let error = viewModel.errorMessage {
+                Text(error)
+            }
+        }
     }
     
     private var filteredSongs: [SampleSong] {
         viewModel.songs.filter { song in
             selectedGenre == .all || song.genre == selectedGenre
+        }
+    }
+}
+
+struct URLInputView: View {
+    @Binding var urlInput: String
+    let isLoading: Bool
+    let onSubmit: () -> Void
+    let onCancel: () -> Void
+    @FocusState private var isFocused: Bool
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text("Add Music from URL")
+                    .font(.headline)
+                Spacer()
+                Button("Cancel") {
+                    onCancel()
+                }
+                .font(.subheadline)
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                TextField("Paste Spotify or YouTube URL", text: $urlInput)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($isFocused)
+                    #if os(iOS)
+                    .autocapitalization(.none)
+                    .keyboardType(.URL)
+                    #endif
+                
+                Text("Supported: Spotify playlists, YouTube videos, direct audio URLs")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Button {
+                onSubmit()
+            } label: {
+                if isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                } else {
+                    Text("Load Music")
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(urlInput.isEmpty || isLoading)
+        }
+        .padding()
+        .background(.regularMaterial)
+        .onAppear {
+            isFocused = true
         }
     }
 }
