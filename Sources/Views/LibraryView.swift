@@ -340,6 +340,35 @@ struct MusicTabView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
+                // Music Player Link
+                NavigationLink(destination: MusicPlayerView()) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.blue)
+                                Text("Music Player")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                            }
+                            Text("90s Pop • Remixes • Classic")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal)
+                
                 // AI Search Results Section
                 if !viewModel.aiMusicResults.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
