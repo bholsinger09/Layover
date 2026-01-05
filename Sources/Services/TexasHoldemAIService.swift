@@ -69,20 +69,20 @@ public final class TexasHoldemAIService {
                 // Call with moderate hands
                 return callAmount > 0 ? .call : .check
             case .weak:
-                // Call small bets, check otherwise
+                // More willing to call and see the flop
                 if callAmount == 0 {
                     return .check
-                } else if callAmount <= 10 {
-                    return .call  // Call small bets even with weak hands
+                } else if callAmount <= 20 {
+                    return .call  // Increased from 10 to 20
                 } else {
                     return .fold
                 }
             case .veryWeak:
-                // Still play if call is free or very cheap
+                // Still willing to see the flop if it's cheap
                 if callAmount == 0 {
                     return .check
-                } else if callAmount <= 5 {
-                    return .call  // Cheap to see the flop
+                } else if callAmount <= 10 {
+                    return .call  // Increased from 5 to 10
                 } else {
                     return .fold
                 }
@@ -180,6 +180,7 @@ public final class TexasHoldemAIService {
         let isSuited = card1.suit == card2.suit
         let highCard = max(card1.rank.value, card2.rank.value)
         let lowCard = min(card1.rank.value, card2.rank.value)
+        let gap = highCard - lowCard
         
         // Premium pairs (AA, KK, QQ, JJ)
         if isPair && highCard >= 11 {
@@ -191,7 +192,7 @@ public final class TexasHoldemAIService {
             return .strong
         }
         
-        // Any pair
+        // Any pair (including low pairs)
         if isPair {
             return .moderate
         }
@@ -211,9 +212,23 @@ public final class TexasHoldemAIService {
             return .moderate
         }
         
-        // Suited connectors or one-gappers
-        if isSuited && abs(highCard - lowCard) <= 2 && highCard >= 8 {
-            return .moderate
+        // Suited connectors and one-gappers (much more playable)
+        if isSuited && gap <= 2 {
+            if highCard >= 8 {
+                return .moderate  // High suited connectors
+            } else if highCard >= 5 {
+                return .weak  // Mid suited connectors (like 5-6 suited)
+            }
+        }
+        
+        // Any suited cards with reasonable values
+        if isSuited && lowCard >= 5 {
+            return .weak  // Suited cards are worth seeing the flop
+        }
+        
+        // Connectors (even offsuit)
+        if gap == 1 && highCard >= 7 {
+            return .weak  // Connectors have straight potential
         }
         
         // Any two face cards
@@ -229,6 +244,11 @@ public final class TexasHoldemAIService {
         // One high card (K, Q, J, 10)
         if highCard >= 10 {
             return .weak
+        }
+        
+        // Mid-range cards (6-9)
+        if lowCard >= 6 {
+            return .veryWeak  // Still playable if cheap
         }
         
         return .veryWeak
