@@ -409,6 +409,8 @@ public final class TexasHoldemViewModel: LayoverViewModel {
                 await broadcastGameState()
             } else {
                 print("   ⚠️ SharePlay not active - not broadcasting")
+                // Check if AI should play next
+                await checkAndExecuteAITurn()
             }
         } catch {
             print("   ❌ Bet failed: \(error.localizedDescription)")
@@ -506,6 +508,9 @@ public final class TexasHoldemViewModel: LayoverViewModel {
             // Broadcast to all participants (if host in SharePlay)
             if sharePlayService.isSessionActive {
                 await broadcastGameState()
+            } else {
+                // Check if AI should play next
+                await checkAndExecuteAITurn()
             }
         } catch {
             errorMessage = error.localizedDescription
