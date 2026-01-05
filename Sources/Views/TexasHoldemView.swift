@@ -124,7 +124,8 @@ public struct TexasHoldemView: View {
     
     private var contentBody: some View {
         Group {
-            // Participant count and SharePlay indicator
+            #if !os(tvOS)
+            // Participant count and SharePlay indicator (hidden on tvOS to save space)
             HStack {
                 Image(systemName: "person.2.fill")
                     .foregroundStyle(.blue)
@@ -159,6 +160,7 @@ public struct TexasHoldemView: View {
             }
             .padding(.horizontal)
             .padding(.top, 8)
+            #endif
 
             if let game = viewModel.currentGame {
                 gameView(game)
@@ -639,15 +641,12 @@ public struct TexasHoldemView: View {
 
     private func gameView(_ game: TexasHoldemGame) -> some View {
         #if os(tvOS)
-        // tvOS: Use ScrollView as content can exceed screen height
-        ScrollView {
-            VStack(spacing: 16) {
-                gameContent(game)
-            }
-            .padding(.horizontal, 40)
-            .padding(.vertical, 20)
+        // tvOS: Fit all content on screen without scrolling
+        VStack(spacing: 4) {
+            gameContent(game)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 30)
+        .padding(.vertical, 5)
         #else
         // iOS/macOS: Use ScrollView for smaller screens
         ScrollView {
@@ -673,6 +672,10 @@ public struct TexasHoldemView: View {
                 showCards: shouldShowCards,
                 isAI: opponentPlayer.userID == viewModel.aiPlayerID
             )
+            #if os(tvOS)
+            .padding(.top, 10)
+            #endif
+            .padding(.bottom, opponentHandBottomPadding)
         }
         
         // Game phase and pot
@@ -938,8 +941,8 @@ public struct TexasHoldemView: View {
 
     private func opponentHandView(_ player: TexasHoldemPlayer, showCards: Bool, isAI: Bool) -> some View {
         VStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Text(showCards ? (isAI ? "Computer's Hand" : "Opponent's Hand") : (isAI ? "Computer" : "Opponent"))
+            HStack(spacing: 12) {
+                Text(showCards ? (isAI ? "Computer's Hand" : "Opponent's Hand") : (isAI ? "Game: Computer" : "Opponent"))
                     .font(handTitleFont)
                 
                 if isAI {
@@ -1150,30 +1153,31 @@ public struct TexasHoldemView: View {
     // MARK: - Platform-Specific Styling
     
     #if os(tvOS)
-    private var cardBackWidth: CGFloat { 140 }
-    private var cardBackHeight: CGFloat { 200 }
-    private var cardBackCornerRadius: CGFloat { 16 }
-    private var cardBackIconFont: Font { .system(size: 80) }
-    private var deckIconSize: CGFloat { 100 }
-    private var deckFrameSize: CGFloat { 200 }
-    private var deckCornerRadius: CGFloat { 20 }
-    private var cardSpacing: CGFloat { 20 }
-    private var phasePotSpacing: CGFloat { 6 }
-    private var phaseFont: Font { .title3 }
-    private var potFont: Font { .title2 }
-    private var handTitleFont: Font { .system(size: 32, weight: .semibold) }
-    private var handInfoFont: Font { .system(size: 24) }
-    private var handPadding: CGFloat { 32 }
-    private var handCornerRadius: CGFloat { 20 }
-    private var progressScale: CGFloat { 1.5 }
-    private var controlSpacing: CGFloat { 20 }
-    private var controlLabelFont: Font { .system(size: 28) }
-    private var controlValueFont: Font { .system(size: 32, weight: .semibold) }
-    private var sliderPadding: CGFloat { 24 }
-    private var sliderVerticalPadding: CGFloat { 16 }
-    private var sliderCornerRadius: CGFloat { 16 }
-    private var buttonSpacing: CGFloat { 20 }
-    private var buttonHeight: CGFloat { 80 }
+    private var cardBackWidth: CGFloat { 80 }
+    private var cardBackHeight: CGFloat { 110 }
+    private var cardBackCornerRadius: CGFloat { 10 }
+    private var cardBackIconFont: Font { .system(size: 40) }
+    private var deckIconSize: CGFloat { 50 }
+    private var deckFrameSize: CGFloat { 100 }
+    private var deckCornerRadius: CGFloat { 12 }
+    private var cardSpacing: CGFloat { 8 }
+    private var phasePotSpacing: CGFloat { 2 }
+    private var phaseFont: Font { .caption }
+    private var potFont: Font { .title3 }
+    private var opponentHandBottomPadding: CGFloat { 4 }
+    private var handTitleFont: Font { .system(size: 20, weight: .semibold) }
+    private var handInfoFont: Font { .system(size: 16) }
+    private var handPadding: CGFloat { 12 }
+    private var handCornerRadius: CGFloat { 12 }
+    private var progressScale: CGFloat { 1.0 }
+    private var controlSpacing: CGFloat { 8 }
+    private var controlLabelFont: Font { .system(size: 18) }
+    private var controlValueFont: Font { .system(size: 20, weight: .semibold) }
+    private var sliderPadding: CGFloat { 12 }
+    private var sliderVerticalPadding: CGFloat { 6 }
+    private var sliderCornerRadius: CGFloat { 10 }
+    private var buttonSpacing: CGFloat { 10 }
+    private var buttonHeight: CGFloat { 50 }
     #elseif os(macOS)
     private var cardBackWidth: CGFloat { 70 }
     private var cardBackHeight: CGFloat { 100 }
@@ -1186,6 +1190,7 @@ public struct TexasHoldemView: View {
     private var phasePotSpacing: CGFloat { 8 }
     private var phaseFont: Font { .headline }
     private var potFont: Font { .title2 }
+    private var opponentHandBottomPadding: CGFloat { 12 }
     private var handTitleFont: Font { .headline }
     private var handInfoFont: Font { .subheadline }
     private var handPadding: CGFloat { 16 }
@@ -1211,6 +1216,7 @@ public struct TexasHoldemView: View {
     private var phasePotSpacing: CGFloat { 8 }
     private var phaseFont: Font { .headline }
     private var potFont: Font { .title2 }
+    private var opponentHandBottomPadding: CGFloat { 12 }
     private var handTitleFont: Font { .headline }
     private var handInfoFont: Font { .subheadline }
     private var handPadding: CGFloat { 16 }
@@ -1249,13 +1255,13 @@ struct CardView: View {
     
     // Platform-specific card dimensions
     #if os(tvOS)
-    private var cardWidth: CGFloat { 140 }
-    private var cardHeight: CGFloat { 200 }
-    private var cardSpacing: CGFloat { 12 }
-    private var rankFont: Font { .system(size: 60, weight: .bold) }
-    private var suitFont: Font { .system(size: 50) }
-    private var cardCornerRadius: CGFloat { 16 }
-    private var cardShadowRadius: CGFloat { 6 }
+    private var cardWidth: CGFloat { 80 }
+    private var cardHeight: CGFloat { 110 }
+    private var cardSpacing: CGFloat { 6 }
+    private var rankFont: Font { .system(size: 36, weight: .bold) }
+    private var suitFont: Font { .system(size: 30) }
+    private var cardCornerRadius: CGFloat { 10 }
+    private var cardShadowRadius: CGFloat { 3 }
     #elseif os(macOS)
     private var cardWidth: CGFloat { 70 }
     private var cardHeight: CGFloat { 100 }
