@@ -1087,6 +1087,7 @@ public struct TexasHoldemView: View {
                     .tint(.red)
                     .frame(maxWidth: .infinity)
                     .frame(height: buttonHeight)
+                    .disabled(!isMyTurn)
                     #if os(tvOS)
                     .hoverEffect()
                     #endif
@@ -1099,8 +1100,8 @@ public struct TexasHoldemView: View {
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
                     .frame(height: buttonHeight)
-                    .disabled(!isMyTurn || phase == .preFlop || phase == .flop)
-                    .opacity((!isMyTurn || phase == .preFlop || phase == .flop) ? 0.5 : 1.0)
+                    .disabled(!isMyTurn || game.currentBet > 0)
+                    .opacity((!isMyTurn || game.currentBet > 0) ? 0.5 : 1.0)
                     #if os(tvOS)
                     .hoverEffect()
                     #endif
@@ -1115,6 +1116,7 @@ public struct TexasHoldemView: View {
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
                     .frame(height: buttonHeight)
+                    .disabled(!isMyTurn)
                     #if os(tvOS)
                     .hoverEffect()
                     #endif
@@ -1128,12 +1130,12 @@ public struct TexasHoldemView: View {
                     .tint(.green)
                     .frame(maxWidth: .infinity)
                     .frame(height: buttonHeight)
+                    .disabled(!isMyTurn)
                     #if os(tvOS)
                     .hoverEffect()
                     #endif
                 }
             }
-            .disabled(!isMyTurn)
             .opacity(isMyTurn ? 1.0 : 0.6)
         }
     }
