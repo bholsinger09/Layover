@@ -141,7 +141,11 @@ public struct ChessView: View {
                         
                         Button {
                             Task {
+                                print("🔄 New Game button pressed")
                                 await viewModel.endGame()
+                                print("🏁 Game ended, currentGame is now: \(viewModel.currentGame == nil ? "nil" : "not nil")")
+                                // Small delay to ensure UI updates
+                                try? await Task.sleep(nanoseconds: 100_000_000)
                                 await viewModel.startGame(room: room, currentUser: currentUser)
                             }
                         } label: {
