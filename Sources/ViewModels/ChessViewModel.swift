@@ -147,9 +147,11 @@ public final class ChessViewModel: LayoverViewModel {
                     await sharePlayService.sendMessage(.playerMove(move))
                 }
                 
-                // Check for AI turn
-                if let aiID = aiPlayerID, game.currentTurn == (currentPlayer.color == .white ? .black : .white) {
-                    await makeAIMove(aiID: aiID)
+                // Check for AI turn - use updated currentGame
+                if let aiID = aiPlayerID, let updatedGame = currentGame {
+                    if updatedGame.currentTurn == .black {
+                        await makeAIMove(aiID: aiID)
+                    }
                 }
                 
             } catch {
