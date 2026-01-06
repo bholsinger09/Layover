@@ -187,37 +187,39 @@ public struct ChessView: View {
         let isLight = (row + col) % 2 == 0
         let isSelected = viewModel.selectedSquare?.row == row && viewModel.selectedSquare?.col == col
         
-        return ZStack {
-            Rectangle()
-                .fill(isSelected ? Color.yellow : (isLight ? Color.white : Color.gray.opacity(0.6)))
-            
-            if let piece = game.board[row][col] {
-                if piece.color == .white {
-                    // White pieces with red background and white fill
-                    Text(piece.symbol)
-                        .font(.system(size: size * 0.6))
-                        .foregroundColor(.white)
-                        .padding(4)
-                        .background(
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: size * 0.7, height: size * 0.7)
-                        )
-                } else {
-                    // Black pieces
-                    Text(piece.symbol)
-                        .font(.system(size: size * 0.6))
-                        .foregroundColor(.black)
-                }
-            }
-        }
-        .frame(width: size, height: size)
-        .border(Color.black, width: 0.5)
-        .onTapGesture {
+        return Button {
             Task {
                 await viewModel.selectSquare(row: row, col: col, currentUserID: currentUser.id)
             }
+        } label: {
+            ZStack {
+                Rectangle()
+                    .fill(isSelected ? Color.yellow : (isLight ? Color.white : Color.gray.opacity(0.6)))
+                
+                if let piece = game.board[row][col] {
+                    if piece.color == .white {
+                        // White pieces with red background and white fill
+                        Text(piece.symbol)
+                            .font(.system(size: size * 0.6))
+                            .foregroundColor(.white)
+                            .padding(4)
+                            .background(
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: size * 0.7, height: size * 0.7)
+                            )
+                    } else {
+                        // Black pieces
+                        Text(piece.symbol)
+                            .font(.system(size: size * 0.6))
+                            .foregroundColor(.black)
+                    }
+                }
+            }
+            .frame(width: size, height: size)
+            .border(Color.black, width: 0.5)
         }
+        .buttonStyle(.plain)
     }
     
     private func gameStatusText(_ game: ChessGame) -> String {
