@@ -64,6 +64,12 @@ public final class MusicPlayerViewModel {
         if let audioURL = song.audioURL {
             print("🎵 Attempting to play: \(song.title) from \(audioURL)")
             
+            // Clean up existing observer first
+            if let observer = timeObserver, let oldPlayer = audioPlayer {
+                oldPlayer.removeTimeObserver(observer)
+                timeObserver = nil
+            }
+            
             // Stop and clean up previous player
             audioPlayer?.pause()
             audioPlayer = nil
@@ -87,11 +93,6 @@ public final class MusicPlayerViewModel {
     }
     
     private func setupTimeObserver(for player: AVPlayer) {
-        // Remove existing observer if any
-        if let observer = timeObserver {
-            player.removeTimeObserver(observer)
-        }
-        
         // Add periodic time observer (updates every 0.5 seconds)
         let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in

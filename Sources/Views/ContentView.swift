@@ -15,18 +15,9 @@ import UIKit
 /// Main app view with navigation for tvOS
 public struct ContentView: View {
     @StateObject var authViewModel = AuthenticationViewModel(authService: AuthenticationService())
-    @State var viewModel = RoomListViewModel(
-        roomService: RoomService(),
-        sharePlayService: SharePlayService()
-    )
-    @State var showingCreateRoom = false
-    @State var editingRoom: Room?
-    @State var navigationPath = NavigationPath()
-    @State var sharePlayReceivedRoom: Room?
     @State var libraryService = LibraryService()
     @State var showingLibrary = false
     @State var showingProfile = false
-    @State var showingFaceTimeInstructions = false
     
     public init() {}
     public var body: some View {
@@ -43,7 +34,7 @@ public struct ContentView: View {
     }
 
     private func mainAppView(currentUser: User) -> some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack {
             VStack(spacing: 0) {
                 #if os(tvOS)
                 tvTopBar(currentUser: currentUser)
@@ -53,54 +44,20 @@ public struct ContentView: View {
                 iOSTopBar(currentUser: currentUser)
                 #endif
                 
-                // SharePlay status banner
-                if viewModel.isSharePlayActive {
-                    HStack {
-                        Image(systemName: "shareplay")
-                            .font(sharePlayIconFont)
-                            .foregroundStyle(.green)
-                        Text("SharePlay Active - Sharing with FaceTime participants")
-                            .font(sharePlayTextFont)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                    }
-                    .padding(.horizontal, sharePlayHPadding)
-                    .padding(.vertical, sharePlayVPadding)
-                    .background(Color.green.opacity(0.1))
-                }
-
-                Group {
-                    if viewModel.isLoading {
-                        ProgressView("Loading rooms...")
-                    } else {
-                        roomsList
-                    }
-                }
-            }
-            .navigationTitle("LayoverLounge")
-            .sheet(isPresented: $showingCreateRoom) {
-                CreateRoomView(
-                    currentUser: currentUser,
-                    onCreate: { name, activityType in
-                        await viewModel.createRoom(
-                            name: name,
-                            host: currentUser,
-                            activityType: activityType
-                        )
-                        showingCreateRoom = false
-                    }
+                // Chess game view
+                ChessView(
+                    room: Room(
+                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID(),
+                        name: "Chess",
+                        hostID: currentUser.id,
+                        activityType: .chess,
+                        maxParticipants: 2,
+                        isPrivate: false
+                    ),
+                    currentUser: currentUser
                 )
             }
-            .sheet(item: $editingRoom) { room in
-                EditRoomView(room: room) { name, isPrivate, maxParticipants in
-                    await viewModel.updateRoom(
-                        room,
-                        name: name,
-                        isPrivate: isPrivate,
-                        maxParticipants: maxParticipants
-                    )
-                }
-            }
+            .navigationTitle("LayoverLounge")
             .sheet(isPresented: $showingLibrary) {
                 LibraryView(libraryService: libraryService)
             }
@@ -109,55 +66,6 @@ public struct ContentView: View {
                     currentUser: currentUser,
                     authViewModel: authViewModel
                 )
-            }
-            .task {
-                await viewModel.loadRooms()
-
-                // Setup navigation when SharePlay room is received
-                viewModel.onRoomReceivedForNavigation = { room in
-                    print("🚀 Auto-navigating to SharePlay room: \(room.name)")
-                    sharePlayReceivedRoom = room
-                    navigationPath.append(room)
-                }
-            }
-            .navigationDestination(for: Room.self) { room in
-                roomDetailView(for: room, currentUser: currentUser)
-            }
-            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-                Button("OK") {
-                    viewModel.errorMessage = nil
-                }
-            } message: {
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                }
-            }
-            .alert("FaceTime Setup", isPresented: $showingFaceTimeInstructions) {
-                Button("OK") {
-                    showingFaceTimeInstructions = false
-                }
-                #if !targetEnvironment(simulator)
-                Button("Try Again") {
-                    showingFaceTimeInstructions = false
-                    openFaceTime()
-                }
-                #if os(tvOS) || os(iOS)
-                Button("Open App Store") {
-                    showingFaceTimeInstructions = false
-                    tryOpenAppStoreForFaceTime()
-                }
-                #endif
-                #endif
-            } message: {
-                #if os(tvOS)
-                #if targetEnvironment(simulator)
-                Text("⚠️ Simulator Testing\n\nFaceTime can't launch from simulator, but you can test SharePlay:\n\n1. Start FaceTime on your iPhone (same Apple ID)\n2. Ensure iPhone & Mac are on same WiFi\n3. SharePlay sessions should appear here automatically\n\nOR test on physical Apple TV 4K (2nd gen+)")
-                #else
-                Text("FaceTime couldn't be launched.\n\nOptions:\n• Tap 'Open App Store' to download FaceTime\n• Say \"Hey Siri, FaceTime [contact]\"\n• Press Home → select FaceTime\n\nReturn to Layover once in a call for SharePlay.")
-                #endif
-                #else
-                Text("FaceTime couldn't be launched automatically.\n\nTap 'Open App Store' to download FaceTime, or say \"Hey Siri, open FaceTime\".\n\nOnce you're in a FaceTime call, return to Layover and shared rooms will appear automatically.")
-                #endif
             }
         }
     }
@@ -188,35 +96,6 @@ public struct ContentView: View {
             
             Spacer()
             
-            // Join FaceTime Button
-            Button {
-                openFaceTime()
-            } label: {
-                Label("Join FaceTime", systemImage: "video.fill")
-                    .font(.system(size: 28, weight: .semibold))
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.green)
-                    .foregroundStyle(.white)
-                    .cornerRadius(12)
-            }
-            .buttonStyle(.plain)
-            
-            // Refresh Button
-            Button {
-                Task {
-                    await viewModel.loadRooms()
-                }
-            } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
-                    .font(.system(size: 28, weight: .semibold))
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(12)
-            }
-            .buttonStyle(.plain)
-            
             // My Library Button
             Button {
                 showingLibrary = true
@@ -226,20 +105,6 @@ public struct ContentView: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
                     .background(Color.gray.opacity(0.2))
-                    .cornerRadius(12)
-            }
-            .buttonStyle(.plain)
-            
-            // Create Room Button
-            Button {
-                showingCreateRoom = true
-            } label: {
-                Label("Create Room", systemImage: "plus")
-                    .font(.system(size: 28, weight: .semibold))
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.blue)
-                    .foregroundStyle(.white)
                     .cornerRadius(12)
             }
             .buttonStyle(.plain)
@@ -273,21 +138,6 @@ public struct ContentView: View {
             
             Spacer()
             
-            // Refresh Button
-            Button {
-                Task {
-                    await viewModel.loadRooms()
-                }
-            } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
-                    .font(.system(size: 13, weight: .medium))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
-            
             // My Library Button
             Button {
                 showingLibrary = true
@@ -297,20 +147,6 @@ public struct ContentView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
-            
-            // Create Room Button
-            Button {
-                showingCreateRoom = true
-            } label: {
-                Label("Create Room", systemImage: "plus")
-                    .font(.system(size: 13, weight: .medium))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.blue)
-                    .foregroundStyle(.white)
                     .cornerRadius(8)
             }
             .buttonStyle(.plain)
@@ -326,79 +162,41 @@ public struct ContentView: View {
     
     @ViewBuilder
     private func iOSTopBar(currentUser: User) -> some View {
-        VStack(spacing: 0) {
-            // Top row with profile and create room
-            HStack(spacing: 12) {
-                // Profile Button
-                Button {
-                    showingProfile = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundStyle(.blue)
-                        Text(currentUser.username)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.primary)
-                    }
+        HStack(spacing: 12) {
+            // Profile Button
+            Button {
+                showingProfile = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(.blue)
+                    Text(currentUser.username)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.primary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.blue.opacity(0.15))
+                .cornerRadius(10)
+            }
+            
+            Spacer()
+            
+            // My Library Button
+            Button {
+                showingLibrary = true
+            } label: {
+                Label("My Library", systemImage: "books.vertical")
+                    .font(.system(size: 14, weight: .medium))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(Color.blue.opacity(0.15))
-                    .cornerRadius(10)
-                }
-                
-                Spacer()
-                
-                // Create Room Button
-                Button {
-                    showingCreateRoom = true
-                } label: {
-                    Label("Create Room", systemImage: "plus")
-                        .font(.system(size: 16, weight: .semibold))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.blue)
-                        .foregroundStyle(.white)
-                        .cornerRadius(10)
-                }
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(8)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
-            
-            // Bottom row with utility buttons
-            HStack(spacing: 12) {
-                // Refresh Button
-                Button {
-                    Task {
-                        await viewModel.loadRooms()
-                    }
-                } label: {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                        .font(.system(size: 14, weight: .medium))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(8)
-                }
-                
-                // My Library Button
-                Button {
-                    showingLibrary = true
-                } label: {
-                    Label("My Library", systemImage: "books.vertical")
-                        .font(.system(size: 14, weight: .medium))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(8)
-                }
-                
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         #if os(iOS)
         .background(Color(.systemBackground))
         #elseif os(macOS)
@@ -407,272 +205,6 @@ public struct ContentView: View {
         .background(Color(white: 0.1))
         #endif
         .shadow(color: Color.black.opacity(0.05), radius: 2, y: 1)
-    }
-    
-    // MARK: - Helper Functions
-    
-    private func openFaceTime() {
-        #if os(tvOS) || os(iOS)
-        print("🎥 ========== FACETIME LAUNCH DEBUG ==========")
-        
-        // Print device/simulator info
-        #if targetEnvironment(simulator)
-        print("📱 Running on SIMULATOR")
-        #else
-        print("📱 Running on PHYSICAL DEVICE")
-        #endif
-        
-        #if os(tvOS)
-        print("📺 Platform: tvOS")
-        print("⚠️ NOTE: FaceTime on Apple TV requires:")
-        print("   - tvOS 17.0 or later")
-        print("   - Physical Apple TV device (4K 2nd gen or later)")
-        print("   - FaceTime app may not be available in Simulator")
-        #else
-        print("📱 Platform: iOS")
-        #endif
-        
-        print("🎥 Attempting to open FaceTime automatically...")
-        
-        // First, check if we can query the URL
-        if let url = URL(string: "facetime://") {
-            let canOpen = UIApplication.shared.canOpenURL(url)
-            print("🎥 URL created: facetime://")
-            print("🎥 canOpenURL check: \(canOpen ? "✅ YES" : "❌ NO (FaceTime may not be installed or URL scheme not registered)")")
-            
-            if !canOpen {
-                print("⚠️ FaceTime URL scheme is NOT available on this device")
-                print("⚠️ Possible reasons:")
-                print("   - FaceTime is not installed (not available in tvOS simulator)")
-                print("   - FaceTime is disabled in Settings")
-                print("   - Running on unsupported device/simulator")
-                print("   - Device doesn't support FaceTime (Apple TV 4K 2nd gen+ only)")
-            }
-            
-            print("🎥 Attempting to open URL anyway...")
-            UIApplication.shared.open(url, options: [:]) { success in
-                DispatchQueue.main.async {
-                    print("🎥 UIApplication.open callback received")
-                    print("🎥 Success parameter: \(success)")
-                    if success {
-                        print("✅ FaceTime launched successfully!")
-                    } else {
-                        print("❌ UIApplication.open returned FALSE")
-                        print("❌ FaceTime could not be launched via facetime:// URL scheme")
-                        // Try alternative methods
-                        self.tryAlternativeFaceTimeLaunch()
-                    }
-                }
-            }
-        } else {
-            print("❌ CRITICAL: Could not create URL from 'facetime://'")
-            tryAlternativeFaceTimeLaunch()
-        }
-        #endif
-    }
-    
-    #if os(tvOS) || os(iOS)
-    private func tryAlternativeFaceTimeLaunch() {
-        print("🔄 Trying alternative FaceTime launch methods...")
-        
-        // Try alternative URL schemes
-        let alternativeSchemes = [
-            "facetime-prompt://",
-            "facetime-audio://",
-            "com.apple.facetime://"
-        ]
-        
-        var launched = false
-        for scheme in alternativeSchemes {
-            print("🔍 Testing scheme: \(scheme)")
-            
-            if let url = URL(string: scheme) {
-                let canOpen = UIApplication.shared.canOpenURL(url)
-                print("   canOpenURL: \(canOpen ? "✅ YES" : "❌ NO")")
-                
-                if canOpen {
-                    print("   Attempting to open...")
-                    UIApplication.shared.open(url, options: [:]) { success in
-                        print("   Result: \(success ? "✅ SUCCESS" : "❌ FAILED")")
-                        if success {
-                            print("✅ FaceTime launched with alternate scheme: \(scheme)")
-                            launched = true
-                        }
-                    }
-                    if launched { break }
-                } else {
-                    print("   ⏭️  Skipping (not available)")
-                }
-            } else {
-                print("   ❌ Could not create URL from scheme")
-            }
-        }
-        
-        // Try opening App Store to download FaceTime
-        if !launched {
-            print("🔄 Attempting to open App Store for FaceTime download...")
-            tryOpenAppStoreForFaceTime()
-        }
-    }
-    
-    private func tryOpenAppStoreForFaceTime() {
-        // FaceTime App Store URLs
-        let appStoreURLs = [
-            "itms-apps://apps.apple.com/app/facetime/id1110145091", // FaceTime app ID
-            "itms-appss://apps.apple.com/app/facetime/id1110145091",
-            "itms-apps://apps.apple.com/app/id1110145091",
-            "itms-apps://itunes.apple.com/app/id1110145091"
-        ]
-        
-        var appStoreOpened = false
-        
-        for urlString in appStoreURLs {
-            print("🔍 Testing App Store URL: \(urlString)")
-            
-            if let url = URL(string: urlString) {
-                let canOpen = UIApplication.shared.canOpenURL(url)
-                print("   canOpenURL: \(canOpen ? "✅ YES" : "❌ NO")")
-                
-                if canOpen {
-                    print("   Attempting to open App Store...")
-                    UIApplication.shared.open(url, options: [:]) { success in
-                        DispatchQueue.main.async {
-                            if success {
-                                print("✅ App Store opened for FaceTime download")
-                                appStoreOpened = true
-                            } else {
-                                print("❌ Failed to open App Store")
-                            }
-                        }
-                    }
-                    if appStoreOpened { break }
-                } else {
-                    print("   ⏭️  Skipping (not available)")
-                }
-            }
-        }
-        
-        // If all methods failed, show instructions
-        if !appStoreOpened {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                print("❌ ========== ALL LAUNCH METHODS FAILED ==========")
-                
-                #if targetEnvironment(simulator)
-                print("⚠️ SIMULATOR LIMITATION DETECTED")
-                print("⚠️ FaceTime is NOT available in tvOS/iOS Simulator")
-                print("⚠️ App Store is also NOT available in Simulator")
-                print("⚠️ Solutions:")
-                print("   1. Test on a PHYSICAL Apple TV device (Apple TV 4K 2nd gen or later)")
-                print("   2. Test on a PHYSICAL iPhone/iPad")
-                print("   3. For simulator testing, the alert will guide users to manual setup")
-                #else
-                print("❌ FaceTime not available on this physical device")
-                print("❌ App Store could not be opened")
-                print("❌ Please check:")
-                print("   - FaceTime is installed and enabled in Settings")
-                print("   - Device supports FaceTime")
-                print("   - Running tvOS 17.0+ on Apple TV 4K (2nd gen or later)")
-                print("   - App Store is accessible")
-                #endif
-                
-                print("❌ Summary:")
-                print("   - Primary facetime:// scheme: FAILED")
-                print("   - Alternative schemes: FAILED")
-                print("   - App Store launch: FAILED")
-                print("   - Showing user instructions")
-                print("🎥 ============================================")
-                self.showingFaceTimeInstructions = true
-            }
-        } else {
-            print("✅ ========== APP STORE OPENED ==========")
-        }
-    }
-    #endif
-    
-    // Platform-specific SharePlay banner properties
-    #if os(tvOS)
-    private var sharePlayIconFont: Font { .system(size: 32) }
-    private var sharePlayTextFont: Font { .system(size: 28) }
-    private var sharePlayHPadding: CGFloat { 40 }
-    private var sharePlayVPadding: CGFloat { 8 }
-    #elseif os(macOS)
-    private var sharePlayIconFont: Font { .system(size: 16) }
-    private var sharePlayTextFont: Font { .system(size: 13) }
-    private var sharePlayHPadding: CGFloat { 16 }
-    private var sharePlayVPadding: CGFloat { 6 }
-    #else
-    private var sharePlayIconFont: Font { .system(size: 20) }
-    private var sharePlayTextFont: Font { .system(size: 14) }
-    private var sharePlayHPadding: CGFloat { 16 }
-    private var sharePlayVPadding: CGFloat { 8 }
-    #endif
-
-    private var roomsList: some View {
-        List {
-            if viewModel.rooms.isEmpty {
-                ContentUnavailableView(
-                    "No Rooms Yet",
-                    systemImage: "rectangle.3.group",
-                    description: Text("Create a room or join a FaceTime call to see shared rooms")
-                )
-            } else {
-                ForEach(viewModel.rooms) { room in
-                    Group {
-                        #if os(macOS)
-                        Button {
-                            print("🖱️ macOS: Room button clicked: \(room.name)")
-                            navigationPath.append(room)
-                        } label: {
-                            RoomRowView(room: room)
-                        }
-                        .buttonStyle(.plain)
-                        #else
-                        NavigationLink(value: room) {
-                            RoomRowView(room: room)
-                        }
-                        #endif
-                    }
-                    .contextMenu {
-                        Button {
-                            editingRoom = room
-                        } label: {
-                            Label("Edit Room", systemImage: "pencil")
-                        }
-
-                        Divider()
-
-                        Button(role: .destructive) {
-                            Task {
-                                await viewModel.deleteRoom(room)
-                            }
-                        } label: {
-                            Label("Delete Room", systemImage: "trash")
-                        }
-                    }
-                }
-            }
-        }
-        .refreshable {
-            await viewModel.loadRooms()
-        }
-        #if os(macOS)
-        .listStyle(.sidebar)
-        #endif
-    }
-
-    @ViewBuilder
-    private func roomDetailView(for room: Room, currentUser: User) -> some View {
-        let _ = print("🏠 Navigating to room: \(room.name), type: \(room.activityType)")
-        let _ = print("   Current user ID: \(currentUser.id)")
-
-        switch room.activityType {
-        case .appleTVPlus:
-            AppleTVView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService, libraryService: libraryService)
-        case .appleMusic:
-            AppleMusicView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService)
-        case .chess:
-            ChessView(room: room, currentUser: currentUser)
-        }
     }
 }
 

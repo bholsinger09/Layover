@@ -69,6 +69,10 @@ public class LocalMusicLibraryViewModel: ObservableObject {
     public func initializeDatabase() async {
         do {
             try databaseService.openDatabase()
+            
+            // Clear all existing tracks to prevent duplicates
+            try databaseService.deleteAllTracks()
+            
             await loadTracks()
             await loadMetadata()
         } catch {
@@ -163,9 +167,8 @@ public class LocalMusicLibraryViewModel: ObservableObject {
             await loadTracks()
             await loadMetadata()
             
-            if progress.errors.isEmpty {
-                errorMessage = "Successfully imported \(progress.filesImported) bundled songs"
-            } else {
+            // Only show error messages, not success messages
+            if !progress.errors.isEmpty {
                 errorMessage = "Imported \(progress.filesImported) of \(progress.filesScanned) files with \(progress.errors.count) errors"
             }
         } catch {

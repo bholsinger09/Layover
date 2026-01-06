@@ -1,160 +1,46 @@
 import SwiftUI
 
-/// View for browsing and managing the local music library
+/// View for browsing curated music
 public struct LocalMusicLibraryView: View {
     @StateObject private var viewModel = LocalMusicLibraryViewModel()
     @State private var musicPlayer = MusicPlayerViewModel()
-    @State private var selectedTab = 0
     @State private var selectedTrack: LocalMusicTrack?
-    @State private var showingScanSheet = false
     
     public init() {}
     
     public var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Stats header
-                statsHeader
+                // Header with title
+                headerView
                 
-                // Tab picker
-                Picker("View", selection: $selectedTab) {
-                    Text("All Songs").tag(0)
-                    Text("Artists").tag(1)
-                    Text("Albums").tag(2)
+                // Mini player at top (shows when playing)
+                if let currentSong = musicPlayer.currentSong {
+                    miniPlayer(song: currentSong)
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding()
                 
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                    TextField("Search music...", text: $viewModel.searchQuery)
-                        #if !os(tvOS)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        #endif
-                }
-                .padding(.horizontal)
-                
-                // Content based on selected tab
+                // Content
                 if viewModel.tracks.isEmpty && !viewModel.isScanning {
-                    // Empty state with prominent scan button
+                    // Loading state
                     VStack(spacing: 20) {
                         Spacer()
                         
-                        Image(systemName: "music.note.list")
-                            .font(.system(size: 60))
+                        ProgressView()
+                            .scaleEffect(1.5)
+                        
+                        Text("Loading your music...")
+                            .font(.headline)
                             .foregroundColor(.secondary)
-                        
-                        Text("No Songs in Library")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                        
-                        #if os(tvOS)
-                        Text("Scan bundled music resources")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        
-                        Button {
-                            showingScanSheet = true
-                        } label: {
-                            Label("Scan Bundled Music", systemImage: "arrow.clockwise")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 32)
-                                .padding(.vertical, 16)
-                                .background(Color.blue)
-                                .cornerRadius(12)
-                        }
-                        .padding(.top, 8)
-                        
-                        Text("Add music files to Resources/Music in Xcode")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        #else
-                        Text("Import songs from your Apple Music downloads")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        
-                        Button {
-                            showingScanSheet = true
-                        } label: {
-                            Label("Scan Music Library", systemImage: "arrow.clockwise")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 32)
-                                .padding(.vertical, 16)
-                                .background(Color.blue)
-                                .cornerRadius(12)
-                        }
-                        .padding(.top, 8)
-                        #endif
                         
                         Spacer()
                     }
                     .frame(maxWidth: .infinity)
                 } else {
-                    Group {
-                        switch selectedTab {
-                        case 0:
-                            tracksListView
-                        case 1:
-                            artistsListView
-                        case 2:
-                            albumsListView
-                        default:
-                            tracksListView
-                        }
-                    }
+                    tracksListView
                 }
             }
-            .navigationTitle("Local Music Library")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button(action: {
-                            showingScanSheet = true
-                        }) {
-                            Label("Scan Music Library", systemImage: "arrow.clockwise")
-                        }
-                        
-                        Button(action: {
-                            Task {
-                                await viewModel.cleanupMissingTracks()
-                            }
-                        }) {
-                            Label("Clean Up Missing", systemImage: "trash")
-                        }
-                        
-                        Button(action: {
-                            Task {
-                                await viewModel.clearAndRescan()
-                            }
-                        }) {
-                            Label("Clear & Rescan", systemImage: "arrow.triangle.2.circlepath")
-                        }
-                        
-                        Button(action: {
-                            Task {
-                                await viewModel.clearFilters()
-                            }
-                        }) {
-                            Label("Clear Filters", systemImage: "xmark.circle")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                    }
-                }
-            }
-            .sheet(isPresented: $showingScanSheet) {
-                scanView
-            }
+            .navigationTitle("")
+            .navigationBarHidden(true)
             .alert("Message", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.errorMessage = nil
@@ -166,21 +52,25 @@ public struct LocalMusicLibraryView: View {
             }
             .task {
                 await viewModel.initializeDatabase()
-                // Always rescan on load to pick up any file changes
-                await viewModel.clearAndRescan()
+                // Always load bundled music on startup
+                await viewModel.scanBundledMusic()
             }
         }
     }
     
-    // MARK: - Stats Header
+    // MARK: - Header
     
-    private var statsHeader: some View {
+    private var headerView: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(viewModel.tracks.count) Songs")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                Text("\(viewModel.formattedTotalDuration) • \(viewModel.formattedTotalSize)")
+                HStack(spacing: 8) {
+                    Text("🎵")
+                        .font(.title)
+                    Text("Top Hits just for you")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                }
+                Text("\(viewModel.tracks.count) Songs • \(viewModel.formattedTotalDuration)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -198,7 +88,7 @@ public struct LocalMusicLibraryView: View {
     
     private var tracksListView: some View {
         List {
-            ForEach(viewModel.filteredTracks) { track in
+            ForEach(viewModel.tracks) { track in
                 #if os(tvOS)
                 Button(action: {
                     selectedTrack = track
@@ -296,109 +186,84 @@ public struct LocalMusicLibraryView: View {
         .listStyle(PlainListStyle())
     }
     
-    // MARK: - Scan View
+    // MARK: - Mini Player
     
-    private var scanView: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                if viewModel.isScanning {
-                    ProgressView()
-                    Text("Scanning...")
+    private func miniPlayer(song: SampleSong) -> some View {
+        VStack(spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(song.title)
                         .font(.headline)
-                    
-                    if let progress = viewModel.scanProgress {
-                        Text("Scanned: \(progress.filesScanned)")
-                        Text("Imported: \(progress.filesImported)")
-                        if let currentFile = progress.currentFile {
-                            Text(currentFile)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                } else {
-                    Image(systemName: "music.note.list")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
-                    
-                    Text("Scan Your Music Library")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Text("Choose how to import your music")
-                        .multilineTextAlignment(.center)
+                        .lineLimit(1)
+                    Text(song.artist)
+                        .font(.caption)
                         .foregroundColor(.secondary)
-                        .padding(.horizontal)
-                    
-                    VStack(spacing: 12) {
-                        // Bundled Music Button (works on all platforms)
-                        Button(action: {
-                            Task {
-                                await viewModel.scanBundledMusic()
-                            }
-                        }) {
-                            VStack(spacing: 4) {
-                                Label("Scan Bundled Music", systemImage: "shippingbox.fill")
-                                Text("Music files included in the app")
-                                    .font(.caption)
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                        }
-                        
-                        #if !os(tvOS)
-                        // Apple Music Library Button (Mac/iOS only)
-                        Button(action: {
-                            Task {
-                                await viewModel.scanAppleMusicLibrary()
-                            }
-                        }) {
-                            VStack(spacing: 4) {
-                                Label("Scan Apple Music Library", systemImage: "music.note")
-                                Text("From ~/Music folder")
-                                    .font(.caption)
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                        }
-                        
-                        Button(action: {
-                            // TODO: Show directory picker
-                        }) {
-                            Label("Choose Custom Folder", systemImage: "folder")
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.secondary.opacity(0.2))
-                                .foregroundColor(.primary)
-                                .cornerRadius(10)
-                        }
-                        #endif
+                        .lineLimit(1)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 20) {
+                    Button(action: {
+                        musicPlayer.playPrevious()
+                    }) {
+                        Image(systemName: "backward.fill")
+                            .font(.title3)
                     }
-                    .padding(.horizontal)
+                    
+                    Button(action: {
+                        musicPlayer.togglePlayPause()
+                    }) {
+                        Image(systemName: musicPlayer.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.title2)
+                    }
+                    
+                    Button(action: {
+                        musicPlayer.playNext()
+                    }) {
+                        Image(systemName: "forward.fill")
+                            .font(.title3)
+                    }
                 }
             }
-            .padding()
-            .navigationTitle("Import Music")
-            #if !os(tvOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") {
-                        showingScanSheet = false
-                    }
-                    .disabled(viewModel.isScanning)
+            
+            // Progress bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 4)
+                    
+                    Rectangle()
+                        .fill(Color.blue)
+                        .frame(width: geometry.size.width * CGFloat(musicPlayer.currentTime / max(musicPlayer.duration, 1)), height: 4)
                 }
+                .cornerRadius(2)
+            }
+            .frame(height: 4)
+            
+            HStack {
+                Text(formatTime(musicPlayer.currentTime))
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text(formatTime(musicPlayer.duration))
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
         }
+        .padding()
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+    
+    private func formatTime(_ seconds: Double) -> String {
+        guard seconds.isFinite && seconds >= 0 else { return "0:00" }
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%d:%02d", mins, secs)
     }
 }
 

@@ -192,6 +192,13 @@ public class MusicScannerService {
     
     /// Import a single track from a file URL
     private func importTrack(from url: URL) async throws {
+        // Check if this file path is already in the database
+        let existingTracks = try databaseService.getAllTracks()
+        if existingTracks.contains(where: { $0.filePath == url.path }) {
+            // File already imported, skip it
+            return
+        }
+        
         let asset = AVURLAsset(url: url)
         
         // Extract metadata
@@ -247,8 +254,10 @@ public class MusicScannerService {
             trackNumber = number
         }
         
-        // Create LocalMusicTrack
+        // Create LocalMusicTrack with deterministic ID based on file path
+        let filePathHash = url.path.data(using: .utf8)?.base64EncodedString() ?? UUID().uuidString
         let track = LocalMusicTrack(
+            id: filePathHash,
             title: title,
             artist: artist,
             album: album,
