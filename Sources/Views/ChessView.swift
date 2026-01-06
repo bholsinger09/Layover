@@ -23,9 +23,6 @@ public struct ChessView: View {
             }
         }
         .padding()
-        .task {
-            viewModel.setupSharePlayCallbacks()
-        }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
@@ -127,15 +124,6 @@ public struct ChessView: View {
             
             // Controls
             HStack(spacing: 16) {
-                if !viewModel.sharePlayService.isActive {
-                    Button("Start SharePlay") {
-                        Task {
-                            await viewModel.startSharePlay(room: room)
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                }
-                
                 Button("Resign") {
                     Task {
                         await viewModel.resign(playerID: currentUser.id)
