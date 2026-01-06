@@ -23,7 +23,7 @@ Layover/
 ## Architecture
 
 ### MVVM Pattern
-- **Models**: Pure data structures (User, Room, MediaContent, TexasHoldemGame)
+- **Models**: Pure data structures (User, Room, MediaContent, ChessGame)
 - **ViewModels**: Observable objects that manage business logic and state
 - **Views**: SwiftUI views that observe ViewModels
 - **Services**: Protocol-based services for SharePlay, rooms, media, and games
@@ -43,8 +43,7 @@ Layover/
 #### Activity Types
 1. **Apple TV+**: Synchronized video playback with AVPlayerPlaybackCoordinator
 2. **Apple Music**: Synchronized music playback with MusicKit
-3. **Texas Hold'em**: Full poker game with betting, folding, and phases
-4. **Chess**: Coming soon
+3. **Chess**: Turn-based strategy game with SharePlay support
 
 ## Testing
 
@@ -54,9 +53,9 @@ swift test
 ```
 
 ### Test Coverage
-- Model tests: User, Room, TexasHoldemGame, PlayingCard
-- Service tests: RoomService, TexasHoldemService
-- ViewModel tests: RoomListViewModel, TexasHoldemViewModel
+- Model tests: User, Room, ChessGame, ChessPiece
+- Service tests: RoomService, ChessService
+- ViewModel tests: RoomListViewModel, ChessViewModel
 
 ## Platform Support
 
@@ -133,13 +132,13 @@ SharePlay requires:
 
 ## Future Enhancements
 
-1. **Chess Implementation**: Complete chess game logic
+1. **Advanced Chess Features**: En passant, castling, pawn promotion
 2. **Video Chat**: Integrate AVKit for video calls
 3. **Cloud Sync**: iCloud integration for cross-device state
 4. **Notifications**: Push notifications for room invites
 5. **Analytics**: Track usage and engagement
 6. **Social Features**: Friend lists, achievements, leaderboards
-7. **More Games**: Checkers, Blackjack, Trivia
+7. **More Games**: Checkers, Poker, Trivia
 8. **Content Discovery**: Browse Apple TV+ and Music catalog
 
 ## Troubleshooting

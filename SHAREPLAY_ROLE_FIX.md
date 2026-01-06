@@ -93,7 +93,7 @@ if didInitiateActivity {
 ## What Changed
 
 ### Files Modified:
-- [TexasHoldemSharePlayService.swift](Sources/Services/TexasHoldemSharePlayService.swift)
+- [ChessSharePlayService.swift](Sources/Services/ChessSharePlayService.swift)
 
 ### Key Changes:
 1. Added `didInitiateActivity: Bool` flag to track who initiated

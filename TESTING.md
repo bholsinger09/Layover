@@ -24,15 +24,15 @@ swift test --verbose
 ### Model Tests (`Tests/Models/`)
 - `UserTests.swift` - User model validation
 - `RoomTests.swift` - Room management and roles
-- `TexasHoldemTests.swift` - Game models and cards
+- `ChessTests.swift` - Game models and pieces
 
 ### Service Tests (`Tests/Services/`)
 - `RoomServiceTests.swift` - Room CRUD operations
-- `TexasHoldemServiceTests.swift` - Game logic and state
+- `ChessServiceTests.swift` - Game logic and state
 
 ### ViewModel Tests (`Tests/ViewModels/`)
 - `RoomListViewModelTests.swift` - Room list management
-- `TexasHoldemViewModelTests.swift` - Game UI logic
+- `ChessViewModelTests.swift` - Game UI logic
 
 ## Test Coverage
 
@@ -42,7 +42,7 @@ Current coverage areas:
 - User initialization and properties
 - Room participant management
 - Room host/sub-host functionality
-- Playing cards and game state
+- Chess pieces and game state
 - Codable conformance
 
 ✅ **Services**

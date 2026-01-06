@@ -5,32 +5,11 @@ import AVFoundation
 public struct MusicPlayerView: View {
     @State private var viewModel = MusicPlayerViewModel()
     @State private var selectedGenre: MusicGenre = .all
-    @State private var showURLInput = false
-    @State private var urlInput = ""
     
     public init() {}
     
     public var body: some View {
         VStack(spacing: 0) {
-            // URL Input Section
-            if showURLInput {
-                URLInputView(
-                    urlInput: $urlInput,
-                    isLoading: viewModel.isLoading,
-                    onSubmit: {
-                        Task {
-                            await viewModel.playFromURL(urlInput)
-                            showURLInput = false
-                            urlInput = ""
-                        }
-                    },
-                    onCancel: {
-                        showURLInput = false
-                        urlInput = ""
-                    }
-                )
-            }
-            
             // Genre filter tabs
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -49,18 +28,36 @@ public struct MusicPlayerView: View {
             .background(.ultraThinMaterial)
             
             // Song list
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(filteredSongs) { song in
-                        SongRow(
-                            song: song,
-                            isPlaying: viewModel.currentSong?.id == song.id && viewModel.isPlaying
-                        ) {
-                            viewModel.playSong(song)
-                        }
-                    }
+            if viewModel.songs.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer()
+                    Image(systemName: "music.note.list")
+                        .font(.system(size: 60))
+                        .foregroundColor(.secondary)
+                    Text("No Songs in Library")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("Import songs from your local music library")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    Spacer()
                 }
                 .padding()
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(filteredSongs) { song in
+                            SongRow(
+                                song: song,
+                                isPlaying: viewModel.currentSong?.id == song.id && viewModel.isPlaying
+                            ) {
+                                viewModel.playSong(song)
+                            }
+                        }
+                    }
+                    .padding()
+                }
             }
             
             // Now playing bar
@@ -68,6 +65,8 @@ public struct MusicPlayerView: View {
                 NowPlayingBar(
                     song: currentSong,
                     isPlaying: viewModel.isPlaying,
+                    currentTime: viewModel.currentTime,
+                    duration: viewModel.duration,
                     onPlayPause: { viewModel.togglePlayPause() },
                     onNext: { viewModel.playNext() },
                     onPrevious: { viewModel.playPrevious() }
@@ -78,9 +77,11 @@ public struct MusicPlayerView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    showURLInput.toggle()
+                    Task {
+                        await viewModel.refreshLibrary()
+                    }
                 } label: {
-                    Label("Add URL", systemImage: "link")
+                    Label("Refresh", systemImage: "arrow.clockwise")
                 }
             }
         }
@@ -99,63 +100,6 @@ public struct MusicPlayerView: View {
     private var filteredSongs: [SampleSong] {
         viewModel.songs.filter { song in
             selectedGenre == .all || song.genre == selectedGenre
-        }
-    }
-}
-
-struct URLInputView: View {
-    @Binding var urlInput: String
-    let isLoading: Bool
-    let onSubmit: () -> Void
-    let onCancel: () -> Void
-    @FocusState private var isFocused: Bool
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Add Music from URL")
-                    .font(.headline)
-                Spacer()
-                Button("Cancel") {
-                    onCancel()
-                }
-                .font(.subheadline)
-            }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                TextField("Paste Spotify or YouTube URL", text: $urlInput)
-                    #if os(iOS)
-                    .textFieldStyle(.roundedBorder)
-                    .autocapitalization(.none)
-                    .keyboardType(.URL)
-                    #else
-                    .textFieldStyle(.plain)
-                    #endif
-                    .focused($isFocused)
-                
-                Text("Supported: Spotify playlists, YouTube videos, direct audio URLs")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Button {
-                onSubmit()
-            } label: {
-                if isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Load Music")
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(urlInput.isEmpty || isLoading)
-        }
-        .padding()
-        .background(.regularMaterial)
-        .onAppear {
-            isFocused = true
         }
     }
 }
@@ -230,13 +174,62 @@ struct SongRow: View {
 struct NowPlayingBar: View {
     let song: SampleSong
     let isPlaying: Bool
+    let currentTime: Double
+    let duration: Double
     let onPlayPause: () -> Void
     let onNext: () -> Void
     let onPrevious: () -> Void
     
+    private var currentTimeString: String {
+        formatTime(currentTime)
+    }
+    
+    private var durationString: String {
+        duration > 0 ? formatTime(duration) : song.duration
+    }
+    
+    private func formatTime(_ seconds: Double) -> String {
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%d:%02d", mins, secs)
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             Divider()
+            
+            // Progress bar
+            if duration > 0 {
+                VStack(spacing: 4) {
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            // Background
+                            Rectangle()
+                                .fill(Color.secondary.opacity(0.3))
+                                .frame(height: 3)
+                            
+                            // Progress
+                            Rectangle()
+                                .fill(Color.pink)
+                                .frame(width: geometry.size.width * CGFloat(min(currentTime / duration, 1.0)), height: 3)
+                        }
+                    }
+                    .frame(height: 3)
+                    
+                    // Time labels
+                    HStack {
+                        Text(currentTimeString)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(durationString)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.top, 8)
+            }
             
             HStack(spacing: 16) {
                 // Album art

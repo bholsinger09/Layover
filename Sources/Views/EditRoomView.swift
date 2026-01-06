@@ -88,8 +88,6 @@ public struct EditRoomView: View {
             return "Apple TV+"
         case .appleMusic:
             return "Apple Music"
-        case .texasHoldem:
-            return "Texas Hold'em"
         case .chess:
             return "Chess"
         }

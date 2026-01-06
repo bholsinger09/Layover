@@ -152,7 +152,7 @@ For troubleshooting connection issues:
 
 ### How It Works
 
-1. **Host Initiates:** Creates a `TexasHoldemActivity` GroupActivity
+1. **Host Initiates:** Creates a `ChessActivity` GroupActivity
 2. **Session Creation:** iOS creates a GroupSession and shares it via FaceTime
 3. **Guest Joins:** Receives notification and joins the same session
 4. **Messaging:** Uses `GroupSessionMessenger` to send messages
@@ -184,10 +184,10 @@ Host Device                          Guest Device
 
 ### Key Classes
 
-- **TexasHoldemActivity**: GroupActivity conformance for SharePlay
-- **TexasHoldemSharePlayService**: Manages SharePlay session and messaging
-- **TexasHoldemMessage**: Codable message types including `testPing` and `testPong`
-- **TexasHoldemViewModel**: Handles UI callbacks and business logic
+- **ChessActivity**: GroupActivity conformance for SharePlay
+- **ChessSharePlayService**: Manages SharePlay session and messaging
+- **ChessMessage**: Codable message types including `testPing` and `testPong`
+- **ChessViewModel**: Handles UI callbacks and business logic
 
 ## Best Practices
 
@@ -216,7 +216,7 @@ Once you've verified the connection with a successful ping:
 ## Support
 
 If you continue to have issues:
-1. Check Console app for detailed logs (filter by "SharePlay" or "TexasHoldem")
+1. Check Console app for detailed logs (filter by "SharePlay" or "Chess")
 2. Verify both devices are signed in with different Apple IDs
 3. Test with a simpler SharePlay app first to verify FaceTime SharePlay works
 4. File an issue with:

@@ -61,9 +61,6 @@ public struct RoomRowView: View {
         case .appleMusic:
             Image(systemName: "music.note")
                 .foregroundStyle(.pink)
-        case .texasHoldem:
-            Image(systemName: "suit.spade.fill")
-                .foregroundStyle(.red)
         case .chess:
             Image(systemName: "square.grid.3x3.fill")
                 .foregroundStyle(.orange)
@@ -83,10 +80,10 @@ public struct RoomRowView: View {
 
         RoomRowView(
             room: Room(
-                name: "Poker Game",
+                name: "Chess Game",
                 hostID: UUID(),
                 participantIDs: [UUID()],
-                activityType: .texasHoldem,
+                activityType: .chess,
                 isPrivate: true
             ))
     }

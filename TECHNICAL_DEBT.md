@@ -41,16 +41,16 @@ The Layover codebase has been audited for technical debt and all P3-P4 items hav
 ## ⚠️ Minor Technical Debt Items
 
 ### 1. **Duplicate Error Handling Pattern**
-**Location**: All ViewModels (TexasHoldemViewModel, AppleTVViewModel, AppleMusicViewModel)  
+**Location**: All ViewModels (ChessViewModel, AppleTVViewModel, AppleMusicViewModel)  
 **Issue**: Repeated pattern of error handling in async functions
 
 ```swift
-// Repeated 5+ times in TexasHoldemViewModel
-func bet(playerID: UUID, amount: Int) async {
+// Repeated 5+ times in ViewModels
+func performAction() async {
     errorMessage = nil
     do {
-        try await gameService.bet(playerID: playerID, amount: amount)
-        currentGame = gameService.currentGame
+        try await service.performAction()
+        currentState = service.currentState
     } catch {
         errorMessage = error.localizedDescription
     }
@@ -128,10 +128,10 @@ These items are intentional design choices, not technical debt:
 - **Note**: Documented in DEVELOPMENT.md as future enhancement
 - **Not a debt**: External dependency issue
 
-### 3. **Chess Not Implemented**
-- **Status**: Intentional - marked as "Coming Soon"
-- **Note**: Documented in roadmap
-- **Not a debt**: Planned future feature
+### 3. **Chess Features**
+- **Status**: Intentional - marked as "Active"
+- **Note**: Basic implementation complete, advanced features planned
+- **Not a debt**: Planned future enhancements (en passant, castling, etc.)
 
 ## 📊 Metrics
 

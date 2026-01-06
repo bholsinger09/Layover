@@ -201,7 +201,9 @@ public struct AppleMusicView: View {
                     LazyHStack(spacing: 16) {
                         ForEach(items, id: \.contentID) { item in
                             MusicItemCard(content: item) {
+                                print("🎵 AppleMusicView: Tapped on '\(item.title)'")
                                 Task {
+                                    print("🎵 AppleMusicView: Starting async task for '\(item.title)'")
                                     await viewModel.loadContent(item)
                                     await viewModel.play()
                                 }
@@ -234,7 +236,9 @@ public struct AppleMusicView: View {
                 LazyVStack(spacing: 8) {
                     ForEach(items, id: \.contentID) { item in
                         MusicListRow(content: item) {
+                            print("🎵 AppleMusicView: Tapped on list item '\(item.title)'")
                             Task {
+                                print("🎵 AppleMusicView: Starting async task for list item '\(item.title)'")
                                 await viewModel.loadContent(item)
                                 await viewModel.play()
                             }
@@ -275,7 +279,9 @@ public struct AppleMusicView: View {
                     LazyHStack(spacing: 16) {
                         ForEach(viewModel.playlists, id: \.contentID) { playlist in
                             MusicItemCard(content: playlist) {
+                                print("🎵 AppleMusicView: Tapped on playlist '\(playlist.title)'")
                                 Task {
+                                    print("🎵 AppleMusicView: Starting async task for playlist '\(playlist.title)'")
                                     await viewModel.loadContent(playlist)
                                     await viewModel.play()
                                 }

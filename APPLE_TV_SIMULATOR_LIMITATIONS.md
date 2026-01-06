@@ -65,7 +65,7 @@ This document outlines the known limitations when testing Layover on the Apple T
    - Media metadata display
 
 4. **Single-Device Features**
-   - Texas Hold'em poker game
+   - Chess game
    - Local gameplay
    - User interface flows
 

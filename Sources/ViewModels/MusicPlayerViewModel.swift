@@ -6,17 +6,23 @@ import AVFoundation
 @MainActor
 @Observable
 public final class MusicPlayerViewModel {
-    public private(set) var songs: [SampleSong] = SampleSong.samples
+    public private(set) var songs: [SampleSong] = []
     public private(set) var currentSong: SampleSong?
     public private(set) var isPlaying = false
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
+    public private(set) var currentTime: Double = 0.0
+    public private(set) var duration: Double = 0.0
     private var currentIndex = 0
-    private let spotifyService = SpotifyService()
+    private let databaseService = MusicDatabaseService()
     nonisolated(unsafe) private var audioPlayer: AVPlayer?
+    nonisolated(unsafe) private var timeObserver: Any?
     
     public init() {
         setupAudioSession()
+        Task {
+            await loadSongsFromDatabase()
+        }
     }
     
     private func setupAudioSession() {
@@ -31,6 +37,9 @@ public final class MusicPlayerViewModel {
     }
     
     deinit {
+        if let observer = timeObserver {
+            audioPlayer?.removeTimeObserver(observer)
+        }
         audioPlayer?.pause()
         audioPlayer = nil
     }
@@ -40,67 +49,148 @@ public final class MusicPlayerViewModel {
     }
     
     public func playSong(_ song: SampleSong) {
-        guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
-            return
+        // Try to find the song in the library
+        if let index = songs.firstIndex(where: { $0.id == song.id }) {
+            currentIndex = index
+            currentSong = song
+        } else {
+            // Song not in library, add it temporarily and play it
+            print("⚠️ Song not in library, playing directly: \(song.title)")
+            currentSong = song
+            currentIndex = -1 // Indicate this is not part of the main library
         }
-        
-        currentIndex = index
-        currentSong = song
         
         // Play audio if URL exists
         if let audioURL = song.audioURL {
             print("🎵 Attempting to play: \(song.title) from \(audioURL)")
             
+            // Stop and clean up previous player
             audioPlayer?.pause()
             audioPlayer = nil
             
-            let player = AVPlayer(url: audioURL)
+            // Create player item and player
+            let playerItem = AVPlayerItem(url: audioURL)
+            let player = AVPlayer(playerItem: playerItem)
             audioPlayer = player
             
-            // Monitor player status
+            // Set volume to ensure it's audible
+            player.volume = 1.0
+            
+            // Monitor player status and load asynchronously
             Task {
-                await monitorPlayerStatus(player)
+                await loadAndPlayAudio(player: player, item: playerItem, song: song)
             }
-            
-            player.play()
-            isPlaying = true
-            
-            print("✅ Player created and play() called")
         } else {
             isPlaying = true
             print("⚠️ No audio URL for: \(song.title) by \(song.artist)")
         }
     }
     
-    private func monitorPlayerStatus(_ player: AVPlayer) async {
-        // Wait a bit for the player to load
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+    private func setupTimeObserver(for player: AVPlayer) {
+        // Remove existing observer if any
+        if let observer = timeObserver {
+            player.removeTimeObserver(observer)
+        }
         
-        switch player.status {
-        case .readyToPlay:
-            print("✅ Player ready to play")
-        case .failed:
-            let error = player.error?.localizedDescription ?? "unknown error"
-            print("❌ Player failed: \(error)")
-            await MainActor.run {
-                errorMessage = "Playback failed: \(error)"
+        // Add periodic time observer (updates every 0.5 seconds)
+        let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            let seconds = time.seconds
+            if seconds.isFinite {
+                self.currentTime = seconds
             }
-        case .unknown:
-            print("⏳ Player status unknown")
-        @unknown default:
-            break
+        }
+    }
+    
+    private func loadAndPlayAudio(player: AVPlayer, item: AVPlayerItem, song: SampleSong) async {
+        print("⏳ Loading audio for: \(song.title)...")
+        
+        // Wait for the item to be ready to play
+        var attempts = 0
+        let maxAttempts = 30 // 3 seconds total (30 * 100ms)
+        
+        while attempts < maxAttempts {
+            let status = item.status
+            
+            switch status {
+            case .readyToPlay:
+                print("✅ Player item ready to play")
+                let durationSeconds = item.duration.seconds
+                print("📊 Duration: \(durationSeconds) seconds")
+                
+                // Update duration and setup time observer
+                await MainActor.run {
+                    self.duration = durationSeconds.isFinite ? durationSeconds : 0.0
+                    self.currentTime = 0.0
+                    self.setupTimeObserver(for: player)
+                    
+                    // Now play the audio
+                    player.play()
+                    isPlaying = true
+                    print("▶️ Playback started for: \(song.title)")
+                }
+                
+                // Monitor playback
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                let rate = player.rate
+                let currentTime = player.currentTime().seconds
+                print("📊 Playback status - Rate: \(rate), Current time: \(currentTime)s")
+                
+                if rate > 0 {
+                    print("✅ Audio is playing successfully")
+                } else {
+                    print("⚠️ Player rate is 0 - audio may not be playing")
+                }
+                return
+                
+            case .failed:
+                let error = item.error?.localizedDescription ?? "unknown error"
+                print("❌ Player item failed to load: \(error)")
+                if let error = item.error {
+                    print("❌ Error details: \(error)")
+                }
+                await MainActor.run {
+                    errorMessage = "Failed to load audio: \(error)"
+                    isPlaying = false
+                }
+                return
+                
+            case .unknown:
+                // Still loading, wait a bit
+                try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                attempts += 1
+                if attempts % 10 == 0 {
+                    print("⏳ Still loading... (\(attempts * 100)ms elapsed)")
+                }
+                
+            @unknown default:
+                break
+            }
+        }
+        
+        // Timeout
+        print("⏱️ Timeout waiting for player to be ready")
+        await MainActor.run {
+            errorMessage = "Audio loading timed out"
+            isPlaying = false
         }
     }
     
     public func togglePlayPause() {
+        guard let player = audioPlayer else {
+            print("⚠️ No player available")
+            return
+        }
+        
         if isPlaying {
-            audioPlayer?.pause()
+            player.pause()
             isPlaying = false
-            print("⏸️ Paused")
+            print("⏸️ Paused at \(currentTime)s")
         } else {
-            audioPlayer?.play()
+            player.play()
             isPlaying = true
-            print("▶️ Playing")
+            print("▶️ Resumed from \(currentTime)s")
         }
     }
     
@@ -120,87 +210,42 @@ public final class MusicPlayerViewModel {
         let previousSong = songs[currentIndex]
         print("⏮️ Previous: \(previousSong.title)")
         playSong(previousSong)
-    }    
-    // MARK: - URL Playback
-    
-    public func playFromURL(_ urlString: String) async {
-        errorMessage = nil
-        isLoading = true
-        
-        print("🌐 Playing from URL: \(urlString)")
-        
-        // Check if it's a Spotify URL
-        if urlString.contains("spotify.com") {
-            await loadSpotifyPlaylist(urlString)
-        }
-        // Check if it's a YouTube URL
-        else if urlString.contains("youtube.com") || urlString.contains("youtu.be") {
-            loadYouTubeURL(urlString)
-        }
-        // Try as direct audio URL
-        else {
-            loadDirectAudioURL(urlString)
-        }
-        
-        isLoading = false
     }
     
-    private func loadSpotifyPlaylist(_ url: String) async {
+    // MARK: - Database Integration
+    
+    private func loadSongsFromDatabase() async {
         do {
-            let playlistSongs = try await spotifyService.fetchPlaylist(url: url)
-            songs = playlistSongs
+            try databaseService.openDatabase()
+            let tracks = try databaseService.getAllTracks()
             
-            if let firstSong = songs.first {
-                playSong(firstSong)
+            // Convert LocalMusicTrack to SampleSong
+            songs = tracks.map { track in
+                SampleSong(
+                    title: track.title,
+                    artist: track.artist,
+                    genre: .all,
+                    duration: track.formattedDuration,
+                    colors: [.blue, .purple],
+                    audioURL: URL(fileURLWithPath: track.filePath)
+                )
             }
             
-            print("✅ Loaded \(songs.count) songs from Spotify")
+            print("✅ Loaded \(songs.count) songs from database")
         } catch {
-            errorMessage = "Failed to load Spotify playlist: \(error.localizedDescription)"
-            print("❌ Spotify error: \(error)")
+            print("❌ Failed to load songs from database: \(error)")
+            errorMessage = "Failed to load music library"
         }
     }
     
-    private func loadYouTubeURL(_ url: String) {
-        // For YouTube URLs, we'll create a placeholder song
-        // Note: Direct YouTube playback requires additional implementation
-        print("📺 YouTube URL detected: \(url)")
-        print("ℹ️ YouTube playback requires browser/webview - adding to playlist")
-        
-        let youtubeSong = SampleSong(
-            title: "YouTube Video",
-            artist: "From URL",
-            genre: .all,
-            duration: "--:--",
-            colors: [.red, .pink]
-        )
-        
-        songs.insert(youtubeSong, at: 0)
-        playSong(youtubeSong)
-        
-        // TODO: Open YouTube URL in web view or system browser
-        errorMessage = "YouTube playback will open in browser"
+    public func refreshLibrary() async {
+        await loadSongsFromDatabase()
     }
     
-    private func loadDirectAudioURL(_ urlString: String) {
-        guard let url = URL(string: urlString) else {
-            errorMessage = "Invalid URL"
-            return
-        }
-        
-        print("🎵 Loading direct audio URL: \(url)")
-        
-        let audioSong = SampleSong(
-            title: url.lastPathComponent,
-            artist: "From URL",
-            genre: .all,
-            duration: "--:--",
-            colors: [.blue, .purple],
-            audioURL: url
-        )
-        
-        songs.insert(audioSong, at: 0)
-        playSong(audioSong)
-        
-        print("✅ Playing audio from URL")
-    }}
+    // MARK: - URL Playback (Deprecated - using database instead)
+    
+    public func playFromURL(_ urlString: String) async {
+        errorMessage = "URL playback is no longer supported. Please import songs to your local library first."
+        isLoading = false
+    }
+}

@@ -11,7 +11,6 @@ public enum RoomConstants {
 public enum RoomActivityType: String, Codable, Sendable {
     case appleTVPlus = "tv_plus"
     case appleMusic = "music"
-    case texasHoldem = "texas_holdem"
     case chess = "chess"
 }
 
@@ -28,7 +27,7 @@ public struct Room: LayoverModel {
     public var isPrivate: Bool
     public var createdAt: Date
     public var metadata: [String: String]
-    public var activeGameID: UUID? // Track active Texas Hold'em game
+    public var activeGameID: UUID? // Track active game
 
     public init(
         id: UUID = UUID(),

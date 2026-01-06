@@ -245,25 +245,9 @@ public final class LibraryService: LibraryServiceProtocol {
     }
     
     public func getMusicRecommendations() -> [MusicTrack] {
-        // Simple recommendation: return sample tracks not in favorites
-        let sampleTracks = getSampleMusicTracks()
-        let favoriteIDs = Set(musicLibrary.favoriteTracks.map { $0.id })
-        return sampleTracks.filter { !favoriteIDs.contains($0.id) }
-    }
-    
-    private func getSampleMusicTracks() -> [MusicTrack] {
-        [
-            MusicTrack(title: "Anti-Hero", artist: "Taylor Swift", album: "Midnights", duration: 200),
-            MusicTrack(title: "Flowers", artist: "Miley Cyrus", album: "Endless Summer Vacation", duration: 200),
-            MusicTrack(title: "As It Was", artist: "Harry Styles", album: "Harry's House", duration: 167),
-            MusicTrack(title: "Cruel Summer", artist: "Taylor Swift", album: "Lover", duration: 178),
-            MusicTrack(title: "Vampire", artist: "Olivia Rodrigo", album: "GUTS", duration: 219),
-            MusicTrack(title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", duration: 200),
-            MusicTrack(title: "Levitating", artist: "Dua Lipa", album: "Future Nostalgia", duration: 203),
-            MusicTrack(title: "good 4 u", artist: "Olivia Rodrigo", album: "SOUR", duration: 178),
-            MusicTrack(title: "Heat Waves", artist: "Glass Animals", album: "Dreamland", duration: 239),
-            MusicTrack(title: "Stay", artist: "The Kid LAROI & Justin Bieber", album: "Stay", duration: 141),
-        ]
+        // Return empty array - recommendations should come from the local database
+        // This can be enhanced later with AI-based recommendations from the local library
+        return []
     }
     
     /// Sample content for recommendations

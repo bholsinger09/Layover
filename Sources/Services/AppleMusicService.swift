@@ -128,6 +128,10 @@ public final class AppleMusicService: AppleMusicServiceProtocol {
                     logger.info("Found song in cache, setting queue")
                     musicPlayer.queue = [song]
                     logger.info("Queue set with song: \(song.title)")
+                    
+                    // Give the queue time to settle
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s
+                    
                     try await musicPlayer.prepareToPlay()
                     logger.info("Player prepared to play")
                 } else {
@@ -175,6 +179,10 @@ public final class AppleMusicService: AppleMusicServiceProtocol {
                             if let tracks = detailedPlaylist.tracks, !tracks.isEmpty {
                                 logger.info("Library playlist has \(tracks.count) tracks, setting queue")
                                 musicPlayer.queue = ApplicationMusicPlayer.Queue(for: tracks)
+                                
+                                // Give the queue time to settle
+                                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s
+                                
                                 try await musicPlayer.prepareToPlay()
                                 logger.info("Player prepared to play")
                             } else {
@@ -236,8 +244,32 @@ public final class AppleMusicService: AppleMusicServiceProtocol {
     public func play() async {
         do {
             logger.info("Starting playback, queue has \(self.musicPlayer.queue.entries.count) items")
+            
+            // Ensure player is prepared
+            let state = musicPlayer.state
+            logger.info("Player state before play: \(String(describing: state.playbackStatus))")
+            
+            if musicPlayer.queue.entries.isEmpty {
+                logger.error("Cannot play - queue is empty")
+                return
+            }
+            
+            // Prepare if needed
+            do {
+                try await musicPlayer.prepareToPlay()
+                logger.info("Player prepared successfully")
+            } catch {
+                logger.warning("Prepare to play failed (may already be prepared): \(error.localizedDescription)")
+            }
+            
+            // Start playback
             try await self.musicPlayer.play()
             logger.info("Playback started successfully")
+            
+            // Verify playback started
+            try? await Task.sleep(nanoseconds: 500_000_000) // Wait 0.5s
+            let newState = musicPlayer.state
+            logger.info("Player state after play: \(String(describing: newState.playbackStatus))")
         } catch {
             logger.error("Failed to play music: \(error.localizedDescription)")
         }

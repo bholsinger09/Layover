@@ -34,9 +34,6 @@ public struct CreateRoomView: View {
                             Label("Apple Music", systemImage: "music.note")
                                 .tag(RoomActivityType.appleMusic)
 
-                            Label("Texas Hold'em", systemImage: "suit.spade.fill")
-                                .tag(RoomActivityType.texasHoldem)
-
                             Label("Chess", systemImage: "square.grid.3x3.fill")
                                 .tag(RoomActivityType.chess)
                         }

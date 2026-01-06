@@ -18,7 +18,7 @@ SharePlay allows multiple players to sync their Texas Hold'em game state in real
 3. **Tap "Start SharePlay"** button (purple button with SharePlay icon)
 4. **Approve the SharePlay request** when iOS/macOS prompts you
 5. Wait for "SharePlay Active" indicator to appear
-6. **Tap "Start Game"** to begin the poker game
+6. **Tap "Start Game"** to begin the chess game
 
 #### On the Participant Device (iPhone or Mac):
 1. **Stay in the FaceTime call**
@@ -56,7 +56,7 @@ SharePlay allows multiple players to sync their Texas Hold'em game state in real
 ### Technical Details
 
 **SharePlay Session Flow:**
-1. Host activates `TexasHoldemActivity` via `GroupActivitySharingController`
+1. Host activates `ChessActivity` via `GroupActivitySharingController`
 2. FaceTime displays join banner to all call participants
 3. Participants tap "Join" to join the GroupSession
 4. Host starts game, broadcasts `gameStarted` message

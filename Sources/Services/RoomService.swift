@@ -14,12 +14,6 @@ public protocol RoomServiceProtocol: LayoverService {
     func demoteSubHost(roomID: UUID, userID: UUID) async throws
     func deleteRoom(roomID: UUID) async throws
     func fetchRooms() async throws -> [Room]
-    
-    // Game sync methods
-    func saveGame(_ game: TexasHoldemGame)
-    func getGame(gameID: UUID) -> TexasHoldemGame?
-    func getActiveGame(for roomID: UUID) -> TexasHoldemGame?
-    func deleteGame(_ game: TexasHoldemGame)
 }
 
 @MainActor
@@ -28,13 +22,10 @@ public final class RoomService: RoomServiceProtocol {
     public private(set) var rooms: [Room] = []
     private let defaults = NSUbiquitousKeyValueStore.default
     private let roomsKey = "layoverlounge.rooms"
-    private let gamesKey = "layoverlounge.games"
-    private(set) var games: [UUID: TexasHoldemGame] = [:] // gameID -> game
 
     public nonisolated init() {
         Task { @MainActor in
             loadRooms()
-            loadGames()
             // Observe changes from other devices
             NotificationCenter.default.addObserver(
                 self,
@@ -47,7 +38,6 @@ public final class RoomService: RoomServiceProtocol {
 
     @objc private func cloudDataChanged() {
         loadRooms()
-        loadGames()
     }
 
     private func loadRooms() {
@@ -60,17 +50,6 @@ public final class RoomService: RoomServiceProtocol {
         rooms = decoded
     }
     
-    private func loadGames() {
-        guard let data = defaults.data(forKey: gamesKey),
-            let decoded = try? JSONDecoder().decode([UUID: TexasHoldemGame].self, from: data)
-        else {
-            self.games = [:]
-            return
-        }
-        self.games = decoded
-        logger.info("📥 Loaded \(self.games.count) games from iCloud")
-    }
-
     private func saveRooms() {
         guard let encoded = try? JSONEncoder().encode(rooms) else { return }
         defaults.set(encoded, forKey: roomsKey)
@@ -176,79 +155,6 @@ public final class RoomService: RoomServiceProtocol {
     public func fetchRooms() async throws -> [Room] {
         loadRooms()
         return rooms
-    }
-    
-    // MARK: - Game Sync Methods
-    
-    public func saveGame(_ game: TexasHoldemGame) {
-        logger.info("💾 Saving game \(game.id) to iCloud...")
-        games[game.id] = game
-        saveGames()
-        
-        // Update room's active game
-        if let index = rooms.firstIndex(where: { $0.id == game.roomID }) {
-            rooms[index].activeGameID = game.id
-            saveRooms()
-            logger.info("   ✅ Updated room \(game.roomID) activeGameID")
-        }
-        
-        logger.info("   ✅ Game saved successfully. Total games: \(self.games.count)")
-    }
-    
-    public func getGame(gameID: UUID) -> TexasHoldemGame? {
-        logger.info("🔍 Looking for game: \(gameID)")
-        let game = games[gameID]
-        if game == nil {
-            logger.info("   ❌ Game not found")
-        } else {
-            logger.info("   ✅ Game found")
-        }
-        return game
-    }
-    
-    public func getActiveGame(for roomID: UUID) -> TexasHoldemGame? {
-        logger.info("🔍 Looking for active game in room: \(roomID)")
-        guard let room = rooms.first(where: { $0.id == roomID }) else {
-            logger.info("   ❌ Room not found")
-            return nil
-        }
-        
-        guard let gameID = room.activeGameID else {
-            logger.info("   ℹ️ Room has no active game")
-            return nil
-        }
-        
-        let game = games[gameID]
-        if game == nil {
-            logger.info("   ❌ Game \(gameID) not found in games dict")
-        } else {
-            logger.info("   ✅ Found active game \(gameID)")
-        }
-        return game
-    }
-    
-    public func deleteGame(_ game: TexasHoldemGame) {
-        logger.info("🗑️ Deleting game: \(game.id)")
-        games.removeValue(forKey: game.id)
-        
-        // Also clear the activeGameID from the room
-        if let roomIndex = rooms.firstIndex(where: { $0.id == game.roomID }) {
-            rooms[roomIndex].activeGameID = nil
-            logger.info("   Cleared activeGameID from room")
-        }
-        
-        saveGames()
-        saveRooms()
-        logger.info("   ✅ Game deleted")
-    }
-    
-    private func saveGames() {
-        guard let encoded = try? JSONEncoder().encode(games) else {
-            logger.error("Failed to encode games")
-            return
-        }
-        defaults.set(encoded, forKey: gamesKey)
-        defaults.synchronize()
     }
 }
 

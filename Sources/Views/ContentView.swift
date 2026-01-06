@@ -670,10 +670,8 @@ public struct ContentView: View {
             AppleTVView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService, libraryService: libraryService)
         case .appleMusic:
             AppleMusicView(room: room, currentUser: currentUser, sharePlayService: viewModel.sharePlayService)
-        case .texasHoldem:
-            TexasHoldemView(room: room, currentUser: currentUser)
         case .chess:
-            Text("Chess - Coming Soon")
+            ChessView(room: room, currentUser: currentUser)
         }
     }
 }

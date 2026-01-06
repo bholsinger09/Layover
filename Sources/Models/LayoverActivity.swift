@@ -35,7 +35,7 @@ public struct LayoverActivity: GroupActivity {
             }
         case .appleMusic:
             meta.type = .listenTogether
-        case .texasHoldem, .chess:
+        case .chess:
             meta.type = .generic
         }
         
@@ -50,8 +50,6 @@ public struct LayoverActivity: GroupActivity {
             return "Apple TV+"
         case .appleMusic:
             return "Apple Music"
-        case .texasHoldem:
-            return "Texas Hold'em"
         case .chess:
             return "Chess"
         }

@@ -155,7 +155,7 @@ struct MoviesTabView: View {
                             .foregroundStyle(.secondary)
                         Text("Results will appear here")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 32)
                     .frame(maxWidth: .infinity)
@@ -340,6 +340,35 @@ struct MusicTabView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
+                // Local Music Library Link
+                NavigationLink(destination: LocalMusicLibraryView()) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Image(systemName: "externaldrive.fill.badge.waveform")
+                                    .font(.title2)
+                                    .foregroundStyle(.green)
+                                Text("Local Music Library")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                            }
+                            Text("Import & manage your downloaded music")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal)
+                
                 // Music Player Link
                 NavigationLink(destination: MusicPlayerView()) {
                     HStack {
@@ -352,7 +381,7 @@ struct MusicTabView: View {
                                     .font(.title3)
                                     .fontWeight(.semibold)
                             }
-                            Text("90s Pop • Remixes • Classic")
+                            Text("Play songs from your library")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -404,7 +433,7 @@ struct MusicTabView: View {
                             .foregroundStyle(.secondary)
                         Text("Results will appear here")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 32)
                     .frame(maxWidth: .infinity)
@@ -486,7 +515,7 @@ struct MusicTabView: View {
                                 .foregroundStyle(.secondary)
                             Text("Tap + to create your first playlist")
                                 .font(.caption)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(.secondary)
                         }
                         .padding(.vertical, 32)
                         .frame(maxWidth: .infinity)
@@ -554,7 +583,6 @@ struct MusicStatsCard: View {
     let viewModel: LibraryViewModel
     
     private var listenTime: String {
-        let library = viewModel.favoriteTracks.first?.album
         // Calculate listen time from history
         let totalSeconds = viewModel.musicHistory.reduce(0.0) { $0 + $1.listenDuration }
         let hours = Int(totalSeconds) / 3600
@@ -756,7 +784,7 @@ struct PlaylistRow: View {
                 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
             }
         }
         .buttonStyle(.plain)
@@ -794,7 +822,7 @@ struct HistoryTrackRow: View {
                         .foregroundStyle(.secondary)
                     
                     Text("•")
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                     
                     Text(historyItem.formattedDate)
                         .font(.caption)
@@ -843,7 +871,7 @@ struct CreatePlaylistView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Create") {
                         Task {
-                            await viewModel.createPlaylist(
+                            _ = await viewModel.createPlaylist(
                                 name: playlistName.isEmpty ? "Untitled Playlist" : playlistName,
                                 description: playlistDescription.isEmpty ? nil : playlistDescription
                             )

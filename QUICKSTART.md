@@ -5,7 +5,7 @@
 Layover is a multi-platform SwiftUI app that enables synchronized group experiences across:
 - 📺 Apple TV+ (watching shows and movies together)
 - 🎵 Apple Music (listening to music together)
-- 🃏 Games (Texas Hold'em poker, Chess)
+- ♟️ Games (Chess)
 
 Built with SharePlay API and AVPlaybackCoordinator for seamless synchronization.
 
@@ -65,11 +65,11 @@ swift build
 - MusicKit authorization
 - Song/album/playlist support
 
-### ✅ Texas Hold'em
-- 2-10 player support
-- Full poker mechanics (bet, fold, call, raise)
-- Community cards and phases
-- Chip management
+### ✅ Chess
+- 2 player turn-based game
+- All standard chess piece movements
+- AI opponent support
+- SharePlay multiplayer
 
 ### ✅ Test Coverage
 - 50+ unit tests
@@ -175,7 +175,7 @@ Layover/
 │   │   ├── User.swift
 │   │   ├── Room.swift
 │   │   ├── MediaContent.swift
-│   │   ├── TexasHoldemGame.swift
+│   │   ├── ChessGame.swift
 │   │   └── LayoverActivity.swift
 │   │
 │   ├── Services/             # Business logic
@@ -183,13 +183,13 @@ Layover/
 │   │   ├── RoomService.swift
 │   │   ├── AppleTVService.swift
 │   │   ├── AppleMusicService.swift
-│   │   └── TexasHoldemService.swift
+│   │   └── ChessService.swift
 │   │
 │   ├── ViewModels/           # MVVM ViewModels
 │   │   ├── RoomListViewModel.swift
 │   │   ├── AppleTVViewModel.swift
 │   │   ├── AppleMusicViewModel.swift
-│   │   └── TexasHoldemViewModel.swift
+│   │   └── ChessViewModel.swift
 │   │
 │   └── Views/                # SwiftUI Views
 │       ├── ContentView.swift
@@ -197,7 +197,7 @@ Layover/
 │       ├── CreateRoomView.swift
 │       ├── AppleTVView.swift
 │       ├── AppleMusicView.swift
-│       └── TexasHoldemView.swift
+│       └── ChessView.swift
 │
 ├── Tests/                    # Unit tests
 │   ├── Models/

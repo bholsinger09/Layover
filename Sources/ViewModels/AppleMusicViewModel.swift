@@ -74,17 +74,26 @@ public final class AppleMusicViewModel: LayoverViewModel {
     }
 
     public func loadContent(_ content: MediaContent) async {
+        print("🎵 AppleMusicViewModel: Loading content '\(content.title)' (type: \(content.contentType))")
         isLoading = true
         errorMessage = nil
 
         do {
             currentContent = content
+            print("🎵 AppleMusicViewModel: Calling musicService.loadContent()")
             try await musicService.loadContent(content)
+            
+            // Small delay to ensure queue is fully settled
+            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2s
+            
             // Success - ensure error is cleared
             errorMessage = nil
+            print("✅ AppleMusicViewModel: Content loaded successfully")
         } catch let error as MusicError {
+            print("❌ AppleMusicViewModel: MusicError - \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         } catch {
+            print("❌ AppleMusicViewModel: Error - \(error.localizedDescription)")
             errorMessage = "Failed to load: \(error.localizedDescription)"
         }
 
@@ -92,9 +101,11 @@ public final class AppleMusicViewModel: LayoverViewModel {
     }
 
     public func play() async {
+        print("▶️ AppleMusicViewModel: play() called")
         errorMessage = nil // Clear any previous errors
         isPlaying = true
         await musicService.play()
+        print("▶️ AppleMusicViewModel: play() completed")
     }
 
     public func pause() async {
