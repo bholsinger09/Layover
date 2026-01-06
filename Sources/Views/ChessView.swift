@@ -38,18 +38,32 @@ public struct ChessView: View {
     }
     
     private var setupView: some View {
-        VStack(spacing: 20) {
-            Text("Chess")
-                .font(.largeTitle)
-                .bold()
-            
-            Button("Start Game") {
-                Task {
-                    await viewModel.startGame(room: room, currentUser: currentUser)
+        List {
+            Section {
+                VStack(spacing: 40) {
+                    Text("Chess")
+                        .font(.largeTitle)
+                        .bold()
+                    
+                    Button {
+                        Task {
+                            await viewModel.startGame(room: room, currentUser: currentUser)
+                        }
+                    } label: {
+                        Label("Start Game", systemImage: "play.fill")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+                .listRowBackground(Color.clear)
             }
-            .buttonStyle(.borderedProminent)
         }
+        .listStyle(.plain)
     }
     
     private func gameView(_ game: ChessGame) -> some View {

@@ -257,114 +257,108 @@ struct StoryTabView: View {
     @Binding var searchText: String
     @State private var selectedStory: Story?
     
-    // Sample short stories
+    // Sample short stories - All Public Domain
     private let sampleStories = [
         Story(
-            title: "The Last Question",
-            author: "Isaac Asimov",
-            genre: "Science Fiction",
-            duration: "15 min read",
-            content: """
-            The last question was asked for the first time, half in jest, on May 21, 2061, at a time when humanity first stepped into the light. The question came about as a result of a five dollar bet over highballs, and it happened this way...
-            
-            Alexander Adell and Bertram Lupov were two of the faithful attendants of Multivac. As well as any human beings could, they knew what lay behind the cold, clicking, flashing face -- miles and miles of face -- of that giant computer.
-            
-            Nevertheless, the two men had been drinking, and they had their own private office where they could drink in peace and talk about things that no one else would understand.
-            
-            "In another century or two," said Adell, "we'll be able to run a starship on energy from the cosmic rays."
-            
-            Lupov nodded. "It's incredible how much has changed. When I was young, we thought fusion was the answer. Now look at us."
-            
-            They raised their glasses to the wonder of human achievement, unaware that their casual question would echo through eternity...
-            
-            [This is an excerpt. The full story explores humanity's journey across the ages and the ultimate question of entropy.]
-            """
-        ),
-        Story(
-            title: "The Lottery",
-            author: "Shirley Jackson",
-            genre: "Horror",
-            duration: "10 min read",
-            content: """
-            The morning of June 27th was clear and sunny, with the fresh warmth of a full-summer day; the flowers were blossoming profusely and the grass was richly green. The people of the village began to gather in the square, between the post office and the bank, around ten o'clock...
-            
-            Bobby Martin had already stuffed his pockets full of stones, and the other boys soon followed his example, selecting the smoothest and roundest stones. Bobby and Harry Jones and Dickie Delacroix eventually made a great pile of stones in one corner of the square.
-            
-            The lottery was conducted -- as were the square dances, the teen club, the Halloween program -- by Mr. Summers, who had time and energy to devote to civic activities.
-            
-            Mrs. Hutchinson arrived breathlessly. "Clean forgot what day it was," she said to Mrs. Delacroix, who stood next to her, and they both laughed softly.
-            
-            [This is an excerpt of this chilling tale about tradition and conformity.]
-            """
-        ),
-        Story(
-            title: "The Gift of the Magi",
-            author: "O. Henry",
-            genre: "Romance",
-            duration: "8 min read",
-            content: """
-            One dollar and eighty-seven cents. That was all. And sixty cents of it was in pennies. Pennies saved one and two at a time by bulldozing the grocer and the vegetable man and the butcher until one's cheeks burned with the silent imputation of parsimony that such close dealing implied.
-            
-            Three times Della counted it. One dollar and eighty-seven cents. And the next day would be Christmas.
-            
-            There was clearly nothing to do but flop down on the shabby little couch and howl. So Della did it.
-            
-            James Dillingham Young was very proud of two things. One was Jim's gold watch that had been his father's and his grandfather's. The other was Della's hair.
-            
-            [This is an excerpt of O. Henry's beloved tale of love and sacrifice.]
-            """
-        ),
-        Story(
-            title: "A Sound of Thunder",
-            author: "Ray Bradbury",
-            genre: "Science Fiction",
+            title: "The Legend of Sleepy Hollow",
+            author: "Washington Irving",
+            genre: "Gothic Fiction",
             duration: "12 min read",
             content: """
-            The sign on the wall seemed to quaver under a film of sliding warm water. Eckels felt his eyelids blink over his stare, and the sign burned in this momentary darkness:
+            In the bosom of one of those spacious coves which indent the eastern shore of the Hudson, at that broad expansion of the river denominated by the ancient Dutch navigators the Tappan Zee, there lies a small market town which is generally known by the name of Tarry Town.
             
-            TIME SAFARI, INC.
-            SAFARIS TO ANY YEAR IN THE PAST.
-            YOU NAME THE ANIMAL.
-            WE TAKE YOU THERE.
-            YOU SHOOT IT.
+            Not far from this village, perhaps about two miles, there is a little valley among high hills, which is one of the quietest places in the whole world. A small brook glides through it, with just murmur enough to lull one to repose; and the occasional whistle of a quail or tapping of a woodpecker is almost the only sound that ever breaks in upon the uniform tranquility.
             
-            A warm phlegm gathered in Eckels' throat; he swallowed and pushed it down. The muscles around his mouth formed a smile as he put his hand slowly out upon the air, and in that hand waved a check for ten thousand dollars to the man behind the desk.
+            From the listless repose of the place, and the peculiar character of its inhabitants, who are descendants from the original Dutch settlers, this sequestered glen has long been known by the name of SLEEPY HOLLOW. A drowsy, dreamy influence seems to hang over the land, and to pervade the very atmosphere.
             
-            "Does this safari guarantee I come back alive?"
+            The dominant spirit that haunts this enchanted region is the apparition of a figure on horseback without a head. It is said to be the ghost of a Hessian trooper, whose head had been carried away by a cannon-ball in some nameless battle during the Revolutionary War.
             
-            [This is an excerpt of Bradbury's cautionary tale about time travel and the butterfly effect.]
+            [This classic tale of Ichabod Crane and the Headless Horseman remains a beloved American ghost story.]
             """
         ),
         Story(
-            title: "The Tell-Tale Heart",
-            author: "Edgar Allan Poe",
-            genre: "Horror",
-            duration: "10 min read",
-            content: """
-            TRUE! -- nervous -- very, very dreadfully nervous I had been and am; but why will you say that I am mad? The disease had sharpened my senses -- not destroyed -- not dulled them. Above all was the sense of hearing acute. I heard all things in the heaven and in the earth. I heard many things in hell. How, then, am I mad?
-            
-            Hearken! and observe how healthily -- how calmly I can tell you the whole story.
-            
-            It is impossible to say how first the idea entered my brain; but once conceived, it haunted me day and night. Object there was none. Passion there was none. I loved the old man. He had never wronged me. He had never given me insult. For his gold I had no desire.
-            
-            I think it was his eye! yes, it was this! He had the eye of a vulture -- a pale blue eye, with a film over it.
-            
-            [This is an excerpt of Poe's masterpiece of guilt and madness.]
-            """
-        ),
-        Story(
-            title: "The Necklace",
-            author: "Guy de Maupassant",
-            genre: "Drama",
+            title: "The Yellow Wallpaper",
+            author: "Charlotte Perkins Gilman",
+            genre: "Psychological Fiction",
             duration: "15 min read",
             content: """
-            She was one of those pretty and charming girls born, as though fate had blundered over her, into a family of artisans. She had no marriage portion, no expectations, no means of getting known, understood, loved, and wedded by a man of wealth and distinction; and she let herself be married off to a little clerk in the Ministry of Education.
+            It is very seldom that mere ordinary people like John and myself secure ancestral halls for the summer. A colonial mansion, a hereditary estate, I would say a haunted house, and reach the height of romantic felicity—but that would be asking too much of fate!
             
-            Her tastes were simple because she had never been able to afford any other, but she was as unhappy as though she had married beneath her; for women have no caste or class, their beauty, grace, and charm serving them for birth or family.
+            Still I will proudly declare that there is something queer about it. Else, why should it be let so cheaply? And why have stood so long untenanted?
             
-            She suffered endlessly, feeling herself born for every delicacy and luxury. She suffered from the poorness of her house, from its mean walls, worn chairs, and ugly curtains.
+            John is practical in the extreme. He has no patience with faith, an intense horror of superstition, and he scoffs openly at any talk of things not to be felt and seen and put down in figures. John is a physician, and perhaps—I would not say it to a living soul, of course, but this is dead paper and a great relief to my mind—perhaps that is one reason I do not get well faster.
             
-            [This is an excerpt of Maupassant's ironic tale of vanity and its consequences.]
+            You see, he does not believe I am sick! And what can one do? If a physician of high standing, and one's own husband, assures friends and relatives that there is really nothing the matter with one but temporary nervous depression—a slight hysterical tendency—what is one to do?
+            
+            [A powerful exploration of mental health and the constraints placed on women in the 19th century.]
+            """
+        ),
+        Story(
+            title: "The Masque of the Red Death",
+            author: "Edgar Allan Poe",
+            genre: "Gothic Horror",
+            duration: "10 min read",
+            content: """
+            The "Red Death" had long devastated the country. No pestilence had ever been so fatal, or so hideous. Blood was its Avatar and its seal—the redness and the horror of blood. There were sharp pains, and sudden dizziness, and then profuse bleeding at the pores, with dissolution.
+            
+            But the Prince Prospero was happy and dauntless and sagacious. When his dominions were half depopulated, he summoned to his presence a thousand hale and light-hearted friends from among the knights and dames of his court, and with these retired to the deep seclusion of one of his castellated abbeys.
+            
+            A strong and lofty wall girdled it in. This wall had gates of iron. The courtiers, having entered, brought furnaces and massy hammers and welded the bolts. They resolved to leave means neither of ingress nor egress to the sudden impulses of despair or of frenzy from within.
+            
+            It was toward the close of the fifth or sixth month of his seclusion that the Prince Prospero entertained his thousand friends at a masked ball of the most unusual magnificence. It was a voluptuous scene, that masquerade.
+            
+            [Poe's haunting allegory about the inevitability of death, written in 1842.]
+            """
+        ),
+        Story(
+            title: "An Occurrence at Owl Creek Bridge",
+            author: "Ambrose Bierce",
+            genre: "War Fiction",
+            duration: "12 min read",
+            content: """
+            A man stood upon a railroad bridge in northern Alabama, looking down into the swift water twenty feet below. The man's hands were behind his back, the wrists bound with a cord. A rope closely encircled his neck.
+            
+            Peyton Farquhar was a well-to-do planter, of an old and highly respected Alabama family. Being a slave owner and like other slave owners a politician, he was naturally an original secessionist and ardently devoted to the Southern cause.
+            
+            Circumstances of an imperious nature, which it is unnecessary to relate here, had prevented him from taking service with the gallant army. Meanwhile, he did what he could. No service was too humble for him to perform in aid of the South, no adventure too perilous for him to undertake.
+            
+            As Peyton Farquhar fell straight downward through the bridge he lost consciousness and was as one already dead. From this state he was awakened—ages later, it seemed to him—by the pain of a sharp pressure upon his throat, followed by a sense of suffocation.
+            
+            [Bierce's masterful tale of the Civil War, known for its unexpected twist ending.]
+            """
+        ),
+        Story(
+            title: "The Lady, or the Tiger?",
+            author: "Frank R. Stockton",
+            genre: "Fantasy",
+            duration: "10 min read",
+            content: """
+            In the very olden time there lived a semi-barbaric king, whose ideas, though somewhat polished and sharpened by the progressiveness of distant Latin neighbors, were still large, florid, and untrammeled, as became the half of him which was barbaric.
+            
+            Among the borrowed notions by which his barbarism had become semified was that of the public arena, in which, by exhibitions of manly and beastly valor, the minds of his subjects were refined and cultured. But even here the exuberant and barbaric fancy asserted itself.
+            
+            When a subject was accused of a crime of sufficient importance to interest the king, public notice was given that on an appointed day the fate of the accused person would be decided in the king's arena, a structure which well deserved its name.
+            
+            When all the people had assembled in the galleries, the king gave a signal, a door beneath him opened, and the accused subject stepped out into the amphitheater. Directly opposite were two doors, exactly alike and side by side. Behind one door was a hungry tiger; behind the other was a lady.
+            
+            [A thought-provoking tale that leaves readers to decide the ending themselves.]
+            """
+        ),
+        Story(
+            title: "The Celebrated Jumping Frog",
+            author: "Mark Twain",
+            genre: "Humor",
+            duration: "8 min read",
+            content: """
+            In compliance with the request of a friend of mine, who wrote me from the East, I called on good-natured, garrulous old Simon Wheeler, and inquired after my friend's friend, Leonidas W. Smiley, as requested to do, and I hereunto append the result.
+            
+            I found Simon Wheeler dozing comfortably by the bar-room stove of the dilapidated tavern in the decayed mining camp of Angel's, and I noticed that he was fat and bald-headed, and had an expression of winning gentleness and simplicity upon his tranquil countenance.
+            
+            He never smiled, he never frowned, he never changed his voice from the gentle-flowing key to which he tuned his initial sentence, he never betrayed the slightest suspicion of enthusiasm; but all through the interminable narrative there ran a vein of impressive earnestness and sincerity.
+            
+            "Rev. Leonidas W. H'm, Reverend Le—well, there was a feller here once by the name of Jim Smiley, in the winter of '49—or maybe it was the spring of '50—I don't recollect exactly, somehow, though what makes me think it was one or the other is because I remember the big flume warn't finished when he first come to the camp."
+            
+            [Mark Twain's humorous tale of a betting man and his talented frog, published in 1865.]
             """
         ),
     ]
