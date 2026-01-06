@@ -123,22 +123,37 @@ public struct ChessView: View {
             }
             
             // Controls
-            HStack(spacing: 16) {
-                Button("Resign") {
+            HStack(spacing: 30) {
+                Button {
                     Task {
                         await viewModel.resign(playerID: currentUser.id)
                     }
+                } label: {
+                    Text("Resign")
+                        .font(.headline)
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 16)
+                        .background(Color.red)
+                        .foregroundStyle(.white)
+                        .cornerRadius(10)
                 }
-                .buttonStyle(.bordered)
-                .tint(.red)
+                .buttonStyle(.plain)
                 
-                Button("New Game") {
+                Button {
                     Task {
                         await viewModel.endGame()
                         await viewModel.startGame(room: room, currentUser: currentUser)
                     }
+                } label: {
+                    Text("New Game")
+                        .font(.headline)
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 16)
+                        .background(Color.blue)
+                        .foregroundStyle(.white)
+                        .cornerRadius(10)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
             }
         }
         .padding()
