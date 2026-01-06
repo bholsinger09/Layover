@@ -1,12 +1,21 @@
 import Foundation
 
+public enum ChessAIDifficulty {
+    case beginner
+    case intermediate
+    case experienced
+}
+
 public final class ChessAIService {
-    public init() {}
+    private let difficulty: ChessAIDifficulty
+    
+    public init(difficulty: ChessAIDifficulty = .experienced) {
+        self.difficulty = difficulty
+    }
     
     /// Make an AI move for the specified color
     public func makeAIMove(game: ChessGame, aiColor: ChessGame.PieceColor) async -> (fromRow: Int, fromCol: Int, toRow: Int, toCol: Int)? {
-        // Simple AI: Find all valid moves and pick a random one
-        var validMoves: [(Int, Int, Int, Int)] = []
+        var validMoves: [(move: (Int, Int, Int, Int), score: Int)] = []
         
         for fromRow in 0..<8 {
             for fromCol in 0..<8 {
@@ -18,19 +27,86 @@ public final class ChessAIService {
                 for toRow in 0..<8 {
                     for toCol in 0..<8 {
                         if isValidMove(fromRow: fromRow, fromCol: fromCol, toRow: toRow, toCol: toCol, game: game) {
-                            validMoves.append((fromRow, fromCol, toRow, toCol))
+                            let score = evaluateMove(fromRow: fromRow, fromCol: fromCol, toRow: toRow, toCol: toCol, game: game, aiColor: aiColor)
+                            validMoves.append((move: (fromRow, fromCol, toRow, toCol), score: score))
                         }
                     }
                 }
             }
         }
         
-        // Pick a random valid move
-        if !validMoves.isEmpty {
-            return validMoves.randomElement()
+        if validMoves.isEmpty {
+            return nil
         }
         
-        return nil
+        switch difficulty {
+        case .beginner:
+            // Random move
+            return validMoves.randomElement()?.move
+        case .intermediate:
+            // 70% best move, 30% random
+            if Int.random(in: 0..<100) < 70 {
+                return validMoves.max(by: { $0.score < $1.score })?.move
+            } else {
+                return validMoves.randomElement()?.move
+            }
+        case .experienced:
+            // Always pick best move
+            return validMoves.max(by: { $0.score < $1.score })?.move
+        }
+    }
+    
+    private func evaluateMove(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int, game: ChessGame, aiColor: ChessGame.PieceColor) -> Int {
+        var score = 0
+        
+        guard let piece = game.board[fromRow][fromCol] else { return score }
+        
+        // Capture value
+        if let targetPiece = game.board[toRow][toCol] {
+            score += pieceValue(targetPiece.type) * 10
+        }
+        
+        // Center control (d4, d5, e4, e5)
+        if (toRow == 3 || toRow == 4) && (toCol == 3 || toCol == 4) {
+            score += 5
+        }
+        
+        // Piece development (move pieces off back rank)
+        if piece.type != .pawn && fromRow == (aiColor == .white ? 0 : 7) {
+            score += 3
+        }
+        
+        // Protect the king (castle-friendly positions)
+        if piece.type == .king && !piece.hasMoved {
+            if abs(toCol - fromCol) == 2 { // Castling
+                score += 15
+            }
+        }
+        
+        // Pawn advancement
+        if piece.type == .pawn {
+            let advancement = aiColor == .white ? toRow - fromRow : fromRow - toRow
+            score += advancement
+            
+            // Bonus for promotion proximity
+            let promotionRow = aiColor == .white ? 7 : 0
+            if abs(toRow - promotionRow) <= 2 {
+                score += 8
+            }
+        }
+        
+        return score
+    }
+    
+    private func pieceValue(_ type: ChessPiece.PieceType) -> Int {
+        switch type {
+        case .pawn: return 1
+        case .knight: return 3
+        case .bishop: return 3
+        case .rook: return 5
+        case .queen: return 9
+        case .king: return 100
+        }
     }
     
     private func isValidMove(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int, game: ChessGame) -> Bool {

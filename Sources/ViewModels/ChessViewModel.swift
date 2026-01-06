@@ -8,7 +8,7 @@ public final class ChessViewModel: LayoverViewModel {
     private let gameService: ChessServiceProtocol
     public let sharePlayService: ChessSharePlayService
     private let roomService: RoomServiceProtocol
-    private let aiService = ChessAIService()
+    private let aiService = ChessAIService(difficulty: .experienced)
     
     public private(set) var currentGame: ChessGame?
     public private(set) var isLoading = false
@@ -78,26 +78,14 @@ public final class ChessViewModel: LayoverViewModel {
         }
     }
     
-    public func startGame(room: Room, currentUser: User, includeAI: Bool = false) async {
+    public func startGame(room: Room, currentUser: User, includeAI: Bool = true) async {
         isLoading = true
         errorMessage = nil
         
         do {
-            var players = [currentUser.id]
-            
-            if includeAI {
-                aiPlayerID = UUID()
-                players.append(aiPlayerID!)
-            } else {
-                // Get another player from room participants
-                if let otherPlayer = room.participants.first(where: { $0.id != currentUser.id }) {
-                    players.append(otherPlayer.id)
-                } else {
-                    // If no other player, create AI opponent
-                    aiPlayerID = UUID()
-                    players.append(aiPlayerID!)
-                }
-            }
+            // User is always white, AI is always black
+            aiPlayerID = UUID()
+            let players = [currentUser.id, aiPlayerID!]
             
             let game = try await gameService.startGame(roomID: room.id, players: players)
             currentGame = game
@@ -105,6 +93,8 @@ public final class ChessViewModel: LayoverViewModel {
             print("✅ Chess game started")
             print("   Game ID: \(game.id)")
             print("   Players: \(players)")
+            print("   User (White): \(currentUser.id)")
+            print("   AI (Black): \(aiPlayerID!)")
             
             // If SharePlay is active, broadcast game state
             if sharePlayService.isActive {
