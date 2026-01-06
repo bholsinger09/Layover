@@ -192,9 +192,23 @@ public struct ChessView: View {
                 .fill(isSelected ? Color.yellow : (isLight ? Color.white : Color.gray.opacity(0.6)))
             
             if let piece = game.board[row][col] {
-                Text(piece.symbol)
-                    .font(.system(size: size * 0.6))
-                    .foregroundColor(piece.color == .white ? .white : .black)
+                if piece.color == .white {
+                    // White pieces with red background and white fill
+                    Text(piece.symbol)
+                        .font(.system(size: size * 0.6))
+                        .foregroundColor(.white)
+                        .padding(4)
+                        .background(
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: size * 0.7, height: size * 0.7)
+                        )
+                } else {
+                    // Black pieces
+                    Text(piece.symbol)
+                        .font(.system(size: size * 0.6))
+                        .foregroundColor(.black)
+                }
             }
         }
         .frame(width: size, height: size)
