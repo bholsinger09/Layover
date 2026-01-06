@@ -194,6 +194,7 @@ public struct ChessView: View {
             if let piece = game.board[row][col] {
                 Text(piece.symbol)
                     .font(.system(size: size * 0.6))
+                    .foregroundColor(piece.color == .white ? .white : .black)
             }
         }
         .frame(width: size, height: size)
