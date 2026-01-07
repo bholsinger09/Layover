@@ -460,70 +460,62 @@ struct StoryReaderView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Opaque background
-            Color.black.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 8) {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Story header
+                    VStack(alignment: .leading, spacing: 12) {
                         Text(story.title)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundStyle(.primary)
                         
                         Text("by \(story.author)")
-                            .font(.title3)
+                            .font(.system(size: 24))
                             .foregroundStyle(.secondary)
                         
-                        HStack(spacing: 16) {
+                        HStack(spacing: 20) {
                             Label(story.genre, systemImage: "tag")
-                                .font(.subheadline)
+                                .font(.system(size: 16))
                                 .foregroundStyle(.blue)
                             
                             Label(story.duration, systemImage: "clock")
-                                .font(.subheadline)
+                                .font(.system(size: 16))
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .padding(.bottom, 20)
                     
-                    Spacer()
+                    Divider()
                     
+                    // Story content
+                    VStack(alignment: .leading, spacing: 20) {
+                        ForEach(paragraphs.indices, id: \.self) { index in
+                            Text(paragraphs[index])
+                                .font(.system(size: 20))
+                                .lineSpacing(8)
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                }
+                .padding(40)
+                .frame(maxWidth: 900)
+            }
+            .navigationTitle("")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
                     Button("Done") {
                         dismiss()
                     }
-                    .buttonStyle(.bordered)
+                    .font(.system(size: 18))
                 }
-                .padding(40)
-                
-                Divider()
-                
-                // Scrollable story content - each paragraph as a focusable row
-                List(paragraphs.indices, id: \.self) { index in
-                    #if os(tvOS)
-                    Button(action: {}) {
-                        Text(paragraphs[index])
-                            .font(.title3)
-                            .lineSpacing(12)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(Color.clear)
-                    .padding(.vertical, 8)
-                    #else
-                    Text(paragraphs[index])
-                        .font(.title3)
-                        .lineSpacing(12)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .listRowBackground(Color.clear)
-                        .padding(.vertical, 8)
-                    #endif
-                }
-                .listStyle(.plain)
-                .padding(.horizontal, 40)
             }
         }
+        #if os(macOS)
+        .frame(minWidth: 800, minHeight: 600)
+        #endif
     }
 }
 
