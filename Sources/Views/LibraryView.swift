@@ -1341,6 +1341,11 @@ struct PlaylistDetailView: View {
     @State private var youtubeURL = ""
     @State private var importMessage: String?
     
+    // Get the current playlist from viewModel to reflect updates
+    private var currentPlaylist: MusicPlaylist {
+        viewModel.playlists.first(where: { $0.id == playlist.id }) ?? playlist
+    }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -1393,14 +1398,14 @@ struct PlaylistDetailView: View {
                 
                 // Tracks List
                 List {
-                if playlist.tracks.isEmpty {
+                if currentPlaylist.tracks.isEmpty {
                     ContentUnavailableView {
                         Label("No Tracks", systemImage: "music.note")
                     } description: {
                         Text("This playlist is empty")
                     }
                 } else {
-                    ForEach(playlist.tracks) { track in
+                    ForEach(currentPlaylist.tracks) { track in
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(track.title)
@@ -1431,7 +1436,7 @@ struct PlaylistDetailView: View {
                 }
             }
         }
-        .navigationTitle(playlist.name)
+        .navigationTitle(currentPlaylist.name)
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
@@ -1462,7 +1467,7 @@ struct PlaylistDetailView: View {
                     }
                 }
             } message: {
-                Text("This will permanently delete '\(playlist.name)' and cannot be undone.")
+                Text("This will permanently delete '\(currentPlaylist.name)' and cannot be undone.")
             }
             #if os(macOS)
             .fileImporter(
