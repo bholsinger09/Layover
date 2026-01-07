@@ -989,6 +989,7 @@ struct MusicTabView: View {
             importingYouTube = false
         }
     }
+    #endif
     
     private func searchWeb(query: String, context: String) {
         guard !query.isEmpty else { return }
@@ -1006,7 +1007,6 @@ struct MusicTabView: View {
         UIApplication.shared.open(url)
         #endif
     }
-    #endif
 }
 
 /// Music stats overview card
@@ -1418,7 +1418,8 @@ struct PlaylistDetailView: View {
                     }
                 }
             }
-            .navigationTitle(playlist.name)
+        }
+        .navigationTitle(playlist.name)
 #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
 #endif
