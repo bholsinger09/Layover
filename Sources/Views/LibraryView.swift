@@ -1406,32 +1406,37 @@ struct PlaylistDetailView: View {
                     }
                 } else {
                     ForEach(currentPlaylist.tracks) { track in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(track.title)
-                                    .font(.body)
-                                Text(track.artist)
+                        NavigationLink {
+                            MusicPlayerView()
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(track.title)
+                                        .font(.body)
+                                    Text(track.artist)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Text(track.formattedDuration)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Text(track.formattedDuration)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                            
-                            Button {
-                                Task {
-                                    await viewModel.removeTrackFromPlaylist(track, playlist: playlist)
+                                    .monospacedDigit()
+                                
+                                Button {
+                                    Task {
+                                        await viewModel.removeTrackFromPlaylist(track, playlist: playlist)
+                                    }
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundStyle(.red)
                                 }
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
