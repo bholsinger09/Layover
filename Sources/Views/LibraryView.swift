@@ -1340,6 +1340,9 @@ struct PlaylistDetailView: View {
     @State private var showYouTubeImporter = false
     @State private var youtubeURL = ""
     @State private var importMessage: String?
+    @State private var audioPlayer: AVPlayer?
+    @State private var currentlyPlayingTrackId: String?
+    @State private var isPlaying = false
     
     // Get the current playlist from viewModel to reflect updates
     private var currentPlaylist: MusicPlaylist {
@@ -1406,13 +1409,21 @@ struct PlaylistDetailView: View {
                     }
                 } else {
                     ForEach(currentPlaylist.tracks) { track in
-                        NavigationLink {
-                            MusicPlayerView()
+                        Button {
+                            playTrack(track)
                         } label: {
                             HStack {
+                                // Play indicator
+                                if currentlyPlayingTrackId == track.id {
+                                    Image(systemName: isPlaying ? "speaker.wave.2.fill" : "speaker.fill")
+                                        .foregroundStyle(.blue)
+                                        .font(.caption)
+                                }
+                                
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(track.title)
                                         .font(.body)
+                                        .foregroundStyle(currentlyPlayingTrackId == track.id ? .blue : .primary)
                                     Text(track.artist)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -1599,6 +1610,32 @@ struct PlaylistDetailView: View {
         }
     }
     #endif
+    
+    private func playTrack(_ track: MusicTrack) {
+        // If same track is playing, toggle pause/play
+        if currentlyPlayingTrackId == track.id {
+            if isPlaying {
+                audioPlayer?.pause()
+                isPlaying = false
+            } else {
+                audioPlayer?.play()
+                isPlaying = true
+            }
+            return
+        }
+        
+        // Stop current playback
+        audioPlayer?.pause()
+        audioPlayer = nil
+        
+        // For now, show a message that playback isn't implemented yet
+        // In the future, this would load the audio file from ImportedMusic folder
+        currentlyPlayingTrackId = track.id
+        isPlaying = false
+        
+        print("🎵 Would play: \(track.title) by \(track.artist)")
+        importMessage = "Audio playback from imported files will be implemented soon.\n\nFor now, you can:\n• View your imported tracks\n• Organize them in playlists\n• Full playback coming in next update!"
+    }
 }
 
 /// Stats overview card
