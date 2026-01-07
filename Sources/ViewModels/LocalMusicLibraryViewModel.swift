@@ -154,6 +154,16 @@ public class LocalMusicLibraryViewModel: ObservableObject {
         }
         print("📊 Total music files in bundle: \(totalFound)")
         
+        // If no bundled music found, don't show it as an error on macOS
+        if totalFound == 0 {
+            print("ℹ️ No bundled music files found - this is expected on macOS")
+            #if os(macOS)
+            // On macOS, silently skip bundled music scanning
+            isScanning = false
+            return
+            #endif
+        }
+        
         do {
             let progress = try await scannerService.scanBundledMusic { [weak self] progress in
                 Task { @MainActor in
@@ -172,7 +182,12 @@ public class LocalMusicLibraryViewModel: ObservableObject {
                 errorMessage = "Imported \(progress.filesImported) of \(progress.filesScanned) files with \(progress.errors.count) errors"
             }
         } catch {
+            #if os(macOS)
+            // On macOS, don't show bundled music errors
+            print("ℹ️ Bundled music not available on macOS: \(error.localizedDescription)")
+            #else
             errorMessage = "Scan failed: \(error.localizedDescription)"
+            #endif
         }
         
         isScanning = false
