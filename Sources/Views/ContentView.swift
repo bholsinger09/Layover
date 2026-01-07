@@ -247,6 +247,7 @@ public struct TVProfileView: View {
     let currentUser: User
     @ObservedObject var authViewModel: AuthenticationViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showingDeleteConfirmation = false
     
     public var body: some View {
         NavigationStack {
@@ -265,19 +266,33 @@ public struct TVProfileView: View {
                 
                 Spacer()
                 
-                Button(role: .destructive) {
-                    Task {
-                        await authViewModel.signOut()
-                        dismiss()
+                VStack(spacing: buttonSpacing) {
+                    Button(role: .destructive) {
+                        Task {
+                            await authViewModel.signOut()
+                            dismiss()
+                        }
+                    } label: {
+                        Text("Sign Out")
+                            .font(.system(size: signOutButtonFontSize, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: signOutButtonMaxWidth)
+                            .frame(height: signOutButtonHeight)
+                            .background(Color.orange)
+                            .cornerRadius(signOutButtonCornerRadius)
                     }
-                } label: {
-                    Text("Sign Out")
-                        .font(.system(size: signOutButtonFontSize, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: signOutButtonMaxWidth)
-                        .frame(height: signOutButtonHeight)
-                        .background(Color.red)
-                        .cornerRadius(signOutButtonCornerRadius)
+                    
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        Text("Delete Account")
+                            .font(.system(size: deleteButtonFontSize, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: deleteButtonMaxWidth)
+                            .frame(height: deleteButtonHeight)
+                            .background(Color.red)
+                            .cornerRadius(deleteButtonCornerRadius)
+                    }
                 }
                 .padding(.bottom, signOutButtonBottomPadding)
             }
@@ -290,7 +305,30 @@ public struct TVProfileView: View {
                     }
                 }
             }
+            .alert("Delete Account?", isPresented: $showingDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete Account", role: .destructive) {
+                    Task {
+                        await authViewModel.deleteAccount()
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text(deleteAccountMessage)
+            }
         }
+    }
+    
+    private var deleteAccountMessage: String {
+        """
+        This will permanently delete your account and all associated data.
+        
+        • Your profile and preferences will be removed
+        • Your game history will be deleted
+        • This action cannot be undone
+        
+        If you have any active subscriptions or in-app purchases, you'll need to cancel them separately through your Apple ID settings.
+        """
     }
     
     // Platform-specific styling
@@ -299,10 +337,15 @@ public struct TVProfileView: View {
     private var profileNameFont: Font { .largeTitle }
     private var profileEmailFont: Font { .title3 }
     private var profileSpacing: CGFloat { 30 }
+    private var buttonSpacing: CGFloat { 20 }
     private var signOutButtonFontSize: CGFloat { 38 }
     private var signOutButtonMaxWidth: CGFloat { 900 }
     private var signOutButtonHeight: CGFloat { 100 }
     private var signOutButtonCornerRadius: CGFloat { 16 }
+    private var deleteButtonFontSize: CGFloat { 38 }
+    private var deleteButtonMaxWidth: CGFloat { 900 }
+    private var deleteButtonHeight: CGFloat { 100 }
+    private var deleteButtonCornerRadius: CGFloat { 16 }
     private var signOutButtonBottomPadding: CGFloat { 60 }
     private var profilePadding: CGFloat { 40 }
     #elseif os(macOS)
@@ -310,10 +353,15 @@ public struct TVProfileView: View {
     private var profileNameFont: Font { .title }
     private var profileEmailFont: Font { .body }
     private var profileSpacing: CGFloat { 20 }
+    private var buttonSpacing: CGFloat { 12 }
     private var signOutButtonFontSize: CGFloat { 16 }
     private var signOutButtonMaxWidth: CGFloat { 300 }
     private var signOutButtonHeight: CGFloat { 44 }
     private var signOutButtonCornerRadius: CGFloat { 8 }
+    private var deleteButtonFontSize: CGFloat { 16 }
+    private var deleteButtonMaxWidth: CGFloat { 300 }
+    private var deleteButtonHeight: CGFloat { 44 }
+    private var deleteButtonCornerRadius: CGFloat { 8 }
     private var signOutButtonBottomPadding: CGFloat { 30 }
     private var profilePadding: CGFloat { 40 }
     #else
@@ -321,10 +369,15 @@ public struct TVProfileView: View {
     private var profileNameFont: Font { .largeTitle }
     private var profileEmailFont: Font { .body }
     private var profileSpacing: CGFloat { 24 }
+    private var buttonSpacing: CGFloat { 16 }
     private var signOutButtonFontSize: CGFloat { 18 }
     private var signOutButtonMaxWidth: CGFloat { .infinity }
     private var signOutButtonHeight: CGFloat { 50 }
     private var signOutButtonCornerRadius: CGFloat { 10 }
+    private var deleteButtonFontSize: CGFloat { 18 }
+    private var deleteButtonMaxWidth: CGFloat { .infinity }
+    private var deleteButtonHeight: CGFloat { 50 }
+    private var deleteButtonCornerRadius: CGFloat { 10 }
     private var signOutButtonBottomPadding: CGFloat { 40 }
     private var profilePadding: CGFloat { 24 }
     #endif

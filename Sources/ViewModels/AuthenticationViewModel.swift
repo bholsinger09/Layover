@@ -50,6 +50,22 @@ public final class AuthenticationViewModel: ObservableObject {
 
         isLoading = false
     }
+    
+    /// Delete the current user's account and all associated data
+    public func deleteAccount() async {
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await authService.deleteAccount()
+            currentUser = nil
+            isAuthenticated = false
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoading = false
+    }
 
     /// Check if credentials are still valid
     public func checkCredentialState() async {

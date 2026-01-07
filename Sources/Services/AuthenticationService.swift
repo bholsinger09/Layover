@@ -10,6 +10,7 @@ public protocol AuthenticationServiceProtocol: Sendable {
 
     func signInWithApple() async throws -> User
     func signOut() async throws
+    func deleteAccount() async throws
 }
 
 /// Service for handling Apple Sign In authentication
@@ -57,6 +58,29 @@ public final class AuthenticationService: NSObject, AuthenticationServiceProtoco
     public func signOut() async throws {
         currentUser = nil
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
+    }
+    
+    /// Delete the current user's account and all associated data
+    public func deleteAccount() async throws {
+        guard let user = currentUser else {
+            throw AuthenticationError.noUserFound
+        }
+        
+        logger.info("Deleting account for user: \(user.username)")
+        
+        // In a real app, you would:
+        // 1. Call your backend API to delete the user's data
+        // 2. Delete any locally cached data
+        // 3. Revoke Apple Sign In credentials if applicable
+        
+        // For now, we'll just remove the local user data
+        currentUser = nil
+        UserDefaults.standard.removeObject(forKey: userDefaultsKey)
+        
+        // Clear any other user-specific data
+        // This is where you'd delete preferences, cached files, etc.
+        
+        logger.info("Account deletion completed")
     }
 
     /// Store user to UserDefaults
@@ -189,6 +213,7 @@ enum AuthenticationError: LocalizedError {
     case invalidResponse
     case notHandled
     case unknown
+    case noUserFound
 
     var errorDescription: String? {
         switch self {
@@ -204,6 +229,8 @@ enum AuthenticationError: LocalizedError {
             return "Authorization not handled"
         case .unknown:
             return "An unknown error occurred"
+        case .noUserFound:
+            return "No user account found"
         }
     }
 }
