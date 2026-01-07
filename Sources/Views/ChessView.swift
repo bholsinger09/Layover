@@ -16,13 +16,15 @@ public struct ChessView: View {
         VStack(spacing: 20) {
             if viewModel.isLoading {
                 ProgressView("Loading...")
+                    .tint(.white)
+                    .foregroundStyle(.white)
             } else if let game = viewModel.currentGame {
                 gameView(game)
             } else {
                 setupView
             }
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
@@ -35,32 +37,68 @@ public struct ChessView: View {
     }
     
     private var setupView: some View {
-        List {
-            Section {
-                VStack(spacing: 40) {
-                    Text("Chess")
-                        .font(.largeTitle)
-                        .bold()
-                    
-                    Button {
-                        Task {
-                            await viewModel.startGame(room: room, currentUser: currentUser)
-                        }
-                    } label: {
-                        Label("Start Game", systemImage: "play.fill")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-                .listRowBackground(Color.clear)
-            }
+        VStack(spacing: 40) {
+            Spacer()
+            
+            Text("Chess")
+                .font(.system(size: 72, weight: .bold))
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.8), radius: 15, x: 0, y: 5)
+            
+            startGameButton
+            
+            Spacer()
         }
-        .listStyle(.plain)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var startGameButton: some View {
+        #if os(tvOS)
+        Button {
+            Task {
+                await viewModel.startGame(room: room, currentUser: currentUser)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "play.fill")
+                    .font(.title2)
+                Text("Start Game")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+            }
+            .foregroundStyle(.white)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 40)
+        }
+        .buttonStyle(.card)
+        #else
+        Button {
+            Task {
+                await viewModel.startGame(room: room, currentUser: currentUser)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "play.fill")
+                    .font(.title2)
+                Text("Start Game")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+            }
+            .foregroundStyle(.white)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 40)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.blue.opacity(0.95))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.4), lineWidth: 2)
+            )
+            .shadow(color: .black.opacity(0.5), radius: 15, x: 0, y: 8)
+        }
+        .buttonStyle(.plain)
+        #endif
     }
     
     private func gameView(_ game: ChessGame) -> some View {
@@ -70,6 +108,8 @@ public struct ChessView: View {
                 Text("Chess")
                     .font(.title)
                     .bold()
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 5, x: 0, y: 2)
                 
                 Spacer()
                 
@@ -77,9 +117,14 @@ public struct ChessView: View {
                     HStack {
                         ProgressView()
                             .scaleEffect(0.8)
+                            .tint(.white)
                         Text("AI thinking...")
                             .font(.caption)
+                            .foregroundStyle(.white)
                     }
+                    .padding(8)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(8)
                 }
             }
             
@@ -87,11 +132,14 @@ public struct ChessView: View {
             VStack(spacing: 8) {
                 Text(gameStatusText(game))
                     .font(.headline)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
                 
                 if game.gameState == .check {
                     Text("Check!")
                         .foregroundColor(.red)
                         .bold()
+                        .shadow(color: .black.opacity(0.8), radius: 5, x: 0, y: 2)
                 }
                 
                 if game.gameState == .checkmate, let winnerID = game.winnerID {
@@ -100,6 +148,7 @@ public struct ChessView: View {
                         .font(.title2)
                         .bold()
                         .foregroundColor(.green)
+                        .shadow(color: .black.opacity(0.8), radius: 5, x: 0, y: 2)
                 }
             }
             
@@ -111,7 +160,7 @@ public struct ChessView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Captured:")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.white.opacity(0.8))
                     
                     HStack(spacing: 4) {
                         ForEach(game.capturedPieces.indices, id: \.self) { index in
@@ -119,48 +168,56 @@ public struct ChessView: View {
                                 .font(.system(size: 20))
                         }
                     }
+                    .padding(8)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(8)
                 }
             }
             
             // Controls
-            List {
-                Section {
-                    HStack(spacing: 30) {
-                        Button {
-                            Task {
-                                await viewModel.resign(playerID: currentUser.id)
-                            }
-                        } label: {
-                            Text("Resign")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.red)
-                        
-                        Button {
-                            Task {
-                                print("🔄 New Game button pressed")
-                                await viewModel.endGame()
-                                print("🏁 Game ended, currentGame is now: \(viewModel.currentGame == nil ? "nil" : "not nil")")
-                                // Small delay to ensure UI updates
-                                try? await Task.sleep(nanoseconds: 100_000_000)
-                                await viewModel.startGame(room: room, currentUser: currentUser)
-                            }
-                        } label: {
-                            Text("New Game")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                        }
-                        .buttonStyle(.borderedProminent)
+            HStack(spacing: 30) {
+                Button {
+                    Task {
+                        await viewModel.resign(playerID: currentUser.id)
                     }
-                    .listRowBackground(Color.clear)
+                } label: {
+                    Text("Resign")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.red.opacity(0.8))
+                                .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 3)
+                        )
                 }
+                .buttonStyle(.plain)
+                
+                Button {
+                    Task {
+                        print("🔄 New Game button pressed")
+                        await viewModel.endGame()
+                        print("🏁 Game ended, currentGame is now: \(viewModel.currentGame == nil ? "nil" : "not nil")")
+                        // Small delay to ensure UI updates
+                        try? await Task.sleep(nanoseconds: 100_000_000)
+                        await viewModel.startGame(room: room, currentUser: currentUser)
+                    }
+                } label: {
+                    Text("New Game")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.blue.opacity(0.8))
+                                .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 3)
+                        )
+                }
+                .buttonStyle(.plain)
             }
-            .listStyle(.plain)
-            .frame(height: 100)
+            .padding(.top, 10)
         }
         .padding()
     }

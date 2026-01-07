@@ -56,7 +56,16 @@ public struct ContentView: View {
                     ),
                     currentUser: currentUser
                 )
+                #if os(tvOS)
+                .focusSection()
+                #endif
             }
+            .background(
+                Image("airport-lounge")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .ignoresSafeArea()
+            )
             .navigationTitle("LayoverLounge")
             .sheet(isPresented: $showingLibrary) {
                 LibraryView(libraryService: libraryService)
@@ -82,15 +91,22 @@ public struct ContentView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "person.circle.fill")
                         .font(.system(size: 40))
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(.white)
                     Text(currentUser.username)
                         .font(.system(size: 28, weight: .medium))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(Color.blue.opacity(0.15))
-                .cornerRadius(12)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.blue.opacity(0.85))
+                        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.white.opacity(0.4), lineWidth: 2)
+                )
             }
             .buttonStyle(.plain)
             
@@ -102,16 +118,34 @@ public struct ContentView: View {
             } label: {
                 Label("My Library", systemImage: "books.vertical")
                     .font(.system(size: 28, weight: .semibold))
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(12)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.gray.opacity(0.75))
+                            .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color.white.opacity(0.4), lineWidth: 2)
+                    )
             }
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 40)
         .padding(.vertical, 20)
-        .background(Color(white: 0.1))
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black.opacity(0.75),
+                    Color.black.opacity(0.4)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .focusSection()
     }
     
     @ViewBuilder
