@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 /// Main library view showing favorites, history, stats, and recommendations
 public struct LibraryView: View {
@@ -1521,20 +1522,41 @@ struct PlaylistDetailView: View {
                     }
                     
                     do {
-                        // Copy file to app's documents directory
-                        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                        let musicFolder = documentsPath.appendingPathComponent("ImportedMusic", isDirectory: true)
+                        // Extract metadata from audio file
+                        let asset = AVAsset(url: url)
+                        let metadata = try await asset.load(.metadata)
                         
-                        // Create folder if needed
-                        try FileManager.default.createDirectory(at: musicFolder, withIntermediateDirectories: true, attributes: nil)
+                        var title = url.deletingPathExtension().lastPathComponent
+                        var artist = "Unknown Artist"
+                        var album = "Unknown Album"
                         
-                        let destination = musicFolder.appendingPathComponent(url.lastPathComponent)
-                        
-                        // Copy file
-                        if FileManager.default.fileExists(atPath: destination.path) {
-                            try FileManager.default.removeItem(at: destination)
+                        for item in metadata {
+                            guard let commonKey = item.commonKey else { continue }
+                            
+                            if commonKey == .commonKeyTitle,
+                               let value = try await item.load(.stringValue) {
+                                title = value
+                            } else if commonKey == .commonKeyArtist,
+                                      let value = try await item.load(.stringValue) {
+                                artist = value
+                            } else if commonKey == .commonKeyAlbumName,
+                                      let value = try await item.load(.stringValue) {
+                                album = value
+                            }
                         }
-                        try FileManager.default.copyItem(at: url, to: destination)
+                        
+                        let duration = try await asset.load(.duration).seconds
+                        
+                        // Create MusicTrack
+                        let track = MusicTrack(
+                            title: title,
+                            artist: artist,
+                            album: album,
+                            duration: duration
+                        )
+                        
+                        // Add track to playlist
+                        await viewModel.addTrackToPlaylist(track, playlist: playlist)
                         
                         imported += 1
                     } catch {
@@ -1545,9 +1567,9 @@ struct PlaylistDetailView: View {
                 
                 await MainActor.run {
                     if failed == 0 {
-                        importMessage = "Successfully imported \(imported) file(s) to ImportedMusic folder.\n\nNote: Files will appear after scanning the library."
+                        importMessage = "Successfully imported \(imported) track(s) to '\(playlist.name)'"
                     } else {
-                        importMessage = "Imported \(imported) file(s), \(failed) failed"
+                        importMessage = "Imported \(imported) track(s), \(failed) failed"
                     }
                 }
             }
