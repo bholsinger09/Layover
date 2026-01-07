@@ -932,7 +932,7 @@ struct MusicTabView: View {
     }
     
     #if os(macOS)
-    private func handleFileImport(_ result: Result<[URL], Error>) {
+    func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
             Task {
@@ -976,7 +976,7 @@ struct MusicTabView: View {
         }
     }
     
-    private func importFromYouTube() async {
+    func importFromYouTube() async {
         guard !youtubeURL.isEmpty else { return }
         
         importingYouTube = true
@@ -1489,7 +1489,7 @@ struct PlaylistDetailView: View {
     }
     
     #if os(macOS)
-    private func handleFileImport(_ result: Result<[URL], Error>) {
+    func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
             Task {
@@ -1533,7 +1533,7 @@ struct PlaylistDetailView: View {
         }
     }
     
-    private func importFromYouTube() async {
+    func importFromYouTube() async {
         guard !youtubeURL.isEmpty else { return }
         
         // Note: Actual YouTube downloading requires additional tools like yt-dlp
