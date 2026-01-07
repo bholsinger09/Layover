@@ -8,14 +8,16 @@ public struct MusicTrack: Codable, Identifiable, Equatable {
     public let album: String
     public let duration: TimeInterval
     public let artworkURL: String?
+    public let fileURL: String?  // Local file path for imported tracks
     
-    public init(id: String = UUID().uuidString, title: String, artist: String, album: String, duration: TimeInterval, artworkURL: String? = nil) {
+    public init(id: String = UUID().uuidString, title: String, artist: String, album: String, duration: TimeInterval, artworkURL: String? = nil, fileURL: String? = nil) {
         self.id = id
         self.title = title
         self.artist = artist
         self.album = album
         self.duration = duration
         self.artworkURL = artworkURL
+        self.fileURL = fileURL
     }
     
     public var formattedDuration: String {

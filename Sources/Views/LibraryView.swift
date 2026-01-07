@@ -1568,12 +1568,28 @@ struct PlaylistDetailView: View {
                         
                         let duration = try await asset.load(.duration).seconds
                         
-                        // Create MusicTrack
+                        // Copy file to app's documents directory
+                        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                        let musicFolder = documentsPath.appendingPathComponent("ImportedMusic", isDirectory: true)
+                        
+                        // Create folder if needed
+                        try FileManager.default.createDirectory(at: musicFolder, withIntermediateDirectories: true, attributes: nil)
+                        
+                        let destination = musicFolder.appendingPathComponent(url.lastPathComponent)
+                        
+                        // Copy file
+                        if FileManager.default.fileExists(atPath: destination.path) {
+                            try FileManager.default.removeItem(at: destination)
+                        }
+                        try FileManager.default.copyItem(at: url, to: destination)
+                        
+                        // Create MusicTrack with file URL
                         let track = MusicTrack(
                             title: title,
                             artist: artist,
                             album: album,
-                            duration: duration
+                            duration: duration,
+                            fileURL: destination.path
                         )
                         
                         // Add track to playlist
@@ -1628,13 +1644,54 @@ struct PlaylistDetailView: View {
         audioPlayer?.pause()
         audioPlayer = nil
         
-        // For now, show a message that playback isn't implemented yet
-        // In the future, this would load the audio file from ImportedMusic folder
-        currentlyPlayingTrackId = track.id
-        isPlaying = false
+        // Check if track has a file URL
+        guard let fileURLString = track.fileURL else {
+            print("❌ No file URL for track: \(track.title)")
+            importMessage = "This track doesn't have an associated audio file."
+            return
+        }
         
-        print("🎵 Would play: \(track.title) by \(track.artist)")
-        importMessage = "Audio playback from imported files will be implemented soon.\n\nFor now, you can:\n• View your imported tracks\n• Organize them in playlists\n• Full playback coming in next update!"
+        let fileURL = URL(fileURLWithPath: fileURLString)
+        
+        // Check if file exists
+        guard FileManager.default.fileExists(atPath: fileURLString) else {
+            print("❌ File not found: \(fileURLString)")
+            importMessage = "Audio file not found. It may have been deleted."
+            return
+        }
+        
+        // Create and play audio player
+        let player = AVPlayer(url: fileURL)
+        audioPlayer = player
+        currentlyPlayingTrackId = track.id
+        
+        // Setup audio session for macOS
+        #if os(macOS)
+        // macOS doesn't use AVAudioSession
+        #else
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("❌ Failed to setup audio session: \(error)")
+        }
+        #endif
+        
+        player.play()
+        isPlaying = true
+        
+        // Observe when playback finishes
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: player.currentItem,
+            queue: .main
+        ) { [weak player] _ in
+            if self.audioPlayer == player {
+                self.isPlaying = false
+            }
+        }
+        
+        print("🎵 Now playing: \(track.title) by \(track.artist)")
     }
 }
 
