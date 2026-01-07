@@ -1644,24 +1644,46 @@ struct PlaylistDetailView: View {
         audioPlayer?.pause()
         audioPlayer = nil
         
-        // Check if track has a file URL
-        guard let fileURLString = track.fileURL else {
+        // Try to find the audio file
+        var fileURL: URL?
+        
+        if let fileURLString = track.fileURL {
+            // Track has a stored file URL
+            fileURL = URL(fileURLWithPath: fileURLString)
+        } else {
+            // No stored URL, search in ImportedMusic folder
+            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let musicFolder = documentsPath.appendingPathComponent("ImportedMusic", isDirectory: true)
+            
+            // Try to find a file matching the track title
+            if let enumerator = FileManager.default.enumerator(at: musicFolder, includingPropertiesForKeys: nil) {
+                for case let foundURL as URL in enumerator {
+                    let filename = foundURL.deletingPathExtension().lastPathComponent
+                    if filename.localizedCaseInsensitiveContains(track.title) || 
+                       track.title.localizedCaseInsensitiveContains(filename) {
+                        print("🔍 Found matching file: \(foundURL.lastPathComponent)")
+                        fileURL = foundURL
+                        break
+                    }
+                }
+            }
+        }
+        
+        guard let audioURL = fileURL else {
             print("❌ No file URL for track: \(track.title)")
-            importMessage = "This track doesn't have an associated audio file."
+            importMessage = "Audio file not found. Please re-import this track."
             return
         }
         
-        let fileURL = URL(fileURLWithPath: fileURLString)
-        
         // Check if file exists
-        guard FileManager.default.fileExists(atPath: fileURLString) else {
-            print("❌ File not found: \(fileURLString)")
-            importMessage = "Audio file not found. It may have been deleted."
+        guard FileManager.default.fileExists(atPath: audioURL.path) else {
+            print("❌ File not found: \(audioURL.path)")
+            importMessage = "Audio file not found at: \(audioURL.lastPathComponent)"
             return
         }
         
         // Create and play audio player
-        let player = AVPlayer(url: fileURL)
+        let player = AVPlayer(url: audioURL)
         audioPlayer = player
         currentlyPlayingTrackId = track.id
         
@@ -1691,7 +1713,7 @@ struct PlaylistDetailView: View {
             }
         }
         
-        print("🎵 Now playing: \(track.title) by \(track.artist)")
+        print("🎵 Now playing: \(track.title) by \(track.artist) from \(audioURL.lastPathComponent)")
     }
 }
 
