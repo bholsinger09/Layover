@@ -940,13 +940,24 @@ struct MusicTabView: View {
                 var failed = 0
                 
                 for url in urls {
+                    // Start accessing security-scoped resource
+                    guard url.startAccessingSecurityScopedResource() else {
+                        print("❌ Failed to access security-scoped resource: \(url.lastPathComponent)")
+                        failed += 1
+                        continue
+                    }
+                    
+                    defer {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+                    
                     do {
                         // Copy file to app's documents directory
                         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                         let musicFolder = documentsPath.appendingPathComponent("ImportedMusic", isDirectory: true)
                         
                         // Create folder if needed
-                        try? FileManager.default.createDirectory(at: musicFolder, withIntermediateDirectories: true)
+                        try FileManager.default.createDirectory(at: musicFolder, withIntermediateDirectories: true, attributes: nil)
                         
                         let destination = musicFolder.appendingPathComponent(url.lastPathComponent)
                         
@@ -1498,13 +1509,24 @@ struct PlaylistDetailView: View {
                 var failed = 0
                 
                 for url in urls {
+                    // Start accessing security-scoped resource
+                    guard url.startAccessingSecurityScopedResource() else {
+                        print("❌ Failed to access security-scoped resource: \(url.lastPathComponent)")
+                        failed += 1
+                        continue
+                    }
+                    
+                    defer {
+                        url.stopAccessingSecurityScopedResource()
+                    }
+                    
                     do {
                         // Copy file to app's documents directory
                         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                         let musicFolder = documentsPath.appendingPathComponent("ImportedMusic", isDirectory: true)
                         
                         // Create folder if needed
-                        try? FileManager.default.createDirectory(at: musicFolder, withIntermediateDirectories: true)
+                        try FileManager.default.createDirectory(at: musicFolder, withIntermediateDirectories: true, attributes: nil)
                         
                         let destination = musicFolder.appendingPathComponent(url.lastPathComponent)
                         
