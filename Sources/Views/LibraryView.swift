@@ -586,6 +586,11 @@ struct MusicTabView: View {
     let viewModel: LibraryViewModel
     @Binding var searchText: String
     @State private var showCreatePlaylist = false
+    @State private var showFileImporter = false
+    @State private var showYouTubeImporter = false
+    @State private var youtubeURL = ""
+    @State private var importingYouTube = false
+    @State private var importMessage: String?
     
     var filteredFavoriteTracks: [MusicTrack] {
         if searchText.isEmpty {
@@ -687,6 +692,50 @@ struct MusicTabView: View {
                     .cornerRadius(12)
                 }
                 .buttonStyle(.plain)
+                .padding(.horizontal)
+                
+                // Upload Options Section
+                VStack(spacing: 12) {
+                    Text("Import Music")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    HStack(spacing: 12) {
+                        // Upload MP3 from Device
+                        Button {
+                            showFileImporter = true
+                        } label: {
+                            VStack(spacing: 8) {
+                                Image(systemName: "arrow.up.doc.fill")
+                                    .font(.title2)
+                                Text("Upload MP3")
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.purple.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        // Upload from YouTube
+                        Button {
+                            showYouTubeImporter = true
+                        } label: {
+                            VStack(spacing: 8) {
+                                Image(systemName: "play.rectangle.fill")
+                                    .font(.title2)
+                                Text("YouTube URL")
+                                    .font(.caption)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
                 .padding(.horizontal)
                 
                 // AI Search Results Section
@@ -849,7 +898,98 @@ struct MusicTabView: View {
         .sheet(isPresented: $showCreatePlaylist) {
             CreatePlaylistView(viewModel: viewModel)
         }
+        #if os(macOS)
+        .fileImporter(
+            isPresented: $showFileImporter,
+            allowedContentTypes: [.audio, .mp3],
+            allowsMultipleSelection: true
+        ) { result in
+            handleFileImport(result)
+        }
+        .alert("Import from YouTube", isPresented: $showYouTubeImporter) {
+            TextField("YouTube URL", text: $youtubeURL)
+            Button("Cancel", role: .cancel) {
+                youtubeURL = ""
+            }
+            Button("Import") {
+                Task {
+                    await importFromYouTube()
+                }
+            }
+        } message: {
+            Text("Enter a YouTube video URL to download and import as audio")
+        }
+        .alert("Import Status", isPresented: .constant(importMessage != nil)) {
+            Button("OK") {
+                importMessage = nil
+            }
+        } message: {
+            if let message = importMessage {
+                Text(message)
+            }
+        }
+        #endif
     }
+    
+    #if os(macOS)
+    private func handleFileImport(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            Task {
+                var imported = 0
+                var failed = 0
+                
+                for url in urls {
+                    do {
+                        // Copy file to app's documents directory
+                        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                        let musicFolder = documentsPath.appendingPathComponent("ImportedMusic", isDirectory: true)
+                        
+                        // Create folder if needed
+                        try? FileManager.default.createDirectory(at: musicFolder, withIntermediateDirectories: true)
+                        
+                        let destination = musicFolder.appendingPathComponent(url.lastPathComponent)
+                        
+                        // Copy file
+                        if FileManager.default.fileExists(atPath: destination.path) {
+                            try FileManager.default.removeItem(at: destination)
+                        }
+                        try FileManager.default.copyItem(at: url, to: destination)
+                        
+                        imported += 1
+                    } catch {
+                        print("❌ Failed to import \(url.lastPathComponent): \(error)")
+                        failed += 1
+                    }
+                }
+                
+                await MainActor.run {
+                    if failed == 0 {
+                        importMessage = "Successfully imported \(imported) file(s)"
+                    } else {
+                        importMessage = "Imported \(imported) file(s), \(failed) failed"
+                    }
+                }
+            }
+        case .failure(let error):
+            importMessage = "Import failed: \(error.localizedDescription)"
+        }
+    }
+    
+    private func importFromYouTube() async {
+        guard !youtubeURL.isEmpty else { return }
+        
+        importingYouTube = true
+        
+        // Note: Actual YouTube downloading requires additional tools like yt-dlp
+        // This is a placeholder implementation
+        await MainActor.run {
+            importMessage = "YouTube import requires yt-dlp to be installed. This feature will be fully implemented in a future update.\n\nFor now, please:\n1. Download the audio using yt-dlp or a web tool\n2. Use 'Upload MP3' to import the file"
+            youtubeURL = ""
+            importingYouTube = false
+        }
+    }
+    #endif
     
     private func searchWeb(query: String, context: String) {
         guard !query.isEmpty else { return }
