@@ -18,6 +18,7 @@ public struct ContentView: View {
     @State var libraryService = LibraryService()
     @State var showingLibrary = false
     @State var showingProfile = false
+    @State var showingSharePlaySession = false
     
     public init() {}
     public var body: some View {
@@ -44,21 +45,8 @@ public struct ContentView: View {
                 iOSTopBar(currentUser: currentUser)
                 #endif
                 
-                // Chess game view
-                ChessView(
-                    room: Room(
-                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID(),
-                        name: "Chess",
-                        hostID: currentUser.id,
-                        activityType: .chess,
-                        maxParticipants: 2,
-                        isPrivate: false
-                    ),
-                    currentUser: currentUser
-                )
-                #if os(tvOS)
-                .focusSection()
-                #endif
+                // Home Screen Content
+                homeScreenContent(currentUser: currentUser)
             }
             .background(
                 Image("airport-lounge")
@@ -76,7 +64,121 @@ public struct ContentView: View {
                     authViewModel: authViewModel
                 )
             }
+            #if os(tvOS)
+            .fullScreenCover(isPresented: $showingSharePlaySession) {
+                ChessView(
+                    room: Room(
+                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID(),
+                        name: "Chess",
+                        hostID: currentUser.id,
+                        activityType: .chess,
+                        maxParticipants: 2,
+                        isPrivate: false
+                    ),
+                    currentUser: currentUser
+                )
+            }
+            #else
+            .sheet(isPresented: $showingSharePlaySession) {
+                ChessView(
+                    room: Room(
+                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID(),
+                        name: "Chess",
+                        hostID: currentUser.id,
+                        activityType: .chess,
+                        maxParticipants: 2,
+                        isPrivate: false
+                    ),
+                    currentUser: currentUser
+                )
+            }
+            #endif
         }
+    }
+    
+    @ViewBuilder
+    private func homeScreenContent(currentUser: User) -> some View {
+        VStack(spacing: 40) {
+            Spacer()
+            
+            // App Title and Welcome
+            VStack(spacing: 16) {
+                Image(systemName: "airplane.departure")
+                    .font(.system(size: 80))
+                    .foregroundStyle(.blue.gradient)
+                
+                Text("Welcome to LayoverLounge")
+                    .font(.system(size: 48, weight: .bold))
+                    .foregroundStyle(.white)
+                
+                Text("Connect with friends and enjoy entertainment together")
+                    .font(.system(size: 24))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 60)
+            .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+            
+            // Connection Options
+            VStack(spacing: 24) {
+                // Connect to SharePlay Button
+                Button {
+                    showingSharePlaySession = true
+                } label: {
+                    HStack(spacing: 16) {
+                        Image(systemName: "shareplay")
+                            .font(.system(size: 36))
+                        Text("Connect to SharePlay Session")
+                            .font(.system(size: 32, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: 700)
+                    .padding(.vertical, 24)
+                    .padding(.horizontal, 40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.blue.gradient)
+                            .shadow(color: .blue.opacity(0.5), radius: 20, x: 0, y: 10)
+                    )
+                }
+                #if os(tvOS)
+                .buttonStyle(.card)
+                #else
+                .buttonStyle(.plain)
+                #endif
+                
+                // Browse Library Button
+                Button {
+                    showingLibrary = true
+                } label: {
+                    HStack(spacing: 16) {
+                        Image(systemName: "books.vertical.fill")
+                            .font(.system(size: 36))
+                        Text("Browse My Library")
+                            .font(.system(size: 32, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: 700)
+                    .padding(.vertical, 24)
+                    .padding(.horizontal, 40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.purple.gradient)
+                            .shadow(color: .purple.opacity(0.5), radius: 20, x: 0, y: 10)
+                    )
+                }
+                #if os(tvOS)
+                .buttonStyle(.card)
+                #else
+                .buttonStyle(.plain)
+                #endif
+            }
+            
+            Spacer()
+        }
+        #if os(tvOS)
+        .focusSection()
+        #endif
     }
     
     // MARK: - Platform-Specific Top Bars
