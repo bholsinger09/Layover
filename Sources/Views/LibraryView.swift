@@ -563,6 +563,8 @@ struct StoryRowView: View {
         .padding()
         #if os(tvOS)
         .background(Color.gray.opacity(0.2))
+        #elseif os(macOS)
+        .background(Color(nsColor: .controlBackgroundColor))
         #else
         .background(Color(.systemGray6))
         #endif

@@ -40,7 +40,9 @@ public struct LocalMusicLibraryView: View {
                 }
             }
             .navigationTitle("")
+            #if os(iOS) || os(tvOS)
             .navigationBarHidden(true)
+            #endif
             .alert("Message", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.errorMessage = nil
@@ -79,6 +81,8 @@ public struct LocalMusicLibraryView: View {
         .padding()
         #if os(tvOS)
         .background(Color.secondary.opacity(0.1))
+        #elseif os(macOS)
+        .background(Color(nsColor: .controlBackgroundColor))
         #else
         .background(Color(.systemGroupedBackground))
         #endif
@@ -311,7 +315,7 @@ struct ArtistDetailView: View {
             }
         }
         .navigationTitle(artist)
-        #if !os(tvOS)
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
         #endif
     }
@@ -339,7 +343,7 @@ struct AlbumDetailView: View {
             }
         }
         .navigationTitle(album)
-        #if !os(tvOS)
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
         #endif
     }
