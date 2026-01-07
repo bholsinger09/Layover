@@ -1,0 +1,1489 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		365D21BA2F0856D900EA2AC0 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 365D21B92F0856D900EA2AC0 /* LayoverKit */; };
+		365D21BC2F0856E500EA2AC0 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 365D21BB2F0856E500EA2AC0 /* LayoverKit */; };
+		366016F52F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */; };
+		366016F72F0D59F5002669AE /* Sister hazel - Change your mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */; };
+		366016F92F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */; };
+		366016FB2F0D5A37002669AE /* Poppies.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FA2F0D5A37002669AE /* Poppies.mp3 */; };
+		366016FD2F0D5A57002669AE /* McDonald's Girl Song.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FC2F0D5A57002669AE /* McDonald's Girl Song.mp3 */; };
+		366016FF2F0D5A6C002669AE /* Marcy Playground - Sherry Fraser.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FE2F0D5A6C002669AE /* Marcy Playground - Sherry Fraser.mp3 */; };
+		366017012F0D5A89002669AE /* Marcy Playground - Sex & Candy (Official Music Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017002F0D5A89002669AE /* Marcy Playground - Sex & Candy (Official Music Video).mp3 */; };
+		366017032F0D5A9F002669AE /* David Bowie  Space Oddity (Official Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017022F0D5A9F002669AE /* David Bowie  Space Oddity (Official Video).mp3 */; };
+		366017052F0D5ABA002669AE /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017042F0D5ABA002669AE /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 */; };
+		366017072F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017062F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 */; };
+		366017092F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017082F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 */; };
+		3660170B2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3660170A2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 */; };
+		36DE17CF2EF83F7100A7D8A4 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 36DE17CE2EF83F7100A7D8A4 /* LayoverKit */; };
+		36DE18022EF86C1600A7D8A4 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 36DE18012EF86C1600A7D8A4 /* LayoverKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		365D219B2F084F9F00EA2AC0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36DE179B2EF83E0A00A7D8A4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 365D218D2F084F9E00EA2AC0;
+			remoteInfo = LayoverAppleTv;
+		};
+		365D21A52F084F9F00EA2AC0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36DE179B2EF83E0A00A7D8A4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 365D218D2F084F9E00EA2AC0;
+			remoteInfo = LayoverAppleTv;
+		};
+		36DE17B12EF83E0B00A7D8A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36DE179B2EF83E0A00A7D8A4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36DE17A22EF83E0A00A7D8A4;
+			remoteInfo = Layover;
+		};
+		36DE17BB2EF83E0B00A7D8A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36DE179B2EF83E0A00A7D8A4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36DE17A22EF83E0A00A7D8A4;
+			remoteInfo = Layover;
+		};
+		36DE17E22EF855C700A7D8A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36DE179B2EF83E0A00A7D8A4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36DE17D42EF855C600A7D8A4;
+			remoteInfo = LayoverMac;
+		};
+		36DE17EC2EF855C700A7D8A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 36DE179B2EF83E0A00A7D8A4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36DE17D42EF855C600A7D8A4;
+			remoteInfo = LayoverMac;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		365D218E2F084F9E00EA2AC0 /* LayoverAppleTv.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LayoverAppleTv.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		365D219A2F084F9F00EA2AC0 /* LayoverAppleTvTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoverAppleTvTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		365D21A42F084F9F00EA2AC0 /* LayoverAppleTvUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoverAppleTvUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Ob-La-Di, Ob-La-Da (Remastered 2009).mp3"; sourceTree = "<group>"; };
+		366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Sister hazel - Change your mind.mp3"; sourceTree = "<group>"; };
+		366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Savage Garden - To The Moon & Back (Extended Version).mp3"; sourceTree = "<group>"; };
+		366016FA2F0D5A37002669AE /* Poppies.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Poppies.mp3; sourceTree = "<group>"; };
+		366016FC2F0D5A57002669AE /* McDonald's Girl Song.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "McDonald's Girl Song.mp3"; sourceTree = "<group>"; };
+		366016FE2F0D5A6C002669AE /* Marcy Playground - Sherry Fraser.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Marcy Playground - Sherry Fraser.mp3"; sourceTree = "<group>"; };
+		366017002F0D5A89002669AE /* Marcy Playground - Sex & Candy (Official Music Video).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Marcy Playground - Sex & Candy (Official Music Video).mp3"; sourceTree = "<group>"; };
+		366017022F0D5A9F002669AE /* David Bowie  Space Oddity (Official Video).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "David Bowie  Space Oddity (Official Video).mp3"; sourceTree = "<group>"; };
+		366017042F0D5ABA002669AE /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3"; sourceTree = "<group>"; };
+		366017062F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Britney Spears - Oops!...I Did It Again (Official HD Video).mp3"; sourceTree = "<group>"; };
+		366017082F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Backstreet Boys - Shape Of My Heart (Official HD Video).mp3"; sourceTree = "<group>"; };
+		3660170A2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Backstreet Boys - I Want It That Way (Official HD Video).mp3"; sourceTree = "<group>"; };
+		36705E262F0C581000D829E7 /* 02 Livin' On Love.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "02 Livin' On Love.m4p"; sourceTree = "<group>"; };
+		36705E282F0C582200D829E7 /* 03 As Long as You Love Me.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "03 As Long as You Love Me.m4p"; sourceTree = "<group>"; };
+		36705E2A2F0C583600D829E7 /* 2-03 Ob-La-Di, Ob-La-Da.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "2-03 Ob-La-Di, Ob-La-Da.m4p"; sourceTree = "<group>"; };
+		36705E2C2F0C584C00D829E7 /* 12 Anthem.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "12 Anthem.m4p"; sourceTree = "<group>"; };
+		36705E2E2F0C586300D829E7 /* 1-01 Genie in a Bottle.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "1-01 Genie in a Bottle.m4p"; sourceTree = "<group>"; };
+		36705E302F0C587800D829E7 /* 02 One, Two, I Love You.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "02 One, Two, I Love You.m4p"; sourceTree = "<group>"; };
+		36705E322F0C588D00D829E7 /* 06 One Boy, One Girl.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "06 One Boy, One Girl.m4p"; sourceTree = "<group>"; };
+		36705E342F0C589D00D829E7 /* 06 Father Of Mine.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "06 Father Of Mine.m4p"; sourceTree = "<group>"; };
+		36705E362F0C58AD00D829E7 /* 01 Ob-La-Di, Ob-La-Da.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "01 Ob-La-Di, Ob-La-Da.m4p"; sourceTree = "<group>"; };
+		36705E382F0C58C800D829E7 /* 11 Iris.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "11 Iris.m4p"; sourceTree = "<group>"; };
+		36705E3A2F0C58DB00D829E7 /* 1-03 Let Her Cry.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "1-03 Let Her Cry.m4p"; sourceTree = "<group>"; };
+		36705E3C2F0C58EB00D829E7 /* 07 McDonald's Girl.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "07 McDonald's Girl.m4p"; sourceTree = "<group>"; };
+		36705E3E2F0C590000D829E7 /* 10 Dog and His Master.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "10 Dog and His Master.m4p"; sourceTree = "<group>"; };
+		367AF9FA2F0C6A5F00E39266 /* Ob-La-Di, Ob-La-Da.mp3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Ob-La-Di, Ob-La-Da.mp3.mp3"; sourceTree = "<group>"; };
+		36DE17A32EF83E0A00A7D8A4 /* Layover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Layover.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		36DE17B02EF83E0B00A7D8A4 /* LayoverTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoverTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36DE17BA2EF83E0B00A7D8A4 /* LayoverUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoverUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36DE17D52EF855C600A7D8A4 /* LayoverMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LayoverMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		36DE17E12EF855C700A7D8A4 /* LayoverMacTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoverMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36DE17EB2EF855C700A7D8A4 /* LayoverMacUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LayoverMacUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		36F062792EF87B24002AA8F1 /* Exceptions for "LayoverMac" folder in "LayoverMac" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 36DE17D42EF855C600A7D8A4 /* LayoverMac */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		365D218F2F084F9E00EA2AC0 /* LayoverAppleTv */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LayoverAppleTv;
+			sourceTree = "<group>";
+		};
+		365D219D2F084F9F00EA2AC0 /* LayoverAppleTvTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LayoverAppleTvTests;
+			sourceTree = "<group>";
+		};
+		365D21A72F084F9F00EA2AC0 /* LayoverAppleTvUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LayoverAppleTvUITests;
+			sourceTree = "<group>";
+		};
+		36DE17A52EF83E0A00A7D8A4 /* Layover */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Layover;
+			sourceTree = "<group>";
+		};
+		36DE17B32EF83E0B00A7D8A4 /* LayoverTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LayoverTests;
+			sourceTree = "<group>";
+		};
+		36DE17BD2EF83E0B00A7D8A4 /* LayoverUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LayoverUITests;
+			sourceTree = "<group>";
+		};
+		36DE17D62EF855C600A7D8A4 /* LayoverMac */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				36F062792EF87B24002AA8F1 /* Exceptions for "LayoverMac" folder in "LayoverMac" target */,
+			);
+			path = LayoverMac;
+			sourceTree = "<group>";
+		};
+		36DE17E42EF855C700A7D8A4 /* LayoverMacTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LayoverMacTests;
+			sourceTree = "<group>";
+		};
+		36DE17EE2EF855C700A7D8A4 /* LayoverMacUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LayoverMacUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		365D218B2F084F9E00EA2AC0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				365D21BA2F0856D900EA2AC0 /* LayoverKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		365D21972F084F9F00EA2AC0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		365D21A12F084F9F00EA2AC0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				365D21BC2F0856E500EA2AC0 /* LayoverKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17A02EF83E0A00A7D8A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36DE17CF2EF83F7100A7D8A4 /* LayoverKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17AD2EF83E0B00A7D8A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17B72EF83E0B00A7D8A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17D22EF855C600A7D8A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36DE18022EF86C1600A7D8A4 /* LayoverKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17DE2EF855C700A7D8A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17E82EF855C700A7D8A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		365D21B52F08569400EA2AC0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		36DE179A2EF83E0A00A7D8A4 = {
+			isa = PBXGroup;
+			children = (
+				3660170A2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 */,
+				366017082F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 */,
+				366017062F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 */,
+				366017042F0D5ABA002669AE /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 */,
+				366017022F0D5A9F002669AE /* David Bowie  Space Oddity (Official Video).mp3 */,
+				366017002F0D5A89002669AE /* Marcy Playground - Sex & Candy (Official Music Video).mp3 */,
+				366016FE2F0D5A6C002669AE /* Marcy Playground - Sherry Fraser.mp3 */,
+				366016FC2F0D5A57002669AE /* McDonald's Girl Song.mp3 */,
+				366016FA2F0D5A37002669AE /* Poppies.mp3 */,
+				366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */,
+				366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */,
+				366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */,
+				367AF9FA2F0C6A5F00E39266 /* Ob-La-Di, Ob-La-Da.mp3.mp3 */,
+				36705E3E2F0C590000D829E7 /* 10 Dog and His Master.m4p */,
+				36705E3C2F0C58EB00D829E7 /* 07 McDonald's Girl.m4p */,
+				36705E3A2F0C58DB00D829E7 /* 1-03 Let Her Cry.m4p */,
+				36705E382F0C58C800D829E7 /* 11 Iris.m4p */,
+				36705E362F0C58AD00D829E7 /* 01 Ob-La-Di, Ob-La-Da.m4p */,
+				36705E342F0C589D00D829E7 /* 06 Father Of Mine.m4p */,
+				36705E322F0C588D00D829E7 /* 06 One Boy, One Girl.m4p */,
+				36705E302F0C587800D829E7 /* 02 One, Two, I Love You.m4p */,
+				36705E2E2F0C586300D829E7 /* 1-01 Genie in a Bottle.m4p */,
+				36705E2C2F0C584C00D829E7 /* 12 Anthem.m4p */,
+				36705E2A2F0C583600D829E7 /* 2-03 Ob-La-Di, Ob-La-Da.m4p */,
+				36705E282F0C582200D829E7 /* 03 As Long as You Love Me.m4p */,
+				36705E262F0C581000D829E7 /* 02 Livin' On Love.m4p */,
+				36DE17A52EF83E0A00A7D8A4 /* Layover */,
+				36DE17B32EF83E0B00A7D8A4 /* LayoverTests */,
+				36DE17BD2EF83E0B00A7D8A4 /* LayoverUITests */,
+				36DE17D62EF855C600A7D8A4 /* LayoverMac */,
+				36DE17E42EF855C700A7D8A4 /* LayoverMacTests */,
+				36DE17EE2EF855C700A7D8A4 /* LayoverMacUITests */,
+				365D218F2F084F9E00EA2AC0 /* LayoverAppleTv */,
+				365D219D2F084F9F00EA2AC0 /* LayoverAppleTvTests */,
+				365D21A72F084F9F00EA2AC0 /* LayoverAppleTvUITests */,
+				365D21B52F08569400EA2AC0 /* Frameworks */,
+				36DE17A42EF83E0A00A7D8A4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		36DE17A42EF83E0A00A7D8A4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				36DE17A32EF83E0A00A7D8A4 /* Layover.app */,
+				36DE17B02EF83E0B00A7D8A4 /* LayoverTests.xctest */,
+				36DE17BA2EF83E0B00A7D8A4 /* LayoverUITests.xctest */,
+				36DE17D52EF855C600A7D8A4 /* LayoverMac.app */,
+				36DE17E12EF855C700A7D8A4 /* LayoverMacTests.xctest */,
+				36DE17EB2EF855C700A7D8A4 /* LayoverMacUITests.xctest */,
+				365D218E2F084F9E00EA2AC0 /* LayoverAppleTv.app */,
+				365D219A2F084F9F00EA2AC0 /* LayoverAppleTvTests.xctest */,
+				365D21A42F084F9F00EA2AC0 /* LayoverAppleTvUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		365D218D2F084F9E00EA2AC0 /* LayoverAppleTv */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 365D21AC2F084F9F00EA2AC0 /* Build configuration list for PBXNativeTarget "LayoverAppleTv" */;
+			buildPhases = (
+				365D218A2F084F9E00EA2AC0 /* Sources */,
+				365D218B2F084F9E00EA2AC0 /* Frameworks */,
+				365D218C2F084F9E00EA2AC0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				365D218F2F084F9E00EA2AC0 /* LayoverAppleTv */,
+			);
+			name = LayoverAppleTv;
+			packageProductDependencies = (
+				365D21B92F0856D900EA2AC0 /* LayoverKit */,
+			);
+			productName = LayoverAppleTv;
+			productReference = 365D218E2F084F9E00EA2AC0 /* LayoverAppleTv.app */;
+			productType = "com.apple.product-type.application";
+		};
+		365D21992F084F9F00EA2AC0 /* LayoverAppleTvTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 365D21AF2F084F9F00EA2AC0 /* Build configuration list for PBXNativeTarget "LayoverAppleTvTests" */;
+			buildPhases = (
+				365D21962F084F9F00EA2AC0 /* Sources */,
+				365D21972F084F9F00EA2AC0 /* Frameworks */,
+				365D21982F084F9F00EA2AC0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				365D219C2F084F9F00EA2AC0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				365D219D2F084F9F00EA2AC0 /* LayoverAppleTvTests */,
+			);
+			name = LayoverAppleTvTests;
+			packageProductDependencies = (
+			);
+			productName = LayoverAppleTvTests;
+			productReference = 365D219A2F084F9F00EA2AC0 /* LayoverAppleTvTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		365D21A32F084F9F00EA2AC0 /* LayoverAppleTvUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 365D21B22F084F9F00EA2AC0 /* Build configuration list for PBXNativeTarget "LayoverAppleTvUITests" */;
+			buildPhases = (
+				365D21A02F084F9F00EA2AC0 /* Sources */,
+				365D21A12F084F9F00EA2AC0 /* Frameworks */,
+				365D21A22F084F9F00EA2AC0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				365D21A62F084F9F00EA2AC0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				365D21A72F084F9F00EA2AC0 /* LayoverAppleTvUITests */,
+			);
+			name = LayoverAppleTvUITests;
+			packageProductDependencies = (
+				365D21BB2F0856E500EA2AC0 /* LayoverKit */,
+			);
+			productName = LayoverAppleTvUITests;
+			productReference = 365D21A42F084F9F00EA2AC0 /* LayoverAppleTvUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		36DE17A22EF83E0A00A7D8A4 /* Layover */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36DE17C42EF83E0B00A7D8A4 /* Build configuration list for PBXNativeTarget "Layover" */;
+			buildPhases = (
+				36DE179F2EF83E0A00A7D8A4 /* Sources */,
+				36DE17A02EF83E0A00A7D8A4 /* Frameworks */,
+				36DE17A12EF83E0A00A7D8A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				36DE17A52EF83E0A00A7D8A4 /* Layover */,
+			);
+			name = Layover;
+			packageProductDependencies = (
+				36DE17CE2EF83F7100A7D8A4 /* LayoverKit */,
+			);
+			productName = Layover;
+			productReference = 36DE17A32EF83E0A00A7D8A4 /* Layover.app */;
+			productType = "com.apple.product-type.application";
+		};
+		36DE17AF2EF83E0B00A7D8A4 /* LayoverTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36DE17C72EF83E0B00A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverTests" */;
+			buildPhases = (
+				36DE17AC2EF83E0B00A7D8A4 /* Sources */,
+				36DE17AD2EF83E0B00A7D8A4 /* Frameworks */,
+				36DE17AE2EF83E0B00A7D8A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36DE17B22EF83E0B00A7D8A4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				36DE17B32EF83E0B00A7D8A4 /* LayoverTests */,
+			);
+			name = LayoverTests;
+			packageProductDependencies = (
+			);
+			productName = LayoverTests;
+			productReference = 36DE17B02EF83E0B00A7D8A4 /* LayoverTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		36DE17B92EF83E0B00A7D8A4 /* LayoverUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36DE17CA2EF83E0B00A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverUITests" */;
+			buildPhases = (
+				36DE17B62EF83E0B00A7D8A4 /* Sources */,
+				36DE17B72EF83E0B00A7D8A4 /* Frameworks */,
+				36DE17B82EF83E0B00A7D8A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36DE17BC2EF83E0B00A7D8A4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				36DE17BD2EF83E0B00A7D8A4 /* LayoverUITests */,
+			);
+			name = LayoverUITests;
+			packageProductDependencies = (
+			);
+			productName = LayoverUITests;
+			productReference = 36DE17BA2EF83E0B00A7D8A4 /* LayoverUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		36DE17D42EF855C600A7D8A4 /* LayoverMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36DE17F32EF855C700A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverMac" */;
+			buildPhases = (
+				36DE17D12EF855C600A7D8A4 /* Sources */,
+				36DE17D22EF855C600A7D8A4 /* Frameworks */,
+				36DE17D32EF855C600A7D8A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				36DE17D62EF855C600A7D8A4 /* LayoverMac */,
+			);
+			name = LayoverMac;
+			packageProductDependencies = (
+				36DE18012EF86C1600A7D8A4 /* LayoverKit */,
+			);
+			productName = LayoverMac;
+			productReference = 36DE17D52EF855C600A7D8A4 /* LayoverMac.app */;
+			productType = "com.apple.product-type.application";
+		};
+		36DE17E02EF855C700A7D8A4 /* LayoverMacTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36DE17F62EF855C700A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverMacTests" */;
+			buildPhases = (
+				36DE17DD2EF855C700A7D8A4 /* Sources */,
+				36DE17DE2EF855C700A7D8A4 /* Frameworks */,
+				36DE17DF2EF855C700A7D8A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36DE17E32EF855C700A7D8A4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				36DE17E42EF855C700A7D8A4 /* LayoverMacTests */,
+			);
+			name = LayoverMacTests;
+			packageProductDependencies = (
+			);
+			productName = LayoverMacTests;
+			productReference = 36DE17E12EF855C700A7D8A4 /* LayoverMacTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		36DE17EA2EF855C700A7D8A4 /* LayoverMacUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36DE17F92EF855C700A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverMacUITests" */;
+			buildPhases = (
+				36DE17E72EF855C700A7D8A4 /* Sources */,
+				36DE17E82EF855C700A7D8A4 /* Frameworks */,
+				36DE17E92EF855C700A7D8A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36DE17ED2EF855C700A7D8A4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				36DE17EE2EF855C700A7D8A4 /* LayoverMacUITests */,
+			);
+			name = LayoverMacUITests;
+			packageProductDependencies = (
+			);
+			productName = LayoverMacUITests;
+			productReference = 36DE17EB2EF855C700A7D8A4 /* LayoverMacUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		36DE179B2EF83E0A00A7D8A4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2610;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					365D218D2F084F9E00EA2AC0 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					365D21992F084F9F00EA2AC0 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 365D218D2F084F9E00EA2AC0;
+					};
+					365D21A32F084F9F00EA2AC0 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 365D218D2F084F9E00EA2AC0;
+					};
+					36DE17A22EF83E0A00A7D8A4 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					36DE17AF2EF83E0B00A7D8A4 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 36DE17A22EF83E0A00A7D8A4;
+					};
+					36DE17B92EF83E0B00A7D8A4 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 36DE17A22EF83E0A00A7D8A4;
+					};
+					36DE17D42EF855C600A7D8A4 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					36DE17E02EF855C700A7D8A4 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 36DE17D42EF855C600A7D8A4;
+					};
+					36DE17EA2EF855C700A7D8A4 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 36DE17D42EF855C600A7D8A4;
+					};
+				};
+			};
+			buildConfigurationList = 36DE179E2EF83E0A00A7D8A4 /* Build configuration list for PBXProject "Layover" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 36DE179A2EF83E0A00A7D8A4;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				365D21B82F0856D900EA2AC0 /* XCLocalSwiftPackageReference "../../Layover" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 36DE17A42EF83E0A00A7D8A4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				36DE17A22EF83E0A00A7D8A4 /* Layover */,
+				36DE17AF2EF83E0B00A7D8A4 /* LayoverTests */,
+				36DE17B92EF83E0B00A7D8A4 /* LayoverUITests */,
+				36DE17D42EF855C600A7D8A4 /* LayoverMac */,
+				36DE17E02EF855C700A7D8A4 /* LayoverMacTests */,
+				36DE17EA2EF855C700A7D8A4 /* LayoverMacUITests */,
+				365D218D2F084F9E00EA2AC0 /* LayoverAppleTv */,
+				365D21992F084F9F00EA2AC0 /* LayoverAppleTvTests */,
+				365D21A32F084F9F00EA2AC0 /* LayoverAppleTvUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		365D218C2F084F9E00EA2AC0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3660170B2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 in Resources */,
+				366017092F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 in Resources */,
+				366017072F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 in Resources */,
+				366017052F0D5ABA002669AE /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 in Resources */,
+				366017032F0D5A9F002669AE /* David Bowie  Space Oddity (Official Video).mp3 in Resources */,
+				366017012F0D5A89002669AE /* Marcy Playground - Sex & Candy (Official Music Video).mp3 in Resources */,
+				366016FF2F0D5A6C002669AE /* Marcy Playground - Sherry Fraser.mp3 in Resources */,
+				366016FD2F0D5A57002669AE /* McDonald's Girl Song.mp3 in Resources */,
+				366016FB2F0D5A37002669AE /* Poppies.mp3 in Resources */,
+				366016F92F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */,
+				366016F72F0D59F5002669AE /* Sister hazel - Change your mind.mp3 in Resources */,
+				366016F52F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		365D21982F084F9F00EA2AC0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		365D21A22F084F9F00EA2AC0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17A12EF83E0A00A7D8A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17AE2EF83E0B00A7D8A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17B82EF83E0B00A7D8A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17D32EF855C600A7D8A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17DF2EF855C700A7D8A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17E92EF855C700A7D8A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		365D218A2F084F9E00EA2AC0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		365D21962F084F9F00EA2AC0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		365D21A02F084F9F00EA2AC0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE179F2EF83E0A00A7D8A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17AC2EF83E0B00A7D8A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17B62EF83E0B00A7D8A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17D12EF855C600A7D8A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17DD2EF855C700A7D8A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36DE17E72EF855C700A7D8A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		365D219C2F084F9F00EA2AC0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 365D218D2F084F9E00EA2AC0 /* LayoverAppleTv */;
+			targetProxy = 365D219B2F084F9F00EA2AC0 /* PBXContainerItemProxy */;
+		};
+		365D21A62F084F9F00EA2AC0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 365D218D2F084F9E00EA2AC0 /* LayoverAppleTv */;
+			targetProxy = 365D21A52F084F9F00EA2AC0 /* PBXContainerItemProxy */;
+		};
+		36DE17B22EF83E0B00A7D8A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 36DE17A22EF83E0A00A7D8A4 /* Layover */;
+			targetProxy = 36DE17B12EF83E0B00A7D8A4 /* PBXContainerItemProxy */;
+		};
+		36DE17BC2EF83E0B00A7D8A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 36DE17A22EF83E0A00A7D8A4 /* Layover */;
+			targetProxy = 36DE17BB2EF83E0B00A7D8A4 /* PBXContainerItemProxy */;
+		};
+		36DE17E32EF855C700A7D8A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 36DE17D42EF855C600A7D8A4 /* LayoverMac */;
+			targetProxy = 36DE17E22EF855C700A7D8A4 /* PBXContainerItemProxy */;
+		};
+		36DE17ED2EF855C700A7D8A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 36DE17D42EF855C600A7D8A4 /* LayoverMac */;
+			targetProxy = 36DE17EC2EF855C700A7D8A4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		365D21AD2F084F9F00EA2AC0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LayoverAppleTv/LayoverAppleTv.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverAppleTv;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		365D21AE2F084F9F00EA2AC0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LayoverAppleTv/LayoverAppleTv.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverAppleTv;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
+		365D21B02F084F9F00EA2AC0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverAppleTvTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LayoverAppleTv.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LayoverAppleTv";
+				TVOS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		365D21B12F084F9F00EA2AC0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverAppleTvTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LayoverAppleTv.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LayoverAppleTv";
+				TVOS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
+		365D21B32F084F9F00EA2AC0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverAppleTvUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TEST_TARGET_NAME = LayoverAppleTv;
+				TVOS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		365D21B42F084F9F00EA2AC0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverAppleTvUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TEST_TARGET_NAME = LayoverAppleTv;
+				TVOS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
+		36DE17C22EF83E0B00A7D8A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		36DE17C32EF83E0B00A7D8A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		36DE17C52EF83E0B00A7D8A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Layover/Layover.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Layover needs access to Apple Music to play songs together with your group.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Layover uses your camera for video chat during group activities.";
+				INFOPLIST_KEY_NSGroupActivitiesUsageDescription = "Layover uses SharePlay to create synchronized group experiences across movies, music, and games.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Layover needs microphone access for voice chat during group activities.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bholsinger.LayoverLounge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		36DE17C62EF83E0B00A7D8A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Layover/Layover.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "Layover needs access to Apple Music to play songs together with your group.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Layover uses your camera for video chat during group activities.";
+				INFOPLIST_KEY_NSGroupActivitiesUsageDescription = "Layover uses SharePlay to create synchronized group experiences across movies, music, and games.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Layover needs microphone access for voice chat during group activities.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bholsinger.LayoverLounge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		36DE17C82EF83E0B00A7D8A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Layover.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Layover";
+			};
+			name = Debug;
+		};
+		36DE17C92EF83E0B00A7D8A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Layover.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Layover";
+			};
+			name = Release;
+		};
+		36DE17CB2EF83E0B00A7D8A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Layover;
+			};
+			name = Debug;
+		};
+		36DE17CC2EF83E0B00A7D8A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Layover;
+			};
+			name = Release;
+		};
+		36DE17F42EF855C700A7D8A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LayoverMac/LayoverMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LayoverMac/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bholsinger.LayoverLounge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		36DE17F52EF855C700A7D8A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LayoverMac/LayoverMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LayoverMac/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bholsinger.LayoverLounge;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		36DE17F72EF855C700A7D8A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverMacTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LayoverMac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LayoverMac";
+			};
+			name = Debug;
+		};
+		36DE17F82EF855C700A7D8A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverMacTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LayoverMac.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LayoverMac";
+			};
+			name = Release;
+		};
+		36DE17FA2EF855C700A7D8A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverMacUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = LayoverMac;
+			};
+			name = Debug;
+		};
+		36DE17FB2EF855C700A7D8A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = PL58734CZ4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.Ben.LayoverMacUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = LayoverMac;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		365D21AC2F084F9F00EA2AC0 /* Build configuration list for PBXNativeTarget "LayoverAppleTv" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				365D21AD2F084F9F00EA2AC0 /* Debug */,
+				365D21AE2F084F9F00EA2AC0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		365D21AF2F084F9F00EA2AC0 /* Build configuration list for PBXNativeTarget "LayoverAppleTvTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				365D21B02F084F9F00EA2AC0 /* Debug */,
+				365D21B12F084F9F00EA2AC0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		365D21B22F084F9F00EA2AC0 /* Build configuration list for PBXNativeTarget "LayoverAppleTvUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				365D21B32F084F9F00EA2AC0 /* Debug */,
+				365D21B42F084F9F00EA2AC0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36DE179E2EF83E0A00A7D8A4 /* Build configuration list for PBXProject "Layover" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36DE17C22EF83E0B00A7D8A4 /* Debug */,
+				36DE17C32EF83E0B00A7D8A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36DE17C42EF83E0B00A7D8A4 /* Build configuration list for PBXNativeTarget "Layover" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36DE17C52EF83E0B00A7D8A4 /* Debug */,
+				36DE17C62EF83E0B00A7D8A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36DE17C72EF83E0B00A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36DE17C82EF83E0B00A7D8A4 /* Debug */,
+				36DE17C92EF83E0B00A7D8A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36DE17CA2EF83E0B00A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36DE17CB2EF83E0B00A7D8A4 /* Debug */,
+				36DE17CC2EF83E0B00A7D8A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36DE17F32EF855C700A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36DE17F42EF855C700A7D8A4 /* Debug */,
+				36DE17F52EF855C700A7D8A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36DE17F62EF855C700A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverMacTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36DE17F72EF855C700A7D8A4 /* Debug */,
+				36DE17F82EF855C700A7D8A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36DE17F92EF855C700A7D8A4 /* Build configuration list for PBXNativeTarget "LayoverMacUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36DE17FA2EF855C700A7D8A4 /* Debug */,
+				36DE17FB2EF855C700A7D8A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		365D21B82F0856D900EA2AC0 /* XCLocalSwiftPackageReference "../../Layover" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../Layover;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		365D21B92F0856D900EA2AC0 /* LayoverKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LayoverKit;
+		};
+		365D21BB2F0856E500EA2AC0 /* LayoverKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 365D21B82F0856D900EA2AC0 /* XCLocalSwiftPackageReference "../../Layover" */;
+			productName = LayoverKit;
+		};
+		36DE17CE2EF83F7100A7D8A4 /* LayoverKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LayoverKit;
+		};
+		36DE18012EF86C1600A7D8A4 /* LayoverKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LayoverKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 36DE179B2EF83E0A00A7D8A4 /* Project object */;
+}
