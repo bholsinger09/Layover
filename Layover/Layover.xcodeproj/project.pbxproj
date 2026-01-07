@@ -21,6 +21,18 @@
 		366017072F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017062F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 */; };
 		366017092F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017082F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 */; };
 		3660170B2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3660170A2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 */; };
+		366848032F0EC0DF00BC0838 /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3660170A2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 */; };
+		366848042F0EC0E400BC0838 /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017062F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 */; };
+		366848052F0EC0E900BC0838 /* David Bowie  Space Oddity (Official Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017022F0D5A9F002669AE /* David Bowie  Space Oddity (Official Video).mp3 */; };
+		366848062F0EC0F300BC0838 /* Marcy Playground - Sex & Candy (Official Music Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017002F0D5A89002669AE /* Marcy Playground - Sex & Candy (Official Music Video).mp3 */; };
+		366848072F0EC0FC00BC0838 /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017082F0D5AF2002669AE /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 */; };
+		366848082F0EC10300BC0838 /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017042F0D5ABA002669AE /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 */; };
+		366848092F0EC10900BC0838 /* Marcy Playground - Sherry Fraser.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FE2F0D5A6C002669AE /* Marcy Playground - Sherry Fraser.mp3 */; };
+		3668480A2F0EC10E00BC0838 /* McDonald's Girl Song.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FC2F0D5A57002669AE /* McDonald's Girl Song.mp3 */; };
+		3668480B2F0EC11300BC0838 /* Poppies.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FA2F0D5A37002669AE /* Poppies.mp3 */; };
+		3668480C2F0EC11800BC0838 /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */; };
+		3668480D2F0EC11D00BC0838 /* Sister hazel - Change your mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */; };
+		3668480E2F0EC12400BC0838 /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */; };
 		36DE17CF2EF83F7100A7D8A4 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 36DE17CE2EF83F7100A7D8A4 /* LayoverKit */; };
 		36DE18022EF86C1600A7D8A4 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 36DE18012EF86C1600A7D8A4 /* LayoverKit */; };
 /* End PBXBuildFile section */
@@ -651,6 +663,18 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3668480E2F0EC12400BC0838 /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */,
+				3668480D2F0EC11D00BC0838 /* Sister hazel - Change your mind.mp3 in Resources */,
+				3668480C2F0EC11800BC0838 /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */,
+				3668480B2F0EC11300BC0838 /* Poppies.mp3 in Resources */,
+				3668480A2F0EC10E00BC0838 /* McDonald's Girl Song.mp3 in Resources */,
+				366848092F0EC10900BC0838 /* Marcy Playground - Sherry Fraser.mp3 in Resources */,
+				366848082F0EC10300BC0838 /* Barenaked Ladies - Odds Are (Official Music Video)  Rooster Teeth.mp3 in Resources */,
+				366848072F0EC0FC00BC0838 /* Backstreet Boys - Shape Of My Heart (Official HD Video).mp3 in Resources */,
+				366848062F0EC0F300BC0838 /* Marcy Playground - Sex & Candy (Official Music Video).mp3 in Resources */,
+				366848052F0EC0E900BC0838 /* David Bowie  Space Oddity (Official Video).mp3 in Resources */,
+				366848042F0EC0E400BC0838 /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 in Resources */,
+				366848032F0EC0DF00BC0838 /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

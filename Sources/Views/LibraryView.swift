@@ -38,6 +38,15 @@ public struct LibraryView: View {
             .refreshable {
                 viewModel.loadLibraryData()
             }
+            #if os(macOS)
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            #endif
         }
         #if os(macOS)
         .frame(minWidth: 500, minHeight: 600)
