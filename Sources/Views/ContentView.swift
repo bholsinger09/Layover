@@ -213,27 +213,6 @@ public struct ContentView: View {
             .buttonStyle(.plain)
             
             Spacer()
-            
-            // My Library Button
-            Button {
-                showingLibrary = true
-            } label: {
-                Label("My Library", systemImage: "books.vertical")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.gray.opacity(0.75))
-                            .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(Color.white.opacity(0.4), lineWidth: 2)
-                    )
-            }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 40)
         .padding(.vertical, 20)
@@ -273,19 +252,6 @@ public struct ContentView: View {
             .buttonStyle(.plain)
             
             Spacer()
-            
-            // My Library Button
-            Button {
-                showingLibrary = true
-            } label: {
-                Label("My Library", systemImage: "books.vertical")
-                    .font(.system(size: 13, weight: .medium))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -318,20 +284,8 @@ public struct ContentView: View {
             }
             
             Spacer()
-            
-            // My Library Button
-            Button {
-                showingLibrary = true
-            } label: {
-                Label("My Library", systemImage: "books.vertical")
-                    .font(.system(size: 14, weight: .medium))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-            }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20)
         .padding(.vertical, 12)
         #if os(iOS)
         .background(Color(.systemBackground))
