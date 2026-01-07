@@ -19,12 +19,15 @@ public final class MusicPlayerViewModel {
     nonisolated(unsafe) private var timeObserver: Any?
     
     public init() {
+        #if os(iOS) || os(tvOS)
         setupAudioSession()
+        #endif
         Task {
             await loadSongsFromDatabase()
         }
     }
     
+    #if os(iOS) || os(tvOS)
     private func setupAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
@@ -35,6 +38,7 @@ public final class MusicPlayerViewModel {
             print("❌ Failed to set up audio session: \(error)")
         }
     }
+    #endif
     
     deinit {
         if let observer = timeObserver {
