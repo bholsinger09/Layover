@@ -8,12 +8,8 @@
 	</array>
 	<key>com.apple.developer.default-data-protection</key>
 	<string>NSFileProtectionComplete</string>
-	<key>com.apple.developer.game-center</key>
-	<true/>
 	<key>com.apple.developer.group-session</key>
 	<true/>
-	<key>com.apple.developer.icloud-extended-share-access</key>
-	<array/>
 	<key>com.apple.developer.ubiquity-kvstore-identifier</key>
 	<string>$(TeamIdentifierPrefix)$(CFBundleIdentifier)</string>
 </dict>
