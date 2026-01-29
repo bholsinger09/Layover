@@ -10,10 +10,23 @@ public final class ChessSharePlayService {
     public private(set) var currentSession: GroupSession<ChessActivity>?
     private var messenger: GroupSessionMessenger?
     private var subscriptions = Set<AnyCancellable>()
-    private var tasks = Set<Task<Void, Never>>()
+    private var sessionMonitoringTask: Task<Void, Never>?  // Persistent session monitor
+    private var messageListenerTask: Task<Void, Never>?   // Per-session message listener
+    
+    // Session persistence for reconnection
+    private var lastRoomID: UUID?
+    private var lastGameID: UUID?
+    private var lastRoomName: String?
+    private var shouldAutoReconnect = false
+    private var reconnectionAttempts = 0
+    private let maxReconnectionAttempts = 3
+    
+    // Helper to avoid print ambiguity in @MainActor context
+    private nonisolated func log(_ message: String) {
+        print(message)
+    }
     
     @Published public private(set) var isActive = false
-    @Published public private(set) var isEligibleForGroupSession = false
     @Published public private(set) var participants: [Participant] = []
     
     public struct Participant: Identifiable, Hashable {
@@ -35,91 +48,138 @@ public final class ChessSharePlayService {
     
     public nonisolated init() {
         Task { @MainActor in
-            logger.info("🎯 ChessSharePlayService initialized")
+            self.logger.info("🎯 ChessSharePlayService initialized")
             
-            print("🎯 ===== CHESS SHAREPLAY SERVICE INIT =====")
+            self.log("🎯 ===== CHESS SHAREPLAY SERVICE INIT =====")
             
             await startSessionMonitoring()
         }
     }
     
     deinit {
-        print("🧹 ChessSharePlayService deinitialized")
-        tasks.forEach { $0.cancel() }
+        self.log("🧹 ChessSharePlayService deinitialized")
+        sessionMonitoringTask?.cancel()
+        messageListenerTask?.cancel()
         subscriptions.removeAll()
     }
     
     private func startSessionMonitoring() async {
-        logger.info("📡 Starting session monitoring...")
+        self.logger.info("📡 Starting session monitoring...")
         
         let sessions = ChessActivity.sessions()
         
-        print("📡 Chess sessions stream created")
+        self.log("📡 Chess sessions stream created")
         
-        let task = Task { @MainActor in
-            print("🔄 Starting to iterate over Chess sessions...")
+        sessionMonitoringTask = Task { @MainActor in
+            self.log("🔄 Starting to iterate over Chess sessions...")
             var sessionCount = 0
             for await session in sessions {
                 sessionCount += 1
-                logger.info("🎮 New Chess session received (count: \(sessionCount))")
-                print("🎮 ===== NEW CHESS SESSION RECEIVED =====")
-                print("   Session count: \(sessionCount)")
-                print("   Session ID: \(session.id)")
-                print("   Session state: \(String(describing: session.state))")
+                self.logger.info("🎮 New Chess session received (count: \(sessionCount))")
+                self.log("🎮 ===== NEW CHESS SESSION RECEIVED =====")
+                self.log("   Session count: \(sessionCount)")
+                self.log("   Session ID: \(session.id)")
+                self.log("   Session state: \(String(describing: session.state))")
                 
                 await handleSession(session)
             }
-            print("⚠️ Chess sessions loop ended unexpectedly")
+            self.log("⚠️ Chess sessions loop ended unexpectedly")
         }
         
-        tasks.insert(task)
-        print("✅ Session monitoring task started")
+        self.log("✅ Session monitoring task started")
     }
     
     private func handleSession(_ session: GroupSession<ChessActivity>) async {
-        logger.info("🎮 Handling new Chess session: \(session.id)")
-        print("🎮 ===== HANDLING SESSION =====")
-        print("   ID: \(session.id)")
-        print("   State: \(String(describing: session.state))")
-        print("   Activity: \(session.activity.roomID)")
+        self.logger.info("🎮 Handling new Chess session: \(session.id)")
+        self.log("🎮 ===== HANDLING SESSION =====")
+        self.log("   ID: \(session.id)")
+        self.log("   State: \(String(describing: session.state))")
+        self.log("   Activity: \(session.activity.roomID)")
         
+        // Store session and join
         currentSession = session
         isActive = true
         
         // Join the session
-        print("🚪 Joining session...")
+        self.log("🚪 Joining session...")
+        self.log("🔍 Pre-join session state: \(String(describing: session.state))")
+        self.log("🔍 Pre-join participants: \(session.activeParticipants.count)")
         session.join()
-        logger.info("✅ Joined Chess session")
-        print("✅ Session joined successfully")
+        self.logger.info("✅ Join called on Chess session")
+        self.log("✅ Session join() called")
+        
+        // Wait a moment for the join to take effect
+        self.log("⏳ Waiting for session to activate...")
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        self.log("🔍 Session state after join: \(String(describing: session.state))")
+        self.log("🔍 Active participants: \(session.activeParticipants.count)")
+        
+        if session.activeParticipants.isEmpty {
+            self.log("⚠️ WARNING: No participants after join!")
+            self.log("⚠️ This suggests:")
+            self.log("   1. Not in an active FaceTime call")
+            self.log("   2. Other participant hasn't joined yet")
+            self.log("   3. SharePlay permissions not granted")
+            self.log("   4. Network/firewall blocking SharePlay")
+        }
         
         // Create messenger for this session
-        print("📮 Creating messenger...")
+        self.log("📮 Creating messenger...")
         let newMessenger = GroupSessionMessenger(session: session)
         messenger = newMessenger
-        logger.info("📮 Messenger created for Chess session")
-        print("✅ Messenger created")
+        self.logger.info("📮 Messenger created for Chess session")
+        self.log("✅ Messenger created")
         
         // Monitor session state changes
-        print("👁️ Setting up state monitoring...")
+        self.log("👁️ Setting up state monitoring...")
         session.$state
             .sink { [weak self] state in
                 guard let self = self else { return }
                 Task { @MainActor in
                     self.logger.info("📊 Session state changed to: \(String(describing: state))")
-                    print("📊 Session state: \(state)")
+                    self.log("📊 Session state: \(state)")
                     
                     switch state {
                     case .waiting:
-                        print("⏳ Session waiting...")
+                        self.log("⏳ Session waiting for participants...")
                     case .joined:
-                        print("✅ Session joined - calling onSessionStarted callback")
+                        self.log("✅ Session JOINED - starting message listener if not already running")
                         self.onSessionStarted?()
+                        
+                        // Start message listener when session is actually joined
+                        if self.messageListenerTask == nil || self.messageListenerTask?.isCancelled == true {
+                            Task {
+                                await self.startMessageListener(messenger: newMessenger)
+                            }
+                        }
                     case .invalidated(let reason):
-                        print("❌ Session invalidated: \(reason)")
-                        await self.cleanup()
-                        self.onSessionEnded?()
+                        self.log("❌ Session invalidated: \(reason)")
+                        self.log("📊 Reason details: \(String(describing: reason))")
+                        
+                        // Check if it's a connection/network error that might be recoverable
+                        let isConnectionError = String(describing: reason).contains("connection") || 
+                                               String(describing: reason).contains("network")
+                        
+                        if isConnectionError {
+                            self.log("🔌 Connection error detected")
+                            self.log("ℹ️ This may be temporary - will attempt reconnection")
+                            
+                            // Try to reconnect if auto-reconnect is enabled
+                            if self.shouldAutoReconnect {
+                                await self.attemptReconnection()
+                            } else {
+                                await self.cleanup()
+                                self.onSessionEnded?()
+                            }
+                        } else {
+                            self.log("🚫 Session ended: \(reason)")
+                            self.shouldAutoReconnect = false
+                            await self.cleanup()
+                            self.onSessionEnded?()
+                        }
                     @unknown default:
-                        print("❓ Unknown session state")
+                        self.log("❓ Unknown session state")
                     }
                 }
             }
@@ -128,22 +188,27 @@ public final class ChessSharePlayService {
         // Setup participant monitoring
         setupParticipantMonitoring(session: session)
         
-        // Start listening for messages
-        print("👂 Starting message listener...")
-        await startMessageListener(messenger: newMessenger)
-        print("✅ Setup complete for session \(session.id)")
+        // Only start message listener if session is already joined
+        if session.state == .joined {
+            self.log("👂 Session already joined, starting message listener...")
+            await startMessageListener(messenger: newMessenger)
+        } else {
+            self.log("ℹ️ Session not yet joined (state: \(session.state)), will wait for joined state")
+        }
+        
+        self.log("✅ Setup complete for session \(session.id)")
     }
     
     private func setupParticipantMonitoring(session: GroupSession<ChessActivity>) {
-        logger.info("👥 Setting up participant monitoring")
-        print("👥 Setting up participant monitoring...")
+        self.logger.info("👥 Setting up participant monitoring")
+        self.log("👥 Setting up participant monitoring...")
         
         session.$activeParticipants
             .sink { [weak self] participants in
                 guard let self = self else { return }
                 Task { @MainActor in
                     self.logger.info("👥 Active participants changed: \(participants.count)")
-                    print("👥 Participants updated: \(participants.count)")
+                    self.log("👥 Participants updated: \(participants.count)")
                     
                     self.participants = participants.map { participant in
                         Participant(
@@ -153,7 +218,17 @@ public final class ChessSharePlayService {
                     }
                     
                     for (index, participant) in participants.enumerated() {
-                        print("   [\(index)] ID: \(participant.id)")
+                        self.log("   [\(index)] ID: \(participant.id)")
+                    }
+                    
+                    // Handle participant count changes
+                    if participants.count == 0 {
+                        self.log("⚠️ No participants - session likely ending")
+                    } else if participants.count == 1 {
+                        self.log("ℹ️ Only 1 participant - waiting for others to rejoin...")
+                        self.log("ℹ️ Session will stay active for reconnection")
+                    } else {
+                        self.log("✅ \(participants.count) participants active")
                     }
                 }
             }
@@ -161,175 +236,301 @@ public final class ChessSharePlayService {
     }
     
     private func startMessageListener(messenger: GroupSessionMessenger) async {
-        logger.info("📬 Starting message listener...")
-        print("📬 Starting message listener...")
+        self.logger.info("📬 Starting message listener...")
+        self.log("📬 Starting message listener...")
         
-        let task = Task { @MainActor in
-            print("🔄 Starting message iteration loop...")
+        // Cancel any existing message listener before starting a new one
+        messageListenerTask?.cancel()
+        
+        // Capture messenger strongly to prevent deallocation during iteration
+        let capturedMessenger = messenger
+        
+        messageListenerTask = Task { @MainActor in
+            self.log("🔄 Starting message iteration loop...")
+            self.log("🔍 Session active: \(self.currentSession != nil)")
+            self.log("🔍 Session state: \(String(describing: self.currentSession?.state))")
             var messageCount = 0
-            for await (message, _) in messenger.messages(of: ChessMessage.self) {
-                messageCount += 1
-                logger.info("📨 Received Chess message #\(messageCount)")
-                print("📨 Message #\(messageCount) received")
-                await handleMessage(message)
+            var iterationCount = 0
+            
+            // Keep trying to listen as long as the session is active
+            while self.currentSession != nil && !Task.isCancelled {
+                iterationCount += 1
+                self.log("🔄 Message listener iteration #\(iterationCount)")
+                
+                // Check if session is in joined state
+                if self.currentSession?.state != .joined {
+                    self.log("⏳ Session not in joined state yet (\(String(describing: self.currentSession?.state))), waiting...")
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                    continue
+                }
+                
+                // Check if we have participants
+                if self.participants.isEmpty {
+                    self.log("⏳ No participants yet, waiting...")
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                    continue
+                }
+                
+                self.log("📬 Listening for messages (\(self.participants.count) participants)...")
+                
+                do {
+                    for await (message, _) in capturedMessenger.messages(of: ChessMessage.self) {
+                        // Check if we're still in an active session
+                        guard self.currentSession != nil && !Task.isCancelled else {
+                            self.log("⚠️ Session ended or task cancelled, stopping message listener")
+                            break
+                        }
+                        
+                        messageCount += 1
+                        self.logger.info("📨 Received Chess message #\(messageCount)")
+                        self.log("📨 Message #\(messageCount) received")
+                        await handleMessage(message)
+                    }
+                    
+                    // If loop completes but session is still active, retry
+                    if self.currentSession != nil && !Task.isCancelled {
+                        self.log("⚠️ Message iterator completed but session still active")
+                        self.log("🔄 Session state: \(String(describing: self.currentSession?.state))")
+                        self.log("🔄 Participants: \(self.participants.count)")
+                        
+                        // Don't retry if we're not in joined state or only participant
+                        if self.currentSession?.state != .joined {
+                            self.log("ℹ️ Session not joined yet, will retry when joined")
+                            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                        } else if self.participants.count <= 1 {
+                            self.log("ℹ️ Only \(self.participants.count) participant(s) - pausing message listener")
+                            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                        } else {
+                            self.log("🔄 Retrying message listener...")
+                            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                        }
+                    } else {
+                        break
+                    }
+                } catch {
+                    if self.currentSession != nil && !Task.isCancelled {
+                        self.log("❌ Message listener error: \(error)")
+                        self.logger.error("❌ Message listener error: \(error.localizedDescription)")
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                    } else {
+                        break
+                    }
+                }
             }
-            print("⚠️ Message listener loop ended")
+            
+            self.log("🚦 Message listener stopped")
+            self.log("🔍 Final session: \(self.currentSession != nil)")
+            self.log("🔍 Total messages: \(messageCount)")
+            self.log("🔍 Iterations: \(iterationCount)")
+            
+            if self.currentSession != nil && self.isActive && !Task.isCancelled {
+                self.logger.warning("⚠️ Message listener ended while session still active")
+                self.log("⚠️ ===== UNEXPECTED END =====")
+                self.log("⚠️ Session: \(self.currentSession?.id.uuidString ?? "none")")
+                self.log("⚠️ State: \(String(describing: self.currentSession?.state))")
+                self.log("⚠️ ===========================")
+            }
         }
         
-        tasks.insert(task)
-        print("✅ Message listener task started")
+        self.log("✅ Message listener task started")
     }
     
     private func handleMessage(_ message: ChessMessage) async {
-        logger.info("📨 Handling Chess message: \(String(describing: message))")
-        print("📨 Handling message type: \(String(describing: message))")
+        self.logger.info("📨 Handling Chess message: \(String(describing: message))")
+        self.log("📨 Handling message type: \(String(describing: message))")
         
         switch message {
         case .gameStarted(let roomID, let gameID, let playerIDs):
-            logger.info("🎮 Game started - Room: \(roomID), Game: \(gameID), Players: \(playerIDs.count)")
-            print("🎮 Game started notification")
+            self.logger.info("🎮 Game started - Room: \(roomID), Game: \(gameID), Players: \(playerIDs.count)")
+            self.log("🎮 Game started notification")
             
         case .gameStateUpdate(let state):
-            logger.info("🔄 Game state update received for game: \(state.gameID)")
-            print("🔄 Game state update")
+            self.logger.info("🔄 Game state update received for game: \(state.gameID)")
+            self.log("🔄 Game state update")
             onGameStateUpdate?(state)
             
         case .playerMove(let move):
-            logger.info("🎯 Player move: \(move.playerID) from (\(move.fromRow),\(move.fromCol)) to (\(move.toRow),\(move.toCol))")
-            print("🎯 Player move received")
+            self.logger.info("🎯 Player move: \(move.playerID) from (\(move.fromRow),\(move.fromCol)) to (\(move.toRow),\(move.toCol))")
+            self.log("🎯 Player move received")
             onPlayerMove?(move)
             
         case .playerResign(let playerID):
-            logger.info("🏳️ Player resigned: \(playerID)")
-            print("🏳️ Player resigned")
+            self.logger.info("🏳️ Player resigned: \(playerID)")
+            self.log("🏳️ Player resigned")
             onPlayerResign?(playerID)
             
         case .gameEnded(let winnerID, let reason):
-            logger.info("🏁 Game ended - Winner: \(String(describing: winnerID)), Reason: \(reason)")
-            print("🏁 Game ended")
+            self.logger.info("🏁 Game ended - Winner: \(String(describing: winnerID)), Reason: \(reason)")
+            self.log("🏁 Game ended")
             
         case .testPing(let from, let message, let senderID):
-            logger.info("🏓 Received ping from \(from): \(message) (ID: \(senderID))")
-            print("🏓 PING: \(message)")
+            self.logger.info("🏓 Received ping from \(from): \(message) (ID: \(senderID))")
+            self.log("🏓 PING: \(message)")
             
         case .testPong(let from, let message, let senderID):
-            logger.info("🏓 Received pong from \(from): \(message) (ID: \(senderID))")
-            print("🏓 PONG: \(message)")
+            self.logger.info("🏓 Received pong from \(from): \(message) (ID: \(senderID))")
+            self.log("🏓 PONG: \(message)")
         }
     }
     
     public func startSharePlay(roomID: UUID, gameID: UUID, roomName: String?) async throws {
-        logger.info("🚀 Starting Chess SharePlay - Room: \(roomID), Game: \(gameID)")
-        print("🚀 ===== STARTING CHESS SHAREPLAY =====")
-        print("   Room ID: \(roomID)")
-        print("   Game ID: \(gameID)")
-        print("   Room name: \(roomName ?? "nil")")
-        
-        let activity = ChessActivity(
+        self.logger.info("🚀 Starting Chess SharePlay - Room: \(roomID), Game: \(gameID)")
+        self.log("🚀 ===== STARTING CHESS SHAREPLAY =====")
+        self.log("   Room ID: \(roomID)")
+        self.log("   Game ID: \(gameID)")
+        self.log("   Room name: \(roomName ?? "nil")")
+                // Save session details for reconnection
+        lastRoomID = roomID
+        lastGameID = gameID
+        lastRoomName = roomName
+        shouldAutoReconnect = true
+        reconnectionAttempts = 0
+                let activity = ChessActivity(
             roomID: roomID,
             gameID: gameID,
             roomName: roomName
         )
         
-        print("📦 Chess activity created")
-        print("   Activity ID: \(ChessActivity.activityIdentifier)")
+        self.log("📦 Chess activity created")
+        self.log("   Activity ID: \(ChessActivity.activityIdentifier)")
         
         switch await activity.prepareForActivation() {
         case .activationPreferred:
-            logger.info("✅ Activation preferred - activating...")
-            print("✅ Activation preferred")
+            self.logger.info("✅ Activation preferred - activating...")
+            self.log("✅ Activation preferred")
             
             do {
                 _ = try await activity.activate()
-                logger.info("🎉 Chess activity activated successfully")
-                print("🎉 Activity activated!")
+                self.logger.info("🎉 Chess activity activated successfully")
+                self.log("🎉 Activity activated!")
             } catch {
-                logger.error("❌ Failed to activate: \(error.localizedDescription)")
-                print("❌ Activation failed: \(error)")
+                self.logger.error("❌ Failed to activate: \(error.localizedDescription)")
+                self.log("❌ Activation failed: \(error)")
                 throw error
             }
             
         case .activationDisabled:
-            logger.warning("⚠️ SharePlay is disabled")
-            print("⚠️ SharePlay disabled")
+            self.logger.warning("⚠️ SharePlay is disabled")
+            self.log("⚠️ SharePlay disabled")
             throw ChessSharePlayError.sharePlayDisabled
             
         case .cancelled:
-            logger.warning("⚠️ User cancelled")
-            print("⚠️ User cancelled")
+            self.logger.warning("⚠️ User cancelled")
+            self.log("⚠️ User cancelled")
             throw ChessSharePlayError.userCancelled
             
         @unknown default:
-            logger.error("❌ Unknown activation result")
-            print("❌ Unknown activation result")
-            throw ChessSharePlayError.unknown
+            self.logger.error("❌ Unknown activation result")
+            self.log("❌ Unknown activation result")
+            throw ChessSharePlayError.activationFailed
         }
     }
     
     public func sendMessage(_ message: ChessMessage) async {
         guard let messenger = messenger else {
-            logger.warning("⚠️ No messenger available to send message")
-            print("⚠️ Cannot send message - no messenger")
+            self.logger.warning("⚠️ No messenger available to send message")
+            self.log("⚠️ Cannot send message - no messenger")
             return
         }
         
         do {
-            logger.info("📤 Sending Chess message: \(String(describing: message))")
-            print("📤 Sending message...")
+            self.logger.info("📤 Sending Chess message: \(String(describing: message))")
+            self.log("📤 Sending message...")
             try await messenger.send(message)
-            logger.info("✅ Message sent successfully")
-            print("✅ Message sent")
+            self.logger.info("✅ Message sent successfully")
+            self.log("✅ Message sent")
         } catch {
-            logger.error("❌ Failed to send message: \(error.localizedDescription)")
-            print("❌ Send failed: \(error)")
+            self.logger.error("❌ Failed to send message: \(error.localizedDescription)")
+            self.log("❌ Send failed: \(error)")
         }
     }
     
     public func endSession() async {
-        logger.info("🛑 Ending Chess SharePlay session")
-        print("🛑 Ending session...")
+        self.logger.info("🛑 Ending Chess SharePlay session")
+        self.log("🛑 Ending session...")
         
+        shouldAutoReconnect = false
         currentSession?.end()
+        currentSession = nil  // Only clear here when explicitly ending
+        messenger = nil      // Clear messenger when explicitly ending
         await cleanup()
         
-        logger.info("✅ Session ended")
-        print("✅ Session ended")
+        self.logger.info("✅ Session ended")
+        self.log("✅ Session ended")
+    }
+    
+    private func attemptReconnection() async {
+        guard shouldAutoReconnect,
+              self.reconnectionAttempts < self.maxReconnectionAttempts,
+              let roomID = lastRoomID,
+              let gameID = lastGameID else {
+            self.log("⚠️ Cannot reconnect - missing session details or max attempts reached")
+            await cleanup()
+            onSessionEnded?()
+            return
+        }
+        
+        reconnectionAttempts += 1
+        self.logger.info("🔄 Attempting reconnection #\(self.reconnectionAttempts)/\(self.maxReconnectionAttempts)")
+        self.log("🔄 ===== RECONNECTION ATTEMPT #\(self.reconnectionAttempts) =====")
+        
+        // Clean up current session first
+        await cleanup()
+        
+        // Wait before reconnecting
+        let delay = UInt64(self.reconnectionAttempts) * 1_000_000_000 // 1, 2, 3 seconds
+        self.log("⏳ Waiting \(self.reconnectionAttempts) seconds before reconnect...")
+        try? await Task.sleep(nanoseconds: delay)
+        
+        // Attempt to restart SharePlay
+        do {
+            try await startSharePlay(roomID: roomID, gameID: gameID, roomName: lastRoomName)
+            self.log("✅ Reconnection successful!")
+            reconnectionAttempts = 0 // Reset on success
+        } catch {
+            self.log("❌ Reconnection failed: \(error)")
+            
+            if self.reconnectionAttempts < self.maxReconnectionAttempts {
+                self.log("🔄 Will retry...")
+                await attemptReconnection()
+            } else {
+                self.log("⛔ Max reconnection attempts reached")
+                shouldAutoReconnect = false
+                onSessionEnded?()
+            }
+        }
     }
     
     private func cleanup() async {
-        logger.info("🧹 Cleaning up Chess SharePlay service")
-        print("🧹 Cleaning up...")
+        self.logger.info("🧹 Cleaning up Chess SharePlay service")
+        self.log("🧹 Cleaning up...")
         
-        currentSession = nil
-        messenger = nil
+        // Cancel message listener for this session
+        messageListenerTask?.cancel()
+        messageListenerTask = nil
+        
+        // Clear state but keep currentSession and messenger 
+        // They will be replaced when a new session starts
         isActive = false
         participants = []
         
-        subscriptions.removeAll()
-        tasks.forEach { $0.cancel() }
-        tasks.removeAll()
+        // Clear subscriptions after a brief delay to let any pending events finish
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            subscriptions.removeAll()
+            self.logger.info("✅ Cleanup complete")
+            self.log("✅ Cleanup complete")
+        }
         
-        logger.info("✅ Cleanup complete")
-        print("✅ Cleanup complete")
+        self.logger.info("✅ Cleanup initiated")
+        self.log("✅ Cleanup initiated")
     }
 }
 
-public enum ChessSharePlayError: LocalizedError {
+// MARK: - Errors
+public enum ChessSharePlayError: Error {
     case sharePlayDisabled
     case userCancelled
     case noActiveSession
-    case unknown
-    
-    public var errorDescription: String? {
-        switch self {
-        case .sharePlayDisabled:
-            return "SharePlay is disabled. Please enable it in Settings."
-        case .userCancelled:
-            return "SharePlay activation was cancelled."
-        case .noActiveSession:
-            return "No active SharePlay session."
-        case .unknown:
-            return "An unknown error occurred with SharePlay."
-        }
-    }
+    case activationFailed
 }

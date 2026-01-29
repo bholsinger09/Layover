@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import GroupActivities
 
 /// ViewModel for Chess game rooms
 @MainActor
@@ -18,11 +19,17 @@ public final class ChessViewModel: LayoverViewModel {
     public private(set) var aiPlayerID: UUID?
     public private(set) var isAIThinking = false
     
+    // Player color tracking for multiplayer
+    public var localPlayerColor: ChessGame.PieceColor?
+    
     // Selected square for moves
     public private(set) var selectedSquare: (row: Int, col: Int)?
     
     // Trigger for SharePlay state changes
     public private(set) var sharePlayStateVersion: Int = 0
+    
+    // Track if this device started the SharePlay session
+    private var didStartSharePlay = false
     
     public var board: [[ChessPiece?]] {
         currentGame?.board ?? ChessGame.createInitialBoard()
@@ -47,8 +54,25 @@ public final class ChessViewModel: LayoverViewModel {
         
         sharePlayService.onSessionStarted = { [weak self] in
             Task { @MainActor in
+                guard let self = self else { return }
                 print("🎊 Chess SharePlay session started")
-                self?.sharePlayStateVersion += 1
+                print("   Host status: \(self.didStartSharePlay ? "HOST" : "PARTICIPANT")")
+                print("   Local color: \(self.localPlayerColor?.rawValue ?? "not set yet")")
+                self.sharePlayStateVersion += 1
+                
+                // Only the device that initiated SharePlay should broadcast the initial game state
+                // The other device will receive it and synchronize
+                if self.didStartSharePlay {
+                    print("📤 This device started SharePlay - broadcasting initial game state")
+                    print("👑 Host color that will be sent: \(self.localPlayerColor?.rawValue ?? "ERROR: not set!")")
+                    // Add a small delay to ensure both devices are ready
+                    try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+                    await self.broadcastGameState()
+                    self.didStartSharePlay = false // Reset flag
+                } else {
+                    print("📥 This device joined SharePlay - waiting to receive game state")
+                    print("👥 Participant will receive color from host's broadcast")
+                }
             }
         }
         
@@ -78,14 +102,38 @@ public final class ChessViewModel: LayoverViewModel {
         }
     }
     
-    public func startGame(room: Room, currentUser: User, includeAI: Bool = true) async {
+    public func startGame(room: Room, currentUser: User, playerColor: ChessGame.PieceColor = .white, includeAI: Bool = true) async {
         isLoading = true
         errorMessage = nil
         
         do {
-            // User is always white, AI is always black
-            aiPlayerID = UUID()
-            let players = [currentUser.id, aiPlayerID!]
+            let players: [UUID]
+            
+            // Store local player's color
+            localPlayerColor = playerColor
+            
+            // If SharePlay is active, set up for multiplayer (no AI)
+            if sharePlayService.isActive {
+                // In SharePlay mode, assign colors based on selection
+                // First player gets chosen color, second player gets opposite
+                if playerColor == .white {
+                    players = [currentUser.id, UUID()] // Placeholder for remote player
+                } else {
+                    players = [UUID(), currentUser.id] // Placeholder, current user is black
+                }
+                aiPlayerID = nil
+                print("🎮 Starting SharePlay multiplayer game (no AI)")
+                print("   Local player color: \(playerColor)")
+            } else {
+                // Single player mode with AI
+                aiPlayerID = UUID()
+                if playerColor == .white {
+                    players = [currentUser.id, aiPlayerID!]
+                } else {
+                    players = [aiPlayerID!, currentUser.id]
+                }
+                print("🤖 Starting single player game with AI")
+            }
             
             let game = try await gameService.startGame(roomID: room.id, players: players)
             currentGame = game
@@ -93,8 +141,10 @@ public final class ChessViewModel: LayoverViewModel {
             print("✅ Chess game started")
             print("   Game ID: \(game.id)")
             print("   Players: \(players)")
-            print("   User (White): \(currentUser.id)")
-            print("   AI (Black): \(aiPlayerID!)")
+            print("   Player color: \(playerColor)")
+            if let aiID = aiPlayerID {
+                print("   AI opponent: \(aiID)")
+            }
             
             // If SharePlay is active, broadcast game state
             if sharePlayService.isActive {
@@ -112,15 +162,35 @@ public final class ChessViewModel: LayoverViewModel {
     public func selectSquare(row: Int, col: Int, currentUserID: UUID) async {
         guard let game = currentGame else { return }
         
-        // Check if it's the current user's turn
-        guard let currentPlayer = game.players.first(where: { $0.userID == currentUserID }) else {
+        print("🎯 selectSquare called")
+        print("   SharePlay active: \(sharePlayService.isActive)")
+        print("   Local player color: \(localPlayerColor?.rawValue ?? "none")")
+        print("   Current turn: \(game.currentTurn.rawValue)")
+        print("   Current user ID: \(currentUserID)")
+        
+        // For SharePlay games, check against local player color
+        let playerColor: ChessGame.PieceColor
+        if sharePlayService.isActive, let localColor = localPlayerColor {
+            playerColor = localColor
+            print("   Using SharePlay color: \(playerColor.rawValue)")
+        } else {
+            // For non-SharePlay, look up player color from game
+            print("   Looking up player from game.players")
+            guard let currentPlayer = game.players.first(where: { $0.userID == currentUserID }) else {
+                print("   ❌ Player not found in game.players")
+                return
+            }
+            playerColor = currentPlayer.color
+            print("   Using game player color: \(playerColor.rawValue)")
+        }
+        
+        guard playerColor == game.currentTurn else {
+            errorMessage = "Not your turn"
+            print("   ❌ Not your turn: player is \(playerColor.rawValue), current turn is \(game.currentTurn.rawValue)")
             return
         }
         
-        guard currentPlayer.color == game.currentTurn else {
-            errorMessage = "Not your turn"
-            return
-        }
+        print("   ✅ Turn check passed")
         
         if let selected = selectedSquare {
             // Attempting to move
@@ -144,13 +214,20 @@ public final class ChessViewModel: LayoverViewModel {
                         toRow: row,
                         toCol: col
                     )
+                    print("📤 Broadcasting move: (\(selected.row),\(selected.col)) -> (\(row),\(col))")
                     await sharePlayService.sendMessage(.playerMove(move))
+                    
+                    // Also broadcast the full game state to keep everyone in sync
+                    print("📤 Broadcasting game state update")
+                    await broadcastGameState()
                 }
                 
-                // Check for AI turn - use updated currentGame
-                if let aiID = aiPlayerID, let updatedGame = currentGame {
-                    if updatedGame.currentTurn == .black {
-                        await makeAIMove(aiID: aiID)
+                // Check for AI turn only if not in SharePlay mode
+                if !sharePlayService.isActive {
+                    if let aiID = aiPlayerID, let updatedGame = currentGame {
+                        if updatedGame.currentTurn == .black {
+                            await makeAIMove(aiID: aiID)
+                        }
                     }
                 }
                 
@@ -160,7 +237,7 @@ public final class ChessViewModel: LayoverViewModel {
             }
         } else {
             // Selecting a piece
-            if let piece = game.board[row][col], piece.color == currentPlayer.color {
+            if let piece = game.board[row][col], piece.color == playerColor {
                 selectedSquare = (row, col)
             }
         }
@@ -217,22 +294,69 @@ public final class ChessViewModel: LayoverViewModel {
         }
     }
     
-    public func startSharePlay(room: Room) async {
+    public func startSharePlay(room: Room, currentUser: User, playerColor: ChessGame.PieceColor) async {
         guard let game = currentGame else {
             errorMessage = "No active game to share"
             return
         }
         
+        // IMPORTANT: Set local player color BEFORE activating SharePlay
+        // This ensures broadcastGameState includes the host's color
+        localPlayerColor = playerColor
+        print("👑 Host starting SharePlay with color: \(playerColor.rawValue)")
+        
         do {
-            try await sharePlayService.startSharePlay(
-                roomID: room.id,
-                gameID: game.id,
-                roomName: room.name
-            )
+            // Mark that this device is initiating SharePlay
+            didStartSharePlay = true
             
-            await broadcastGameState()
+            // Create and activate Chess activity directly
+            let activity = ChessActivity(roomID: room.id, gameID: game.id, roomName: room.name)
+            
+            print("🎬 Preparing Chess activity for SharePlay...")
+            let result = await activity.prepareForActivation()
+            
+            print("📋 PrepareForActivation result: \(result)")
+            
+            switch result {
+            case .activationPreferred:
+                print("✅ Activating SharePlay session...")
+                _ = try await activity.activate()
+                print("✅ SharePlay session activated!")
+                
+            case .activationDisabled:
+                print("⚠️ SharePlay activation disabled")
+                #if os(macOS)
+                // On macOS, SharePlay requires an active FaceTime call
+                errorMessage = "SharePlay requires an active FaceTime call. Start a FaceTime call first, then try again."
+                #else
+                errorMessage = "SharePlay is not available. Make sure you're in a FaceTime call."
+                #endif
+                didStartSharePlay = false
+                
+            case .cancelled:
+                print("ℹ️ SharePlay activation cancelled by user")
+                didStartSharePlay = false
+                // Don't show error for user cancellation
+                
+            @unknown default:
+                print("❓ Unknown SharePlay activation result")
+                errorMessage = "SharePlay activation returned an unknown result"
+                didStartSharePlay = false
+            }
+            
         } catch {
-            errorMessage = error.localizedDescription
+            didStartSharePlay = false // Reset on error
+            print("❌ SharePlay activation error: \(error)")
+            // Provide more helpful error message
+            if error.localizedDescription.contains("disabled") {
+                #if os(macOS)
+                errorMessage = "Start a FaceTime call first to use SharePlay"
+                #else
+                errorMessage = "Join a FaceTime call to use SharePlay"
+                #endif
+            } else {
+                errorMessage = error.localizedDescription
+            }
         }
     }
     
@@ -261,16 +385,43 @@ public final class ChessViewModel: LayoverViewModel {
                     isCheck: $0.isCheck,
                     isCheckmate: $0.isCheckmate
                 )
-            }
+            },
+            hostPlayerColor: localPlayerColor?.rawValue
         )
         
+        print("📤 Broadcasting game state with host color: \(localPlayerColor?.rawValue ?? "none")")
         await sharePlayService.sendMessage(.gameStateUpdate(state))
     }
     
     private func applyGameState(_ state: ChessGameState) async {
-        guard var game = currentGame else { return }
+        print("📥 Applying game state update")
+        print("   Game ID: \(state.gameID)")
+        print("   Current turn: \(state.currentTurn)")
+        print("   Game state: \(state.gameState)")
+        print("   Current local color: \(localPlayerColor?.rawValue ?? "none")")
         
-        game.board = state.board.map { row in
+        // If the host sent their color, assign the participant the opposite color
+        // This ensures proper color assignment regardless of what was initially selected
+        if let hostColorStr = state.hostPlayerColor,
+           let hostColor = ChessGame.PieceColor(rawValue: hostColorStr) {
+            let newColor = hostColor == .white ? ChessGame.PieceColor.black : ChessGame.PieceColor.white
+            if localPlayerColor != newColor {
+                localPlayerColor = newColor
+                print("🎮 Participant color updated to: \(localPlayerColor?.rawValue ?? "unknown") (host is \(hostColor.rawValue))")
+            }
+        }
+        
+        // Always replace with received game state to ensure sync
+        // This handles the case where both devices create their own games
+        print("🔄 Synchronizing to received game state")
+        
+        // Create/update game with the received state
+        var newGame = ChessGame(
+            id: state.gameID,
+            roomID: currentGame?.roomID ?? UUID()
+        )
+        
+        newGame.board = state.board.map { row in
             row.map { pieceData in
                 pieceData.map { data in
                     ChessPiece(
@@ -283,20 +434,28 @@ public final class ChessViewModel: LayoverViewModel {
         }
         
         if let turn = ChessGame.PieceColor(rawValue: state.currentTurn) {
-            game.currentTurn = turn
+            newGame.currentTurn = turn
         }
         
         if let gameState = ChessGame.GameState(rawValue: state.gameState) {
-            game.gameState = gameState
+            newGame.gameState = gameState
         }
         
-        game.winnerID = state.winnerID
+        newGame.winnerID = state.winnerID
         
-        gameService.loadGame(game)
-        currentGame = game
+        gameService.loadGame(newGame)
+        currentGame = newGame
+        print("✅ Game state updated from SharePlay")
+        print("   New turn: \(newGame.currentTurn.rawValue)")
+        print("   Local player color: \(localPlayerColor?.rawValue ?? "none")")
     }
     
     private func handlePlayerMove(_ move: ChessMessage.Move) async {
+        print("📥 Handling remote move: (\(move.fromRow),\(move.fromCol)) -> (\(move.toRow),\(move.toCol))")
+        print("   Current game state before move:")
+        print("   - Turn: \(currentGame?.currentTurn.rawValue ?? "none")")
+        print("   - Game ID: \(currentGame?.id.uuidString ?? "none")")
+        
         do {
             _ = try await gameService.makeMove(
                 fromRow: move.fromRow,
@@ -304,7 +463,18 @@ public final class ChessViewModel: LayoverViewModel {
                 toRow: move.toRow,
                 toCol: move.toCol
             )
-            currentGame = gameService.currentGame
+            
+            // Force property update to trigger observation
+            let updatedGame = gameService.currentGame
+            currentGame = updatedGame
+            
+            print("✅ Remote move applied successfully")
+            print("   Current turn: \(currentGame?.currentTurn.rawValue ?? "unknown")")
+            print("   Piece at destination (\(move.toRow),\(move.toCol)): \(currentGame?.board[move.toRow][move.toCol]?.symbol ?? "empty")")
+            
+            // Force a state version increment to ensure UI updates
+            sharePlayStateVersion += 1
+            
         } catch {
             print("❌ Failed to apply remote move: \(error)")
         }
