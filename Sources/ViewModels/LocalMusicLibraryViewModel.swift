@@ -140,30 +140,6 @@ public class LocalMusicLibraryViewModel: ObservableObject {
             print("📁 Resource path: \(resourcePath)")
         }
         
-        // Check for music files
-        let extensions = ["m4p", "m4a", "mp3"]
-        var totalFound = 0
-        for ext in extensions {
-            if let urls = Bundle.main.urls(forResourcesWithExtension: ext, subdirectory: nil) {
-                print("✅ Found \(urls.count) .\(ext) files")
-                totalFound += urls.count
-                for url in urls.prefix(3) {
-                    print("   - \(url.lastPathComponent)")
-                }
-            }
-        }
-        print("📊 Total music files in bundle: \(totalFound)")
-        
-        // If no bundled music found, don't show it as an error on macOS
-        if totalFound == 0 {
-            print("ℹ️ No bundled music files found - this is expected on macOS")
-            #if os(macOS)
-            // On macOS, silently skip bundled music scanning
-            isScanning = false
-            return
-            #endif
-        }
-        
         do {
             let progress = try await scannerService.scanBundledMusic { [weak self] progress in
                 Task { @MainActor in
@@ -177,17 +153,22 @@ public class LocalMusicLibraryViewModel: ObservableObject {
             await loadTracks()
             await loadMetadata()
             
-            // Only show error messages, not success messages
-            if !progress.errors.isEmpty {
+            // Only show error messages if files were scanned but had errors
+            if progress.filesScanned > 0 && !progress.errors.isEmpty {
                 errorMessage = "Imported \(progress.filesImported) of \(progress.filesScanned) files with \(progress.errors.count) errors"
+            } else if progress.filesScanned == 0 {
+                print("ℹ️ No bundled music files found")
+            } else {
+                print("✅ Successfully imported \(progress.filesImported) bundled tracks")
             }
         } catch {
-            #if os(macOS)
-            // On macOS, don't show bundled music errors
-            print("ℹ️ Bundled music not available on macOS: \(error.localizedDescription)")
-            #else
-            errorMessage = "Scan failed: \(error.localizedDescription)"
-            #endif
+            // Only show errors that aren't about missing bundled music
+            let errorDesc = error.localizedDescription
+            if !errorDesc.contains("No bundled music") && !errorDesc.contains("not available") {
+                errorMessage = "Scan failed: \(errorDesc)"
+            } else {
+                print("ℹ️ Bundled music not available: \(errorDesc)")
+            }
         }
         
         isScanning = false

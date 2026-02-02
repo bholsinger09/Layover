@@ -34,7 +34,7 @@ struct RoomServiceTests {
         let room = try await service.createRoom(
             name: "Test Room",
             host: host,
-            activityType: .texasHoldem
+            activityType: .chess
         )
 
         try await service.joinRoom(roomID: room.id, user: user)
@@ -108,7 +108,7 @@ struct RoomServiceTests {
         let room = try await service.createRoom(
             name: "Test Room",
             host: host,
-            activityType: .texasHoldem
+            activityType: .chess
         )
 
         try await service.joinRoom(roomID: room.id, user: user)
@@ -141,7 +141,7 @@ struct RoomServiceTests {
         let host = User(username: "Host")
 
         _ = try await service.createRoom(name: "Room 1", host: host, activityType: .appleTVPlus)
-        _ = try await service.createRoom(name: "Room 2", host: host, activityType: .texasHoldem)
+        _ = try await service.createRoom(name: "Room 2", host: host, activityType: .chess)
 
         // Check the in-memory rooms array directly
         #expect(service.rooms.count == 2)

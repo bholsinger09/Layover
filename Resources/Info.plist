@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>NSGroupActivitiesUsageDescription</key>
-	<string>Layover uses SharePlay to create synchronized group experiences across movies, music, and games.</string>
+	<string>ShareALayover uses SharePlay to create synchronized group experiences across movies, music, and games.</string>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>Layover needs access to Apple Music to play songs together with your group.</string>
+	<string>ShareALayover needs access to Apple Music to play songs together with your group.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Layover uses your camera for video chat during group activities.</string>
+	<string>ShareALayover uses your camera for video chat during group activities.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Layover needs microphone access for voice chat during group activities.</string>
+	<string>ShareALayover needs microphone access for voice chat during group activities.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

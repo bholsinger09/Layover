@@ -95,4 +95,8 @@ class MockAuthenticationService: AuthenticationServiceProtocol {
     func signOut() async throws {
         _currentUser = nil
     }
+    
+    func deleteAccount() async throws {
+        _currentUser = nil
+    }
 }

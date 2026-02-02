@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>Layover needs access to Apple Music to play songs together with your group.</string>
+	<string>ShareALayover needs access to Apple Music to play songs together with your group.</string>
 	<key>NSGroupActivitiesUsageDescription</key>
-	<string>Layover uses SharePlay to create synchronized group experiences across movies, music, and games.</string>
+	<string>ShareALayover uses SharePlay to create synchronized group experiences across movies, music, and games.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>facetime</string>
@@ -15,6 +15,6 @@
 		<string>itms-appss</string>
 	</array>
 	<key>NSSiriUsageDescription</key>
-	<string>Layover can help you start FaceTime calls for SharePlay experiences.</string>
+	<string>ShareALayover can help you start FaceTime calls for SharePlay experiences.</string>
 </dict>
 </plist>

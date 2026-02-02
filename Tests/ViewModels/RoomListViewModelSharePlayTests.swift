@@ -220,7 +220,7 @@ struct RoomListViewModelSharePlayTests {
         let room = Room(
             name: "Duplicate Room",
             hostID: UUID(),
-            activityType: .texasHoldem
+            activityType: .chess
         )
 
         // Add room twice
@@ -306,7 +306,7 @@ struct RoomListViewModelSharePlayTests {
         await viewModel.createRoom(
             name: "Test Room",
             host: host,
-            activityType: .texasHoldem
+            activityType: .chess
         )
 
         let room = viewModel.rooms.first!
@@ -468,8 +468,8 @@ struct RoomListViewModelSharePlayTests {
         #expect(sharePlayService.activatedActivities.first?.activityType == .appleMusic)
     }
 
-    @Test("Start SharePlay for Texas Hold'em room")
-    func testStartSharePlayTexasHoldem() async throws {
+    @Test("Start SharePlay for Chess room")
+    func testStartSharePlayChess() async throws {
         let sharePlayService = MockSharePlayService()
         let roomService = RoomService()
 
@@ -480,16 +480,16 @@ struct RoomListViewModelSharePlayTests {
 
         let host = User(username: "Host")
         await viewModel.createRoom(
-            name: "Poker Room",
+            name: "Chess Room",
             host: host,
-            activityType: .texasHoldem
+            activityType: .chess
         )
 
         let room = viewModel.rooms.first!
         await viewModel.startSharePlayForRoom(room)
 
         #expect(sharePlayService.activatedActivities.count == 1)
-        #expect(sharePlayService.activatedActivities.first?.activityType == .texasHoldem)
+        #expect(sharePlayService.activatedActivities.first?.activityType == .chess)
     }
 
     // MARK: - Leave Session Tests

@@ -14,28 +14,45 @@ public struct LibraryView: View {
     
     public var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Tab Picker
-                Picker("Content Type", selection: $selectedTab) {
-                    Text("Music").tag(0)
-                    Text("Read a Short Story").tag(1)
-                }
-                .pickerStyle(.segmented)
-                .padding()
+            ZStack {
+                // Dark gradient background
+                LinearGradient(
+                    colors: [
+                        Color.black,
+                        Color(red: 0.1, green: 0.1, blue: 0.15),
+                        Color.black
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
                 
-                // Content based on selected tab
-                TabView(selection: $selectedTab) {
-                    MusicTabView(viewModel: viewModel, searchText: $searchText)
-                        .tag(0)
+                VStack(spacing: 0) {
+                    // Tab Picker
+                    Picker("Content Type", selection: $selectedTab) {
+                        Text("Music").tag(0)
+                        Text("Read a Short Story").tag(1)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding()
                     
-                    StoryTabView(viewModel: viewModel, searchText: $searchText)
-                        .tag(1)
+                    // Content based on selected tab
+                    TabView(selection: $selectedTab) {
+                        MusicTabView(viewModel: viewModel, searchText: $searchText)
+                            .tag(0)
+                        
+                        StoryTabView(viewModel: viewModel, searchText: $searchText)
+                            .tag(1)
+                    }
+                    #if !os(macOS)
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    #endif
                 }
-                #if !os(macOS)
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                #endif
             }
             .navigationTitle("My Library")
+            #if !os(macOS)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            #endif
             .refreshable {
                 viewModel.loadLibraryData()
             }
@@ -640,20 +657,32 @@ struct MusicTabView: View {
                                 Text("Top Hits just for you")
                                     .font(.title3)
                                     .fontWeight(.semibold)
+                                    .foregroundColor(.white)
                             }
                             Text("Your curated music collection")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundColor(.white.opacity(0.7))
                         }
                         
                         Spacer()
                         
                         Image(systemName: "chevron.right")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.white.opacity(0.6))
                     }
                     .padding()
-                    .background(Color.green.opacity(0.1))
+                    .background(
+                        LinearGradient(
+                            colors: [Color.green.opacity(0.3), Color.green.opacity(0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
                     .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal)
@@ -665,24 +694,36 @@ struct MusicTabView: View {
                             HStack {
                                 Image(systemName: "play.circle.fill")
                                     .font(.title2)
-                                    .foregroundStyle(.blue)
+                                    .foregroundColor(.blue)
                                 Text("Music Player")
                                     .font(.title3)
                                     .fontWeight(.semibold)
+                                    .foregroundColor(.white)
                             }
                             Text("Play songs from your library")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundColor(.white.opacity(0.7))
                         }
                         
                         Spacer()
                         
                         Image(systemName: "chevron.right")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.white.opacity(0.6))
                     }
                     .padding()
-                    .background(Color.blue.opacity(0.1))
+                    .background(
+                        LinearGradient(
+                            colors: [Color.blue.opacity(0.3), Color.blue.opacity(0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
                     .cornerRadius(12)
+                    .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal)
@@ -691,6 +732,7 @@ struct MusicTabView: View {
                 VStack(spacing: 12) {
                     Text("Import Music")
                         .font(.headline)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                     HStack(spacing: 12) {
@@ -701,12 +743,24 @@ struct MusicTabView: View {
                             VStack(spacing: 8) {
                                 Image(systemName: "arrow.up.doc.fill")
                                     .font(.title2)
+                                    .foregroundColor(.white)
                                 Text("Upload MP3")
                                     .font(.caption)
+                                    .foregroundColor(.white)
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.purple.opacity(0.1))
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
                             .cornerRadius(12)
                         }
                         .buttonStyle(.plain)
@@ -718,12 +772,24 @@ struct MusicTabView: View {
                             VStack(spacing: 8) {
                                 Image(systemName: "play.rectangle.fill")
                                     .font(.title2)
+                                    .foregroundColor(.white)
                                 Text("YouTube URL")
                                     .font(.caption)
+                                    .foregroundColor(.white)
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.red.opacity(0.1))
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.red.opacity(0.3), Color.red.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
                             .cornerRadius(12)
                         }
                         .buttonStyle(.plain)
@@ -1046,6 +1112,7 @@ struct MusicStatsCard: View {
                 )
                 
                 Divider()
+                    .background(Color.white.opacity(0.2))
                 
                 StatItemView(
                     icon: "play.circle.fill",
@@ -1054,6 +1121,7 @@ struct MusicStatsCard: View {
                 )
                 
                 Divider()
+                    .background(Color.white.opacity(0.2))
                 
                 StatItemView(
                     icon: "headphones",
@@ -1069,7 +1137,7 @@ struct MusicStatsCard: View {
                     Text("Top Artists")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.white.opacity(0.7))
                     
                     HStack(spacing: 8) {
                         ForEach(topArtists, id: \.self) { artist in
@@ -1077,8 +1145,14 @@ struct MusicStatsCard: View {
                                 .font(.caption2)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
-                                .background(.blue.opacity(0.2))
-                                .foregroundStyle(.blue)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.4)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
                     }
@@ -1087,7 +1161,17 @@ struct MusicStatsCard: View {
             }
         }
         .padding()
-        .background(.quaternary)
+        .background(
+            LinearGradient(
+                colors: [Color.white.opacity(0.1), Color.white.opacity(0.05)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+        )
         .cornerRadius(12)
         .padding(.horizontal)
     }
@@ -1197,29 +1281,35 @@ struct PlaylistRow: View {
             HStack(spacing: 12) {
                 // Playlist icon
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(.purple.gradient)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.purple.opacity(0.8), Color.pink.opacity(0.6)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .frame(width: 50, height: 50)
                     .overlay {
                         Image(systemName: "music.note.list")
-                            .foregroundStyle(.white)
+                            .foregroundColor(.white)
                     }
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(playlist.name)
                         .font(.body)
                         .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+                        .foregroundColor(.white)
                     
                     Text("\(playlist.tracks.count) songs • \(playlist.formattedDuration)")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.white.opacity(0.7))
                 }
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.white.opacity(0.6))
             }
         }
         .buttonStyle(.plain)
@@ -1768,15 +1858,16 @@ struct StatItemView: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(.blue)
+                .foregroundColor(.blue)
             
             Text(value)
                 .font(.title3)
                 .fontWeight(.bold)
+                .foregroundColor(.white)
             
             Text(label)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.white.opacity(0.7))
         }
         .frame(maxWidth: .infinity)
     }

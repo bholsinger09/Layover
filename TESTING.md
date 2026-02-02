@@ -50,8 +50,8 @@ Current coverage areas:
 - Join/leave room functionality
 - Host/sub-host promotion
 - Game initialization
-- Betting and game actions
-- Phase progression
+- Chess move validation
+- Turn-based gameplay
 
 ✅ **ViewModels**
 - Room list loading

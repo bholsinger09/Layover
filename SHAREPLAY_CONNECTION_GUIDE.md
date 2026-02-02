@@ -1,12 +1,12 @@
-# SharePlay Connection Guide - Texas Hold'em
+# SharePlay Connection Guide - Chess
 
 ## Overview
-This guide explains how two users with different Apple IDs can connect via SharePlay in the Texas Hold'em view and test their connection by pinging each other.
+This guide explains how two users with different Apple IDs can connect via SharePlay in the Chess view and test their connection by pinging each other.
 
 ## Prerequisites
 1. **Two iOS devices** with different Apple IDs
 2. **Active FaceTime call** between the two devices
-3. **Layover app** installed on both devices
+3. **ShareALayover app** installed on both devices
 4. **SharePlay enabled** in FaceTime settings
 
 ## Setup Instructions
@@ -16,15 +16,15 @@ This guide explains how two users with different Apple IDs can connect via Share
 2. Wait for the call to connect
 3. Ensure both users can see and hear each other
 
-### Step 2: Open Texas Hold'em Room
-1. On both devices, open the Layover app
-2. Navigate to a Texas Hold'em room (or create one)
+### Step 2: Open Chess Room
+1. On both devices, open the ShareALayover app
+2. Navigate to a Chess room (or create one)
 3. Both users should enter the same room
 
 ### Step 3: Activate SharePlay
 
 #### On the HOST Device (initiator):
-1. In the Texas Hold'em view, tap the **"Start SharePlay"** button
+1. In the Chess view, tap the **"Start SharePlay"** button
 2. iOS will show a SharePlay confirmation dialog
 3. Tap **"SharePlay"** to confirm
 4. You'll see a green indicator showing **"SharePlay Active • Host"**
@@ -32,7 +32,7 @@ This guide explains how two users with different Apple IDs can connect via Share
 #### On the GUEST Device (joiner):
 1. An automatic notification will appear when the host starts SharePlay
 2. Tap **"Join"** on the SharePlay notification
-3. The app should automatically open to the Texas Hold'em view
+3. The app should automatically open to the Chess view
 4. You'll see a green indicator showing **"SharePlay Active • Guest"**
 
 ## Testing Connection
@@ -193,25 +193,25 @@ Host Device                          Guest Device
 
 1. **Start SharePlay First:** Always activate SharePlay before starting a game
 2. **Test Connection:** Use the ping feature to verify connectivity before playing
-3. **Same Room:** Ensure both users are in the same Texas Hold'em room
+3. **Same Room:** Ensure both users are in the same Chess room
 4. **Stable Connection:** Use WiFi instead of cellular when possible
 5. **Up-to-Date iOS:** Keep both devices on the latest iOS version
 
-## Playing Texas Hold'em After Connecting
+## Playing Chess After Connecting
 
 Once you've verified the connection with a successful ping:
 
 1. The host can tap **"Start Game"**
 2. The game will automatically sync to the guest's device
 3. Both players will see:
-   - Their own cards (face up)
-   - Opponent's cards (face down)
-   - Community cards as they're dealt
-   - Current pot and bets
+   - The full chess board
+   - Their assigned color (White or Black)
+   - Whose turn it is
+   - Captured pieces
 
-4. Actions (bet, fold, call, check) sync automatically via SharePlay
-5. The host controls dealing community cards
-6. All game state updates broadcast to all participants
+4. Moves sync automatically via SharePlay
+5. Move validation happens on both devices
+6. Game ends on checkmate, stalemate, or resignation
 
 ## Support
 

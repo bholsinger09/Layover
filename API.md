@@ -107,7 +107,6 @@ Types of activities available in rooms.
 enum RoomActivityType: String, Codable, Sendable {
     case appleTVPlus = "tv_plus"
     case appleMusic = "music"
-    case texasHoldem = "texas_holdem"
     case chess = "chess"
 }
 ```
@@ -136,71 +135,6 @@ enum MediaType: String, Codable, Sendable {
     case song
     case album
     case playlist
-}
-```
-
----
-
-### TexasHoldemGame
-Represents a Texas Hold'em poker game.
-
-```swift
-struct TexasHoldemGame: LayoverModel {
-    let id: UUID
-    var roomID: UUID
-    var players: [TexasHoldemPlayer]
-    var dealerIndex: Int
-    var currentBet: Int
-    var pot: Int
-    var communityCards: [PlayingCard]
-    var gamePhase: GamePhase
-    var currentPlayerIndex: Int
-}
-```
-
-**GamePhase:**
-```swift
-enum GamePhase: String, Codable, Sendable {
-    case preFlop
-    case flop
-    case turn
-    case river
-    case showdown
-    case ended
-}
-```
-
----
-
-### PlayingCard
-Represents a playing card.
-
-```swift
-struct PlayingCard: Identifiable, Codable, Hashable, Sendable {
-    let id: UUID
-    let rank: Rank
-    let suit: Suit
-}
-```
-
-**Rank:**
-```swift
-enum Rank: String, Codable, CaseIterable {
-    case two = "2", three = "3", four = "4", five = "5"
-    case six = "6", seven = "7", eight = "8", nine = "9"
-    case ten = "10", jack = "J", queen = "Q", king = "K", ace = "A"
-    
-    var value: Int { /* 2-11 */ }
-}
-```
-
-**Suit:**
-```swift
-enum Suit: String, Codable, CaseIterable {
-    case hearts = "♥️"
-    case diamonds = "♦️"
-    case clubs = "♣️"
-    case spades = "♠️"
 }
 ```
 
@@ -270,7 +204,7 @@ let service = RoomService()
 let room = try await service.createRoom(
     name: "Game Night",
     hostID: userID,
-    activityType: .texasHoldem
+    activityType: .chess
 )
 
 // Join room
@@ -357,53 +291,6 @@ await service.play()
 
 ---
 
-### TexasHoldemService
-Manages Texas Hold'em game logic.
-
-```swift
-@MainActor
-protocol TexasHoldemServiceProtocol: LayoverService {
-    var currentGame: TexasHoldemGame? { get }
-    
-    func startGame(roomID: UUID, players: [UUID]) async throws -> TexasHoldemGame
-    func dealCards() async throws
-    func bet(playerID: UUID, amount: Int) async throws
-    func fold(playerID: UUID) async throws
-    func call(playerID: UUID) async throws
-    func raise(playerID: UUID, amount: Int) async throws
-    func nextPhase() async throws
-    func endGame() async
-}
-```
-
-**Usage:**
-```swift
-let service = TexasHoldemService()
-
-// Start game
-let game = try await service.startGame(
-    roomID: roomID,
-    players: [player1ID, player2ID, player3ID]
-)
-
-// Deal cards
-try await service.dealCards()
-
-// Player actions
-try await service.bet(playerID: player1ID, amount: 50)
-try await service.call(playerID: player2ID)
-try await service.raise(playerID: player3ID, amount: 50)
-try await service.fold(playerID: player1ID)
-
-// Progress game
-try await service.nextPhase() // Pre-flop -> Flop
-try await service.nextPhase() // Flop -> Turn
-try await service.nextPhase() // Turn -> River
-try await service.nextPhase() // River -> Showdown
-```
-
----
-
 ## ViewModels
 
 ### RoomListViewModel
@@ -486,32 +373,6 @@ final class AppleMusicViewModel: LayoverViewModel {
 
 ---
 
-### TexasHoldemViewModel
-Manages Texas Hold'em game UI.
-
-```swift
-@MainActor
-@Observable
-final class TexasHoldemViewModel: LayoverViewModel {
-    private(set) var currentGame: TexasHoldemGame?
-    private(set) var isLoading: Bool
-    var currentPhase: TexasHoldemGame.GamePhase { get }
-    var pot: Int { get }
-    var communityCards: [PlayingCard] { get }
-    
-    func startGame(roomID: UUID, players: [UUID]) async
-    func bet(playerID: UUID, amount: Int) async
-    func fold(playerID: UUID) async
-    func call(playerID: UUID) async
-    func raise(playerID: UUID, amount: Int) async
-    func nextPhase() async
-    func endGame() async
-    func getPlayer(for userID: UUID) -> TexasHoldemPlayer?
-}
-```
-
----
-
 ## Error Types
 
 ### SharePlayError
@@ -556,8 +417,8 @@ enum GameError: LocalizedError {
     case noActiveGame
     case invalidPlayerCount
     case playerNotFound
-    case insufficientChips
     case invalidMove
+    case notYourTurn
 }
 ```
 
@@ -611,22 +472,13 @@ struct AppleMusicView: View {
 }
 ```
 
-### TexasHoldemView
-Texas Hold'em game interface.
+### ChessView
+Chess game interface.
 
 ```swift
-struct TexasHoldemView: View {
+struct ChessView: View {
     let room: Room
     let currentUser: User
-}
-```
-
-### CardView
-Playing card display component.
-
-```swift
-struct CardView: View {
-    let card: PlayingCard
 }
 ```
 

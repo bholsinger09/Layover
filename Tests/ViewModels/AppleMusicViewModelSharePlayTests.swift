@@ -38,6 +38,19 @@ struct AppleMusicViewModelSharePlayTests {
         func pause() async {
             pauseCallCount += 1
         }
+        
+        func skipToNext() async {}
+        func skipToPrevious() async {}
+        func fetchRecentlyPlayed() async throws -> [MediaContent] { [] }
+        func fetchRecommendations() async throws -> [MediaContent] { [] }
+        func fetchPlaylists() async throws -> [MediaContent] { [] }
+        func fetchSongs(limit: Int) async throws -> [MediaContent] { [] }
+        func fetchAlbums(limit: Int) async throws -> [MediaContent] { [] }
+        func searchMusic(query: String) async throws -> [MediaContent] { [] }
+        func createPlaylist(name: String) async throws -> MediaContent {
+            MediaContent(title: name, contentID: UUID().uuidString, duration: 0, contentType: .playlist)
+        }
+        func addToPlaylist(playlistID: String, content: MediaContent) async throws {}
     }
 
     @MainActor
@@ -154,6 +167,18 @@ struct AppleMusicViewModelSharePlayTests {
 
             func play() async {}
             func pause() async {}
+            func skipToNext() async {}
+            func skipToPrevious() async {}
+            func fetchRecentlyPlayed() async throws -> [MediaContent] { [] }
+            func fetchRecommendations() async throws -> [MediaContent] { [] }
+            func fetchPlaylists() async throws -> [MediaContent] { [] }
+            func fetchSongs(limit: Int) async throws -> [MediaContent] { [] }
+            func fetchAlbums(limit: Int) async throws -> [MediaContent] { [] }
+            func searchMusic(query: String) async throws -> [MediaContent] { [] }
+            func createPlaylist(name: String) async throws -> MediaContent {
+                MediaContent(title: name, contentID: UUID().uuidString, duration: 0, contentType: .playlist)
+            }
+            func addToPlaylist(playlistID: String, content: MediaContent) async throws {}
         }
 
         let musicService = ErrorMusicService()

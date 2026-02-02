@@ -76,7 +76,7 @@ swift test
 ### visionOS (1.0+)
 - Spatial computing support
 - Immersive SharePlay experiences
-- 3D poker table (future enhancement)
+- 3D chess board (future enhancement)
 
 ## Configuration
 
@@ -138,7 +138,7 @@ SharePlay requires:
 4. **Notifications**: Push notifications for room invites
 5. **Analytics**: Track usage and engagement
 6. **Social Features**: Friend lists, achievements, leaderboards
-7. **More Games**: Checkers, Poker, Trivia
+7. **More Games**: Checkers, Trivia, Backgammon
 8. **Content Discovery**: Browse Apple TV+ and Music catalog
 
 ## Troubleshooting

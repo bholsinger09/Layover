@@ -10,33 +10,48 @@ public struct LocalMusicLibraryView: View {
     
     public var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                // Header with title
-                headerView
+            ZStack {
+                // Dark gradient background
+                LinearGradient(
+                    colors: [
+                        Color.black,
+                        Color(red: 0.1, green: 0.1, blue: 0.15),
+                        Color.black
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
                 
-                // Mini player at top (shows when playing)
-                if let currentSong = musicPlayer.currentSong {
-                    miniPlayer(song: currentSong)
-                }
-                
-                // Content
-                if viewModel.tracks.isEmpty && !viewModel.isScanning {
-                    // Loading state
-                    VStack(spacing: 20) {
-                        Spacer()
-                        
-                        ProgressView()
-                            .scaleEffect(1.5)
-                        
-                        Text("Loading your music...")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
+                VStack(spacing: 0) {
+                    // Header with title
+                    headerView
+                    
+                    // Mini player at top (shows when playing)
+                    if let currentSong = musicPlayer.currentSong {
+                        miniPlayer(song: currentSong)
                     }
-                    .frame(maxWidth: .infinity)
-                } else {
-                    tracksListView
+                    
+                    // Content
+                    if viewModel.tracks.isEmpty && !viewModel.isScanning {
+                        // Loading state
+                        VStack(spacing: 20) {
+                            Spacer()
+                            
+                            ProgressView()
+                                .scaleEffect(1.5)
+                                .tint(.white)
+                            
+                            Text("Loading your music...")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.8))
+                            
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        tracksListView
+                    }
                 }
             }
             .navigationTitle("")
@@ -64,28 +79,29 @@ public struct LocalMusicLibraryView: View {
     
     private var headerView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("🎵")
                         .font(.title)
                     Text("Top Hits just for you")
                         .font(.title2)
                         .fontWeight(.bold)
+                        .foregroundColor(.white)
                 }
                 Text("\(viewModel.tracks.count) Songs • \(viewModel.formattedTotalDuration)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.7))
             }
             Spacer()
         }
         .padding()
-        #if os(tvOS)
-        .background(Color.secondary.opacity(0.1))
-        #elseif os(macOS)
-        .background(Color(nsColor: .controlBackgroundColor))
-        #else
-        .background(Color(.systemGroupedBackground))
-        #endif
+        .background(
+            LinearGradient(
+                colors: [Color.white.opacity(0.05), Color.clear],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
     
     // MARK: - Tracks List
@@ -116,6 +132,7 @@ public struct LocalMusicLibraryView: View {
                 .buttonStyle(.plain)
                 #else
                 TrackRowView(track: track)
+                    .listRowBackground(Color.clear)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         selectedTrack = track
@@ -143,6 +160,8 @@ public struct LocalMusicLibraryView: View {
             }
         }
         .listStyle(PlainListStyle())
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
     }
     
     // MARK: - Artists List
@@ -198,11 +217,14 @@ public struct LocalMusicLibraryView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(song.title)
                         .font(.headline)
+                        .foregroundColor(.white)
                         .lineLimit(1)
-                    Text(song.artist)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                    if song.artist != "Unknown Artist" {
+                        Text(song.artist)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
+                            .lineLimit(1)
+                    }
                 }
                 
                 Spacer()
@@ -213,6 +235,7 @@ public struct LocalMusicLibraryView: View {
                     }) {
                         Image(systemName: "backward.fill")
                             .font(.title3)
+                            .foregroundColor(.white)
                     }
                     
                     Button(action: {
@@ -220,6 +243,7 @@ public struct LocalMusicLibraryView: View {
                     }) {
                         Image(systemName: musicPlayer.isPlaying ? "pause.fill" : "play.fill")
                             .font(.title2)
+                            .foregroundColor(.white)
                     }
                     
                     Button(action: {
@@ -227,6 +251,7 @@ public struct LocalMusicLibraryView: View {
                     }) {
                         Image(systemName: "forward.fill")
                             .font(.title3)
+                            .foregroundColor(.white)
                     }
                 }
             }
@@ -235,11 +260,17 @@ public struct LocalMusicLibraryView: View {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(Color.gray.opacity(0.3))
+                        .fill(Color.white.opacity(0.2))
                         .frame(height: 4)
                     
                     Rectangle()
-                        .fill(Color.blue)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.blue, Color.purple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                         .frame(width: geometry.size.width * CGFloat(musicPlayer.currentTime / max(musicPlayer.duration, 1)), height: 4)
                 }
                 .cornerRadius(2)
@@ -249,16 +280,31 @@ public struct LocalMusicLibraryView: View {
             HStack {
                 Text(formatTime(musicPlayer.currentTime))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.7))
+                    .monospacedDigit()
                 Spacer()
                 Text(formatTime(musicPlayer.duration))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white.opacity(0.7))
+                    .monospacedDigit()
             }
         }
         .padding()
-        .background(Color.blue.opacity(0.1))
-        .cornerRadius(12)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                )
+        )
+        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
         .padding(.horizontal)
         .padding(.vertical, 8)
     }
@@ -276,29 +322,64 @@ public struct LocalMusicLibraryView: View {
 struct TrackRowView: View {
     let track: LocalMusicTrack
     
+    private var shouldShowArtistInfo: Bool {
+        track.artist != "Unknown Artist" || track.album != "Unknown Album"
+    }
+    
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
+            // Music note icon
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 50, height: 50)
+                
+                Image(systemName: "music.note")
+                    .font(.title3)
+                    .foregroundColor(.white)
+            }
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(track.title)
                     .font(.headline)
+                    .foregroundColor(.white)
                     .lineLimit(1)
-                HStack {
-                    Text(track.artist)
-                    Text("•")
-                    Text(track.album)
+                
+                if shouldShowArtistInfo {
+                    HStack(spacing: 4) {
+                        if track.artist != "Unknown Artist" {
+                            Text(track.artist)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        if track.artist != "Unknown Artist" && track.album != "Unknown Album" {
+                            Text("•")
+                                .foregroundColor(.white.opacity(0.5))
+                        }
+                        if track.album != "Unknown Album" {
+                            Text(track.album)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    }
+                    .font(.subheadline)
+                    .lineLimit(1)
                 }
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .lineLimit(1)
             }
             
             Spacer()
             
             Text(track.formattedDuration)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.subheadline)
+                .foregroundColor(.white.opacity(0.6))
+                .monospacedDigit()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 4)
     }
 }
 

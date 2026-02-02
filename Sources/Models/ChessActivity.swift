@@ -66,6 +66,7 @@ public struct ChessGameState: Codable {
     public let winnerID: UUID?
     public let capturedPieces: [ChessPieceData]
     public let moveHistory: [MoveData]
+    public let hostPlayerColor: String? // Color that the host is playing
     
     public init(
         gameID: UUID,
@@ -74,7 +75,8 @@ public struct ChessGameState: Codable {
         gameState: String,
         winnerID: UUID?,
         capturedPieces: [ChessPieceData],
-        moveHistory: [MoveData]
+        moveHistory: [MoveData],
+        hostPlayerColor: String? = nil
     ) {
         self.gameID = gameID
         self.board = board
@@ -83,6 +85,7 @@ public struct ChessGameState: Codable {
         self.winnerID = winnerID
         self.capturedPieces = capturedPieces
         self.moveHistory = moveHistory
+        self.hostPlayerColor = hostPlayerColor
     }
     
     public struct MoveData: Codable {

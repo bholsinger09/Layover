@@ -27,11 +27,11 @@ public final class SharePlayService: SharePlayServiceProtocol {
     private let logger = Logger(subsystem: "com.bholsinger.LayoverLounge", category: "SharePlay")
 
     public private(set) var currentSession: GroupSession<LayoverActivity>?
-    private var groupStateObserver: Task<Void, Never>?
-    private var sessionTask: Task<Void, Never>?
+    private var groupStateObserver: Task<Void, Never>?  // Persistent session observer
+    private var sessionStateTask: Task<Void, Never>?    // Per-session state monitoring
     private var playbackCoordinator: AVPlaybackCoordinator?
     private var messenger: GroupSessionMessenger?
-    private var messageTask: Task<Void, Never>?
+    private var messageTask: Task<Void, Never>?         // Per-session message listener
     
     // Track if this device initiated the session or joined via invitation
     public private(set) var isSessionHost: Bool = false
@@ -69,7 +69,8 @@ public final class SharePlayService: SharePlayServiceProtocol {
 
     deinit {
         groupStateObserver?.cancel()
-        sessionTask?.cancel()
+        sessionStateTask?.cancel()
+        messageTask?.cancel()
     }
 
     private func setupSessionObserver() {
@@ -143,14 +144,16 @@ public final class SharePlayService: SharePlayServiceProtocol {
         // Setup message listener
         setupMessageListener()
 
-        sessionTask = Task {
+        sessionStateTask = Task {
             for await state in session.$state.values {
                 logger.info("📊 SharePlay: Session state changed to \(String(describing: state))")
                 if case .invalidated = state {
                     currentSession = nil
                     messenger = nil
                     messageTask?.cancel()
-                    sessionTask?.cancel()
+                    messageTask = nil
+                    sessionStateTask?.cancel()
+                    sessionStateTask = nil
                     logger.warning("❌ SharePlay: Session invalidated")
                     await MainActor.run {
                         logger.info("📢 SharePlay: Notifying UI of session state change (inactive)")
@@ -206,24 +209,45 @@ public final class SharePlayService: SharePlayServiceProtocol {
         playbackCoordinator = nil
         isSessionHost = false  // Reset host status
         messageTask?.cancel()
-        sessionTask?.cancel()
+        messageTask = nil
+        sessionStateTask?.cancel()
+        sessionStateTask = nil
+        // NOTE: groupStateObserver stays alive to detect new sessions
         notifySessionStateObservers(false)
     }
 
     private func setupMessageListener() {
         logger.info("🔧 Setting up message listener...")
-        messageTask = Task {
-            guard let messenger = messenger else {
+        
+        // Cancel any existing listener
+        messageTask?.cancel()
+        
+        messageTask = Task { @MainActor in
+            guard let messenger = self.messenger else {
                 logger.error("❌ No messenger available for message listener")
                 return
             }
+            
+            // Capture messenger strongly to prevent deallocation during iteration
+            let capturedMessenger = messenger
             logger.info("✅ Message listener started, waiting for messages...")
 
-            for await (message, _) in messenger.messages(of: SharePlayMessage.self) {
-                logger.info("📨 ⚡️ Message received from messenger!")
-                await handleMessage(message)
+            do {
+                for await (message, _) in capturedMessenger.messages(of: SharePlayMessage.self) {
+                    logger.info("📨 ⚡️ Message received from messenger!")
+                    await handleMessage(message)
+                }
+                logger.warning("⚠️ Message listener loop ended normally")
+            } catch {
+                logger.error("❌ Message listener error: \(error)")
             }
-            logger.warning("⚠️ Message listener loop ended")
+            
+            // If we get here and session is still active, something went wrong
+            if self.currentSession != nil {
+                logger.warning("⚠️ Message listener ended while session still active")
+            } else {
+                logger.info("ℹ️ Message listener ended after session cleanup")
+            }
         }
     }
 

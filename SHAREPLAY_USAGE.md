@@ -1,20 +1,20 @@
-# SharePlay Usage Guide for Texas Hold'em
+# SharePlay Usage Guide for Chess
 
 ## Overview
-SharePlay allows multiple players to sync their Texas Hold'em game state in real-time during a FaceTime call, even if they're using different Apple IDs.
+SharePlay allows two players to sync their Chess game state in real-time during a FaceTime call, even if they're using different Apple IDs.
 
 ## How to Use SharePlay
 
 ### Prerequisites
 1. Both players must be in an active FaceTime call
-2. Both devices must have the LayoverLounge app installed
+2. Both devices must have the ShareALayover app installed
 3. Both players must join the same room
 
 ### Step-by-Step Instructions
 
 #### On the Host Device (iPhone or Mac):
 1. **Start a FaceTime call** with the other player
-2. **Open LayoverLounge** and navigate to a Texas Hold'em room
+2. **Open ShareALayover** and navigate to a Chess room
 3. **Tap "Start SharePlay"** button (purple button with SharePlay icon)
 4. **Approve the SharePlay request** when iOS/macOS prompts you
 5. Wait for "SharePlay Active" indicator to appear
@@ -22,19 +22,19 @@ SharePlay allows multiple players to sync their Texas Hold'em game state in real
 
 #### On the Participant Device (iPhone or Mac):
 1. **Stay in the FaceTime call**
-2. **Watch for SharePlay banner** in FaceTime saying "[Name] started Texas Hold'em"
+2. **Watch for SharePlay banner** in FaceTime saying "[Name] started Chess"
 3. **Tap "Join"** on the SharePlay banner in FaceTime
-4. **Open LayoverLounge** (if not already open)
+4. **Open ShareALayover** (if not already open)
 5. **Navigate to the same room** as the host
 6. Game will automatically sync when host starts it
 
 ### Key Features
 
 - **Cross Apple ID Support**: Works with different Apple IDs via SharePlay
-- **Real-time Sync**: All game actions sync instantly between devices
+- **Real-time Sync**: All moves sync instantly between devices
 - **Automatic Game Start**: Participants automatically receive game state when host starts
 - **Turn-based Play**: Shows whose turn it is on both devices
-- **Community Cards**: All cards sync across devices
+- **Move Validation**: All moves are validated on both devices
 
 ### Troubleshooting
 
@@ -61,13 +61,13 @@ SharePlay allows multiple players to sync their Texas Hold'em game state in real
 3. Participants tap "Join" to join the GroupSession
 4. Host starts game, broadcasts `gameStarted` message
 5. All participants receive game state updates in real-time
-6. Player actions are broadcast via SharePlay messages
+6. Player moves are broadcast via SharePlay messages
 
 **Messages Sent:**
-- `gameStarted`: Initial game setup with player IDs
-- `gameStateUpdate`: Full game state after each action
-- `playerAction`: Individual player actions (bet, fold, call)
-- `phaseAdvanced`: When game moves to next phase (flop, turn, river)
+- `gameStarted`: Initial game setup with player IDs and colors
+- `gameStateUpdate`: Full board state after each move
+- `moveMade`: Individual move with source and destination squares
+- `gameEnded`: Checkmate, stalemate, or resignation
 
 ### Why Not iCloud?
 iCloud Key-Value Store only syncs between devices with the **same Apple ID**, making it unsuitable for multiplayer with different users. SharePlay solves this by syncing via the FaceTime GroupSession.

@@ -3,6 +3,10 @@ import Combine
 import Foundation
 import OSLog
 
+#if os(macOS)
+import AppKit
+#endif
+
 /// Protocol for authentication operations
 public protocol AuthenticationServiceProtocol: Sendable {
     var currentUser: User? { get async }
@@ -195,7 +199,31 @@ private class SignInDelegate: NSObject, ASAuthorizationControllerDelegate,
 
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         #if os(macOS)
-            return NSApplication.shared.windows.first ?? NSWindow()
+            // Get the key window or the first visible window
+            if let keyWindow = NSApplication.shared.keyWindow {
+                return keyWindow
+            }
+            
+            // Fall back to the main window
+            if let mainWindow = NSApplication.shared.mainWindow {
+                return mainWindow
+            }
+            
+            // Last resort: get any visible window
+            if let window = NSApplication.shared.windows.first(where: { $0.isVisible }) {
+                return window
+            }
+            
+            // Create a new window as absolute last resort
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 480, height: 300),
+                styleMask: [.titled, .closable],
+                backing: .buffered,
+                defer: false
+            )
+            window.center()
+            window.makeKeyAndOrderFront(nil)
+            return window
         #else
             return UIApplication.shared.connectedScenes
                 .compactMap { $0 as? UIWindowScene }

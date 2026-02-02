@@ -16,22 +16,51 @@ public struct LoginView: View {
     }
 
     public var body: some View {
-        VStack(spacing: contentSpacing) {
-            // Logo/Header
-            VStack(spacing: headerSpacing) {
-                Image(systemName: "airplane.departure")
-                    .font(.system(size: logoSize))
-                    .foregroundStyle(.blue)
+        ZStack {
+            // Dark gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black.opacity(0.95),
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.1, green: 0.15, blue: 0.25)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: contentSpacing) {
+                // Logo/Header
+                VStack(spacing: headerSpacing) {
+                    Image(systemName: "airplane.departure")
+                        .font(.system(size: logoSize))
+                        .foregroundStyle(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.blue.opacity(0.9),
+                                    Color.cyan.opacity(0.8)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .shadow(color: .blue.opacity(0.5), radius: 15, x: 0, y: 5)
 
-                Text("LayoverLounge")
-                    .font(titleFont)
-                    .fontWeight(.bold)
+                    Text("Social Sync Lounge")
+                        .font(titleFont)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.5), radius: 8, x: 0, y: 4)
 
-                Text("Connect during your layover")
-                    .font(subtitleFont)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.bottom, headerBottomPadding)
+                    Text("Synchronized Social Entertainment")
+                        .font(subtitleFont)
+                        .foregroundStyle(.white.opacity(0.7))
+                    
+                    Text("Where Distance Disappears")
+                        .font(.caption)
+                        .foregroundStyle(.cyan.opacity(0.8))
+                }
+                .padding(.bottom, headerBottomPadding)
 
             // Sign in with Apple Button
             SignInWithAppleButton(
@@ -57,18 +86,19 @@ public struct LoginView: View {
             .frame(maxWidth: signInButtonMaxWidth)
             .frame(height: signInButtonHeight)
             .cornerRadius(signInButtonCornerRadius)
+            .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
 
             // Divider
             HStack {
                 Rectangle()
                     .frame(height: 1)
-                    .foregroundStyle(.secondary.opacity(0.3))
+                    .foregroundStyle(.white.opacity(0.3))
                 Text("or")
                     .font(dividerFont)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.6))
                 Rectangle()
                     .frame(height: 1)
-                    .foregroundStyle(.secondary.opacity(0.3))
+                    .foregroundStyle(.white.opacity(0.3))
             }
 
             // Email Field
@@ -76,6 +106,7 @@ public struct LoginView: View {
                 Text("Email")
                     .font(labelFont)
                     .fontWeight(.medium)
+                    .foregroundStyle(.white.opacity(0.9))
 
                 TextField("Enter your email", text: $email)
                     .textContentType(.emailAddress)
@@ -89,9 +120,14 @@ public struct LoginView: View {
                         .autocorrectionDisabled()
                     #endif
                     .padding(fieldPadding)
-                    .background(fieldBackground)
+                    .background(Color.white.opacity(0.1))
+                    .foregroundStyle(.white)
                     .cornerRadius(fieldCornerRadius)
-                    .overlay(fieldBorder)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: fieldCornerRadius)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
 
             // Password Field
@@ -99,13 +135,19 @@ public struct LoginView: View {
                 Text("Password")
                     .font(labelFont)
                     .fontWeight(.medium)
+                    .foregroundStyle(.white.opacity(0.9))
 
                 SecureField("Enter your password", text: $password)
                     .textContentType(.password)
                     .padding(fieldPadding)
-                    .background(fieldBackground)
+                    .background(Color.white.opacity(0.1))
+                    .foregroundStyle(.white)
                     .cornerRadius(fieldCornerRadius)
-                    .overlay(fieldBorder)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: fieldCornerRadius)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
 
             // Error Message
@@ -134,10 +176,25 @@ public struct LoginView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: actionButtonHeight)
-            .background(Color.blue)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.blue.opacity(0.8),
+                        Color.cyan.opacity(0.6)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
             .foregroundStyle(.white)
             .cornerRadius(actionButtonCornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: actionButtonCornerRadius)
+                    .stroke(Color.white.opacity(0.4), lineWidth: 1)
+            )
+            .shadow(color: .blue.opacity(0.5), radius: 8, x: 0, y: 4)
             .disabled(isLoading || email.isEmpty || password.isEmpty)
+            .opacity((isLoading || email.isEmpty || password.isEmpty) ? 0.5 : 1.0)
 
             // Register Link
             Button {
@@ -145,11 +202,13 @@ public struct LoginView: View {
             } label: {
                 Text("Don't have an account? **Register**")
                     .font(registerLinkFont)
+                    .foregroundStyle(.white.opacity(0.8))
             }
 
             Spacer()
         }
         .padding(contentPadding)
+        }
         .sheet(isPresented: $showRegistration) {
             RegistrationView(onRegister: onSignIn)
         }
@@ -161,8 +220,8 @@ public struct LoginView: View {
 
         // Simulate authentication
         do {
-            // Check reviewer credentials
-            if email == "reviewer@layoverlounge.app" && password == "TestFlight2025!" {
+            // Check reviewer credentials (updated for Social Sync Lounge)
+            if email == "reviewer@socialsynclounge.app" && password == "SyncDemo2025!" {
                 try await Task.sleep(nanoseconds: 500_000_000)
                 onSignIn("Reviewer")
                 return
@@ -201,12 +260,7 @@ public struct LoginView: View {
     private var labelFont: Font { .title3 }
     private var fieldLabelSpacing: CGFloat { 12 }
     private var fieldPadding: CGFloat { 20 }
-    private var fieldBackground: Color { Color.white.opacity(0.15) }
     private var fieldCornerRadius: CGFloat { 12 }
-    private var fieldBorder: some View {
-        RoundedRectangle(cornerRadius: fieldCornerRadius)
-            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-    }
     private var errorFont: Font { .title3 }
     private var progressScale: CGFloat { 1.5 }
     private var buttonFont: Font { .system(size: 36, weight: .semibold) }
@@ -228,12 +282,7 @@ public struct LoginView: View {
     private var labelFont: Font { .subheadline }
     private var fieldLabelSpacing: CGFloat { 6 }
     private var fieldPadding: CGFloat { 10 }
-    private var fieldBackground: Color { Color(NSColor.controlBackgroundColor) }
     private var fieldCornerRadius: CGFloat { 8 }
-    private var fieldBorder: some View {
-        RoundedRectangle(cornerRadius: fieldCornerRadius)
-            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-    }
     private var errorFont: Font { .caption }
     private var progressScale: CGFloat { 1.0 }
     private var buttonFont: Font { .body }
@@ -255,9 +304,7 @@ public struct LoginView: View {
     private var labelFont: Font { .subheadline }
     private var fieldLabelSpacing: CGFloat { 8 }
     private var fieldPadding: CGFloat { 16 }
-    private var fieldBackground: Color { Color(.systemGray6) }
     private var fieldCornerRadius: CGFloat { 10 }
-    private var fieldBorder: some View { EmptyView() }
     private var errorFont: Font { .caption }
     private var progressScale: CGFloat { 1.0 }
     private var buttonFont: Font { .body }

@@ -131,8 +131,8 @@ struct SharePlayIntegrationTests {
         // Start then leave
         let activity = LayoverActivity(
             roomID: UUID(),
-            activityType: .texasHoldem,
-            customMetadata: ["roomName": "Poker"]
+            activityType: .chess,
+            customMetadata: ["roomName": "Chess"]
         )
 
         try await sharedService.startActivity(activity)
@@ -258,7 +258,7 @@ struct SharePlayIntegrationTests {
         let activityTypes: [(RoomActivityType, String)] = [
             (.appleTVPlus, "TV Room"),
             (.appleMusic, "Music Room"),
-            (.texasHoldem, "Poker Room"),
+            (.chess, "Chess Room"),
         ]
 
         for (type, name) in activityTypes {

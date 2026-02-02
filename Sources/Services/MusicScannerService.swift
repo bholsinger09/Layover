@@ -6,10 +6,21 @@ public class MusicScannerService {
     private let databaseService: MusicDatabaseService
     private let fileManager = FileManager.default
     
-    public enum ScanError: Error {
+    public enum ScanError: Error, LocalizedError {
         case invalidDirectory
         case accessDenied
         case scanFailed(String)
+        
+        public var errorDescription: String? {
+            switch self {
+            case .invalidDirectory:
+                return "The selected directory is not valid or does not exist."
+            case .accessDenied:
+                return "Access to the music directory was denied. Please check your permissions."
+            case .scanFailed(let message):
+                return message
+            }
+        }
     }
     
     public struct ScanProgress {
@@ -28,13 +39,12 @@ public class MusicScannerService {
         #if os(tvOS)
         // tvOS doesn't have access to local music directories
         throw ScanError.scanFailed("Music library scanning is not available on Apple TV. This feature requires access to local music files which are only available on Mac, iPhone, and iPad.")
+        #elseif os(iOS)
+        // iOS doesn't have access to a traditional file system music library like macOS
+        throw ScanError.scanFailed("Direct file system music scanning is not available on iOS. Please use the bundled music option or integrate with the Apple Music API.")
         #else
-        let homeDirectory: URL
-        if #available(iOS 16.0, macOS 13.0, *) {
-            homeDirectory = URL.homeDirectory
-        } else {
-            homeDirectory = fileManager.homeDirectoryForCurrentUser
-        }
+        // macOS only
+        let homeDirectory = fileManager.homeDirectoryForCurrentUser
         
         let musicPath = homeDirectory
             .appendingPathComponent("Music/Music/Media.localized/Apple Music")
@@ -50,7 +60,35 @@ public class MusicScannerService {
     
     /// Scan bundled music resources in the app
     public func scanBundledMusic(progressHandler: ((ScanProgress) -> Void)? = nil) async throws -> ScanProgress {
-        // Try multiple possible locations for bundled music
+        #if os(iOS)
+        // iOS: Look for bundled music files directly
+        print("🔍 iOS: Searching for bundled music files...")
+        var foundFiles: [URL] = []
+        let extensions = ["m4p", "m4a", "mp3", "aac", "wav", "flac"]
+        
+        for ext in extensions {
+            if let urls = Bundle.main.urls(forResourcesWithExtension: ext, subdirectory: nil) {
+                foundFiles.append(contentsOf: urls)
+            }
+            // Also check in Resources/Music subdirectory
+            if let urls = Bundle.main.urls(forResourcesWithExtension: ext, subdirectory: "Resources/Music") {
+                foundFiles.append(contentsOf: urls)
+            }
+            if let urls = Bundle.main.urls(forResourcesWithExtension: ext, subdirectory: "Music") {
+                foundFiles.append(contentsOf: urls)
+            }
+        }
+        
+        if !foundFiles.isEmpty {
+            print("✅ Found \(foundFiles.count) bundled music files on iOS")
+            return try await importBundledFiles(foundFiles, progressHandler: progressHandler)
+        } else {
+            // Return empty result instead of throwing error
+            print("ℹ️ No bundled music found - returning empty result")
+            return ScanProgress(filesScanned: 0, filesImported: 0, currentFile: nil, errors: [])
+        }
+        #else
+        // macOS/tvOS: Try multiple possible locations for bundled music
         var musicPath: String?
         var foundFiles: [URL] = []
         
@@ -92,8 +130,10 @@ public class MusicScannerService {
             return try await scanDirectory(at: path, progressHandler: progressHandler)
         }
         
-        // No music found
-        throw ScanError.scanFailed("No bundled music found.\n\nChecklist:\n1. Add music files to Resources/Music in Xcode\n2. Ensure files are added to target membership\n3. Check Build Phases → Copy Bundle Resources\n\nFound 0 music files in app bundle.")
+        // No music found - return empty result instead of error
+        print("ℹ️ No bundled music found")
+        return ScanProgress(filesScanned: 0, filesImported: 0, currentFile: nil, errors: [])
+        #endif
     }
     
     /// Import individual bundled files

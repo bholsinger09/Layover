@@ -50,7 +50,7 @@ struct RoomListViewModelTests {
         _ = try? await roomService.createRoom(
             name: "Room 1",
             host: host,
-            activityType: .texasHoldem
+            activityType: .chess
         )
 
         // Check service rooms directly since loadRooms loads from UserDefaults

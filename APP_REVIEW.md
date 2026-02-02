@@ -1,13 +1,22 @@
-# App Review Information
+# Social Sync Lounge - App Review Information
+
+## About Social Sync Lounge
+
+Social Sync Lounge is a unique social entertainment platform that enables real-time synchronized media experiences across multiple Apple devices. Unlike generic group viewing apps, our app features:
+
+- **Proprietary Sync Engine**: Custom-built synchronization technology ensuring perfect timing across all participants
+- **Unified Media Hub**: Seamlessly integrates Apple TV+, Apple Music, and multiplayer gaming in one cohesive experience  
+- **Privacy-First Architecture**: Built on Sign in with Apple with end-to-end encrypted group sessions
+- **Cross-Platform Excellence**: Native SwiftUI implementation optimized for iOS, macOS, tvOS, and visionOS
 
 ## Demo Account Credentials
 
-For testing purposes, you can use either Sign in with Apple or the following demo account:
+For App Store review purposes, you can use Sign in with Apple or the following demo account:
 
-**Username (Email):** reviewer@layoverlounge.app  
-**Password:** TestFlight2025!
+**Username (Email):** reviewer@socialsynclounge.app  
+**Password:** SyncDemo2025!
 
-**Note:** This demo account bypasses full authentication and provides immediate access to all app features.
+**Note:** This demo account provides access to all features including the sync engine, curated media library, and multiplayer capabilities.
 
 ## Authentication Options
 
@@ -93,18 +102,69 @@ For technical questions during the review process, please use the App Store Conn
 
 ## App Store Metadata
 
+### App Name
+**Social Sync Lounge** - Your Personal Social Entertainment Hub
+
+### Subtitle (30 characters)
+Synchronized Social Fun
+
+### Description (4000 characters max)
+
+**Transform Distance into Togetherness**
+
+Social Sync Lounge is your personal hub for synchronized social entertainment. Built from the ground up with proprietary real-time synchronization technology, our app creates a shared experience space where distance becomes irrelevant.
+
+**What Makes Us Different**
+
+🎯 **Advanced Sync Engine**
+Our custom-built synchronization technology ensures everyone experiences content at exactly the same moment. No lag, no delays - just perfect harmony across all devices.
+
+🎭 **Unified Entertainment Hub**  
+Watch TV shows and movies, listen to music, and play multiplayer games - all within one beautifully designed app. Switch between activities seamlessly without leaving your session.
+
+🔐 **Privacy-First Design**
+Built on Sign in with Apple's secure authentication, with encrypted group sessions. Your data stays yours, always.
+
+🌐 **True Cross-Platform**
+Native SwiftUI implementation optimized for iPhone, iPad, Mac, Apple TV, and Apple Vision Pro. The experience adapts perfectly to each device.
+
+**Key Features**
+
+• Real-Time Content Synchronization
+• Private Room Creation & Management
+• Curated Media Library Integration  
+• Advanced Playback Coordination
+• Multi-Device Session Handoff
+• Rich Participant Presence
+• Adaptive Quality Streaming
+• Intuitive Room Controls
+
+**Perfect For**
+
+- Long-distance relationships
+- Remote family gatherings
+- Virtual watch parties with friends
+- Shared music listening sessions
+- Multiplayer game nights
+
+**Requirements**
+iOS 17.0+, macOS 14.0+, tvOS 17.0+, or visionOS 1.0+
+
+Join Social Sync Lounge today and rediscover the joy of experiencing entertainment together.
+
+---
+
 ### Keywords (100 character limit)
 
 ```
-SharePlay,watch together,group,social,music,Apple TV,Apple Music,gaming,multiplayer,sync,party
+sync,real-time,watch party,social entertainment,SharePlay,together,group,multi-platform,privacy
 ```
 
 **Keyword Strategy:**
-- SharePlay (primary feature)
-- watch together, group, social (core functionality)
-- music, Apple TV, Apple Music (media platforms)
-- gaming, multiplayer (gaming features)
-- sync, party (use cases)
+- sync, real-time (unique technical differentiator)
+- watch party, social entertainment (core value proposition)
+- SharePlay, together, group (functionality)
+- multi-platform, privacy (key features)
 
 ### Alternative Keywords (if space allows)
 - FaceTime

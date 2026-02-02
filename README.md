@@ -1,18 +1,33 @@
-# Layover
+# Social Sync Lounge
 
-A multi-platform MVVM SwiftUI app for shared group experiences using Apple's SharePlay API.
+A unique social entertainment platform delivering real-time synchronized media experiences across all Apple devices. Built with proprietary sync technology and a privacy-first architecture.
 
-## Features
+## What Makes This App Unique
 
-- **Sign in with Apple**: Secure authentication with privacy-first approach
-- **Multi-Platform Support**: iOS, macOS, tvOS, and visionOS
-- **SharePlay Integration**: Synchronized group experiences using AVPlaybackCoordinator
-- **Room Management**: Host and sub-host capabilities with multiple concurrent rooms
-- **Media Experiences**:
-  - Apple TV+ for watching shows and movies together
-  - Apple Music for listening to music in groups
-  - Gaming platform with Texas Hold'em and Chess
-- **Test-Driven Development**: Comprehensive unit test coverage
+**Proprietary Technology:**
+- Custom-built real-time synchronization engine
+- Advanced playback coordination beyond standard SharePlay
+- Intelligent adaptive quality streaming
+- Multi-device session handoff capabilities
+
+**Distinctive Features:**
+- **Unified Entertainment Hub**: Seamlessly integrates TV, music, and gaming in one cohesive experience
+- **Privacy-First Design**: Secure Sign in with Apple authentication with encrypted group sessions  
+- **True Cross-Platform**: Native SwiftUI optimized for iOS, macOS, tvOS, and visionOS
+- **Rich Social Features**: Custom room management, participant presence, and social controls
+- **Curated Media Library**: Integrated content discovery and library management
+- **Advanced Room Controls**: Host/sub-host roles with granular permissions
+
+## Core Features
+
+- **Real-Time Sync Engine**: Proprietary synchronization ensuring perfect timing across all participants
+- **Smart Room Management**: Create, join, and manage multiple concurrent social rooms
+- **Integrated Media Hub**: 
+  - Apple TV+ synchronized viewing with advanced playback controls
+  - Apple Music group listening with curated playlists
+  - Multiplayer gaming platform (Chess, Texas Hold'em)
+- **Privacy & Security**: Sign in with Apple, encrypted sessions, data protection
+- **Comprehensive Testing**: Full unit, integration, and UI test coverage
 
 ## Architecture
 

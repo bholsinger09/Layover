@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import LayoverKit
 import AuthenticationServices
 #if os(iOS) || os(tvOS)
 import UIKit
@@ -26,7 +25,7 @@ public struct ContentView: View {
             if authViewModel.isAuthenticated, let user = authViewModel.currentUser {
                 mainAppView(currentUser: user)
             } else {
-                TVSignInView(viewModel: authViewModel)
+                PlatformSignInView(viewModel: authViewModel)
             }
         }
         .task {
@@ -54,7 +53,7 @@ public struct ContentView: View {
                     .aspectRatio(contentMode: .fill)
                     .ignoresSafeArea()
             )
-            .navigationTitle("LayoverLounge")
+            .navigationTitle("Social Sync Lounge")
             .sheet(isPresented: $showingLibrary) {
                 LibraryView(libraryService: libraryService)
             }
@@ -105,40 +104,91 @@ public struct ContentView: View {
             VStack(spacing: 16) {
                 Image(systemName: "airplane.departure")
                     .font(.system(size: 80))
-                    .foregroundStyle(.blue.gradient)
+                    .foregroundStyle(.cyan.gradient)
+                    .shadow(color: .black.opacity(0.8), radius: 15, x: 0, y: 8)
                 
-                Text("Welcome to LayoverLounge")
+                Text("Welcome to Social Sync Lounge")
                     .font(.system(size: 48, weight: .bold))
                     .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.9), radius: 12, x: 0, y: 6)
                 
-                Text("Connect with friends and enjoy entertainment together")
+                Text("Your Personal Social Entertainment Hub")
                     .font(.system(size: 24))
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
+                    .shadow(color: .black.opacity(0.9), radius: 10, x: 0, y: 5)
+                
+                Text("Watch, Listen, and Play in Perfect Harmony")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.cyan)
+                    .multilineTextAlignment(.center)
+                    .shadow(color: .black.opacity(0.9), radius: 10, x: 0, y: 5)
             }
+            .padding(.vertical, 40)
             .padding(.horizontal, 60)
-            .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.black.opacity(0.6),
+                                Color.black.opacity(0.75)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
+            )
+            .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
             
-            // Connection Options
+            // Connection Options with unique styling
             VStack(spacing: 24) {
-                // Connect to SharePlay Button
+                // Connect to SharePlay Button with custom design
                 Button {
                     showingSharePlaySession = true
                 } label: {
                     HStack(spacing: 16) {
-                        Image(systemName: "shareplay")
-                            .font(.system(size: 36))
-                        Text("Connect to SharePlay Session")
-                            .font(.system(size: 32, weight: .semibold))
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 60, height: 60)
+                            Image(systemName: "shareplay")
+                                .font(.system(size: 32))
+                                .foregroundStyle(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Join Live Session")
+                                .font(.system(size: 32, weight: .bold))
+                            Text("Real-time synchronized experience")
+                                .font(.system(size: 18))
+                                .opacity(0.9)
+                        }
                     }
                     .foregroundStyle(.white)
                     .frame(maxWidth: 700)
-                    .padding(.vertical, 24)
+                    .padding(.vertical, 28)
                     .padding(.horizontal, 40)
                     .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.blue.gradient)
-                            .shadow(color: .blue.opacity(0.5), radius: 20, x: 0, y: 10)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(red: 0.2, green: 0.4, blue: 0.9),
+                                            Color(red: 0.1, green: 0.6, blue: 0.8)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                        }
+                        .shadow(color: .cyan.opacity(0.6), radius: 25, x: 0, y: 12)
                     )
                 }
                 #if os(tvOS)
@@ -147,24 +197,48 @@ public struct ContentView: View {
                 .buttonStyle(.plain)
                 #endif
                 
-                // Browse Library Button
+                // Browse Library Button with custom design
                 Button {
                     showingLibrary = true
                 } label: {
                     HStack(spacing: 16) {
-                        Image(systemName: "books.vertical.fill")
-                            .font(.system(size: 36))
-                        Text("Browse My Library")
-                            .font(.system(size: 32, weight: .semibold))
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 60, height: 60)
+                            Image(systemName: "books.vertical.fill")
+                                .font(.system(size: 32))
+                                .foregroundStyle(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("My Media Library")
+                                .font(.system(size: 32, weight: .bold))
+                            Text("Curated collection ready to share")
+                                .font(.system(size: 18))
+                                .opacity(0.9)
+                        }
                     }
                     .foregroundStyle(.white)
                     .frame(maxWidth: 700)
-                    .padding(.vertical, 24)
+                    .padding(.vertical, 28)
                     .padding(.horizontal, 40)
                     .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.purple.gradient)
-                            .shadow(color: .purple.opacity(0.5), radius: 20, x: 0, y: 10)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(red: 0.5, green: 0.2, blue: 0.8),
+                                            Color(red: 0.7, green: 0.3, blue: 0.9)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                        }
+                        .shadow(color: .purple.opacity(0.6), radius: 25, x: 0, y: 12)
                     )
                 }
                 #if os(tvOS)
@@ -226,7 +300,9 @@ public struct ContentView: View {
                 endPoint: .bottom
             )
         )
+        #if os(tvOS)
         .focusSection()
+        #endif
     }
     
     @ViewBuilder
@@ -440,33 +516,69 @@ public struct TVProfileView: View {
 }
 
 // Platform-responsive Sign In View
-public struct TVSignInView: View {
+public struct PlatformSignInView: View {
     @ObservedObject var viewModel: AuthenticationViewModel
     @Environment(\.colorScheme) private var colorScheme
     @State private var showManualSignIn = false
     @State private var showRegistration = false
     
     public var body: some View {
-        VStack(spacing: platformSpacing) {
-            Spacer()
+        ZStack {
+            // Dark gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black.opacity(0.95),
+                    Color(red: 0.05, green: 0.1, blue: 0.2),
+                    Color(red: 0.1, green: 0.15, blue: 0.25)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
-            // App Logo/Title
-            VStack(spacing: titleSpacing) {
-                Image(systemName: "airplane.departure")
-                    .font(.system(size: logoSize))
-                    .foregroundStyle(.blue.gradient)
+            VStack(spacing: platformSpacing) {
+                Spacer()
                 
-                Text("Layover")
-                    .font(.system(size: titleSize, weight: .bold, design: .rounded))
+                // App Logo/Title
+                VStack(spacing: titleSpacing) {
+                    Image(systemName: "airplane.departure")
+                        .font(.system(size: logoSize))
+                        .foregroundStyle(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.blue.opacity(0.9),
+                                    Color.cyan.opacity(0.8)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .shadow(color: .blue.opacity(0.5), radius: 15, x: 0, y: 5)
+                    
+                    Text("Social Sync Lounge")
+                        .font(.system(size: titleSize, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                gradient: Gradient(colors: [.cyan, .blue, .purple]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .shadow(color: .cyan.opacity(0.5), radius: 12, x: 0, y: 4)
+                    
+                    Text("Experience Entertainment Together")
+                        .font(subtitleFont)
+                        .foregroundColor(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                    
+                    Text("Powered by Real-Time Sync Technology")
+                        .font(.caption)
+                        .foregroundColor(.cyan.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.bottom, sectionBottomPadding)
                 
-                Text("Connect, Watch, Play Together")
-                    .font(subtitleFont)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.bottom, sectionBottomPadding)
-            
-            Spacer()
+                Spacer()
             
             // Authentication Options
             VStack(spacing: buttonSpacing) {
@@ -481,10 +593,11 @@ public struct TVSignInView: View {
                         }
                     }
                 )
-                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                .signInWithAppleButtonStyle(.white)
                 .frame(maxWidth: buttonMaxWidth)
                 .frame(height: buttonHeight)
                 .cornerRadius(buttonCornerRadius)
+                .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
             
                 // Manual Sign In Button
                 Button {
@@ -495,8 +608,22 @@ public struct TVSignInView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: buttonMaxWidth)
                         .frame(height: buttonHeight)
-                        .background(Color.green)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.green.opacity(0.8),
+                                    Color(red: 0.2, green: 0.8, blue: 0.4)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                         .cornerRadius(buttonCornerRadius)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: buttonCornerRadius)
+                                .stroke(Color.white.opacity(0.4), lineWidth: 2)
+                        )
+                        .shadow(color: .green.opacity(0.5), radius: 8, x: 0, y: 4)
                         #if os(tvOS)
                         .overlay(
                             RoundedRectangle(cornerRadius: buttonCornerRadius)
@@ -512,14 +639,25 @@ public struct TVSignInView: View {
                 } label: {
                     Text("Create Account")
                         .font(.system(size: buttonFontSize, weight: .semibold))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.white)
                         .frame(maxWidth: buttonMaxWidth)
                         .frame(height: buttonHeight)
-                        .background(Color.clear)
+                        .background(Color.white.opacity(0.1))
                         .overlay(
                             RoundedRectangle(cornerRadius: buttonCornerRadius)
-                                .stroke(Color.blue, lineWidth: buttonBorderWidth)
+                                .stroke(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.blue.opacity(0.9),
+                                            Color.cyan.opacity(0.8)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: buttonBorderWidth
+                                )
                         )
+                        .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
                 
@@ -541,6 +679,7 @@ public struct TVSignInView: View {
             }
             .padding(.bottom, finalBottomPadding)
             .padding(.horizontal, horizontalPadding)
+            }
         }
         .sheet(isPresented: $showManualSignIn) {
             TVManualSignInView(viewModel: viewModel, isPresented: $showManualSignIn)

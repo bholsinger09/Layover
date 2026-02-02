@@ -146,8 +146,8 @@ struct SharePlayServiceTests {
 
         let activity = LayoverActivity(
             roomID: UUID(),
-            activityType: .texasHoldem,
-            customMetadata: ["roomName": "Poker Room"]
+            activityType: .chess,
+            customMetadata: ["roomName": "Chess Room"]
         )
         try await service.startActivity(activity)
 
@@ -313,20 +313,20 @@ struct SharePlayServiceTests {
         #expect(service.activatedActivities.first?.roomID == roomID)
     }
 
-    @Test("Texas Hold'em activity is created correctly")
-    func testTexasHoldemActivity() async throws {
+    @Test("Chess activity is created correctly")
+    func testChessActivity() async throws {
         let service = MockSharePlayService()
         let roomID = UUID()
 
         let activity = LayoverActivity(
             roomID: roomID,
-            activityType: .texasHoldem,
-            customMetadata: ["roomName": "Poker Room"]
+            activityType: .chess,
+            customMetadata: ["roomName": "Chess Room"]
         )
 
         try await service.startActivity(activity)
 
-        #expect(service.activatedActivities.first?.activityType == .texasHoldem)
+        #expect(service.activatedActivities.first?.activityType == .chess)
         #expect(service.activatedActivities.first?.roomID == roomID)
     }
 

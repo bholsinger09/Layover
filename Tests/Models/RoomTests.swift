@@ -30,7 +30,7 @@ struct RoomTests {
         var room = Room(
             name: "Test Room",
             hostID: hostID,
-            activityType: .texasHoldem
+            activityType: .chess
         )
         
         let userID = UUID()
@@ -98,7 +98,7 @@ struct RoomTests {
         var room = Room(
             name: "Test Room",
             hostID: hostID,
-            activityType: .texasHoldem
+            activityType: .chess
         )
         
         room.promoteToSubHost(userID)
