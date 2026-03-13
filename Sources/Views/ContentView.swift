@@ -53,7 +53,7 @@ public struct ContentView: View {
                     .aspectRatio(contentMode: .fill)
                     .ignoresSafeArea()
             )
-            .navigationTitle("Social Sync Lounge")
+            .navigationTitle("ShareALayover")
             .sheet(isPresented: $showingLibrary) {
                 LibraryView(libraryService: libraryService)
             }
@@ -107,7 +107,7 @@ public struct ContentView: View {
                     .foregroundStyle(.cyan.gradient)
                     .shadow(color: .black.opacity(0.8), radius: 15, x: 0, y: 8)
                 
-                Text("Welcome to Social Sync Lounge")
+                Text("Welcome to ShareALayover")
                     .font(.system(size: 48, weight: .bold))
                     .foregroundStyle(.white)
                     .shadow(color: .black.opacity(0.9), radius: 12, x: 0, y: 6)
@@ -555,7 +555,7 @@ public struct PlatformSignInView: View {
                         )
                         .shadow(color: .blue.opacity(0.5), radius: 15, x: 0, y: 5)
                     
-                    Text("Social Sync Lounge")
+                    Text("ShareALayover")
                         .font(.system(size: titleSize, weight: .bold, design: .rounded))
                         .foregroundStyle(
                             LinearGradient(

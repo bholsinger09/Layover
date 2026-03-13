@@ -1,13 +1,13 @@
 //
 //  WelcomeGuide.swift
-//  Social Sync Lounge
+//  ShareALayover
 //
 //  Unique onboarding guide with app-specific features
 //
 
 import SwiftUI
 
-/// Custom welcome/onboarding guide specific to Social Sync Lounge
+/// Custom welcome/onboarding guide specific to ShareALayover
 public struct WelcomeGuide: View {
     @Binding var isPresented: Bool
     @State private var currentPage = 0
@@ -15,7 +15,7 @@ public struct WelcomeGuide: View {
     private let pages: [WelcomePage] = [
         WelcomePage(
             icon: "wave.3.right.circle.fill",
-            title: "Welcome to Social Sync Lounge",
+            title: "Welcome to ShareALayover",
             description: "Your personal hub for synchronized social entertainment. Watch, listen, and play together no matter where you are.",
             color: .cyan
         ),

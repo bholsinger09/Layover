@@ -1,6 +1,6 @@
 //
 //  SyncStatusIndicator.swift
-//  Social Sync Lounge
+//  ShareALayover
 //
 //  Unique sync status visualization component
 //
