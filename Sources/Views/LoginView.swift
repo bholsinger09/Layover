@@ -164,34 +164,37 @@ public struct LoginView: View {
                     await signIn()
                 }
             } label: {
-                if isLoading {
-                    ProgressView()
-                        .tint(.white)
-                        .scaleEffect(progressScale)
-                } else {
-                    Text("Sign In")
-                        .fontWeight(.semibold)
-                        .font(buttonFont)
+                ZStack {
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(progressScale)
+                    } else {
+                        Text("Sign In")
+                            .fontWeight(.semibold)
+                            .font(buttonFont)
+                            .foregroundStyle(.white)
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: actionButtonHeight)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.blue.opacity(0.8),
-                        Color.cyan.opacity(0.6)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                .frame(maxWidth: .infinity)
+                .frame(height: actionButtonHeight)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.blue.opacity(0.8),
+                            Color.cyan.opacity(0.6)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 )
-            )
-            .foregroundStyle(.white)
-            .cornerRadius(actionButtonCornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: actionButtonCornerRadius)
-                    .stroke(Color.white.opacity(0.4), lineWidth: 1)
-            )
+                .cornerRadius(actionButtonCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: actionButtonCornerRadius)
+                        .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
             .shadow(color: .blue.opacity(0.5), radius: 8, x: 0, y: 4)
             .disabled(isLoading || email.isEmpty || password.isEmpty)
             .opacity((isLoading || email.isEmpty || password.isEmpty) ? 0.5 : 1.0)

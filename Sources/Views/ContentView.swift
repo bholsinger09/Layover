@@ -53,7 +53,18 @@ public struct ContentView: View {
                     .aspectRatio(contentMode: .fill)
                     .ignoresSafeArea()
             )
+            #if os(tvOS)
             .navigationTitle("ShareALayover")
+            #elseif os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("ShareALayover")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                }
+            }
+            #endif
             .sheet(isPresented: $showingLibrary) {
                 LibraryView(libraryService: libraryService)
             }
@@ -97,6 +108,11 @@ public struct ContentView: View {
     
     @ViewBuilder
     private func homeScreenContent(currentUser: User) -> some View {
+        #if os(iOS)
+        ScrollView {
+            iOSHomeContent(currentUser: currentUser)
+        }
+        #else
         VStack(spacing: 40) {
             Spacer()
             
@@ -250,10 +266,162 @@ public struct ContentView: View {
             
             Spacer()
         }
-        #if os(tvOS)
         .focusSection()
         #endif
     }
+    
+    // iOS-optimized home content
+    @ViewBuilder
+    private func iOSHomeContent(currentUser: User) -> some View {
+        VStack(spacing: 20) {
+            // App Title and Welcome
+            VStack(spacing: 12) {
+                Image(systemName: "airplane.departure")
+                    .font(.system(size: 50))
+                    .foregroundStyle(.cyan.gradient)
+                    .shadow(color: .black.opacity(0.8), radius: 10, x: 0, y: 5)
+                
+                Text("Welcome to ShareALayover")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.9), radius: 8, x: 0, y: 4)
+                
+                Text("Your Personal Social Entertainment Hub")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .shadow(color: .black.opacity(0.9), radius: 6, x: 0, y: 3)
+                
+                Text("Watch, Listen, and Play in Perfect Harmony")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.cyan)
+                    .multilineTextAlignment(.center)
+                    .shadow(color: .black.opacity(0.9), radius: 6, x: 0, y: 3)
+            }
+            .padding(.vertical, 20)
+            .padding(.horizontal, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.black.opacity(0.6),
+                                Color.black.opacity(0.75)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
+            )
+            .shadow(color: .black.opacity(0.5), radius: 15, x: 0, y: 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            
+            // Connection Options
+            VStack(spacing: 16) {
+                // Connect to SharePlay Button
+                Button {
+                    showingSharePlaySession = true
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "shareplay")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Join Live Session")
+                                .font(.system(size: 18, weight: .bold))
+                            Text("Real-time synchronized experience")
+                                .font(.system(size: 12))
+                                .opacity(0.9)
+                        }
+                        Spacer()
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(red: 0.2, green: 0.4, blue: 0.9),
+                                            Color(red: 0.1, green: 0.6, blue: 0.8)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
+                        }
+                        .shadow(color: .cyan.opacity(0.6), radius: 15, x: 0, y: 8)
+                    )
+                }
+                .buttonStyle(.plain)
+                
+                // Browse Library Button
+                Button {
+                    showingLibrary = true
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "books.vertical.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("My Media Library")
+                                .font(.system(size: 18, weight: .bold))
+                            Text("Curated collection ready to share")
+                                .font(.system(size: 12))
+                                .opacity(0.9)
+                        }
+                        Spacer()
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(red: 0.5, green: 0.2, blue: 0.8),
+                                            Color(red: 0.7, green: 0.3, blue: 0.9)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
+                        }
+                        .shadow(color: .purple.opacity(0.6), radius: 15, x: 0, y: 8)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 20)
+        }
+    }
+
     
     // MARK: - Platform-Specific Top Bars
     
@@ -867,20 +1035,23 @@ public struct TVManualSignInView: View {
                     }
                 }
             } label: {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .tint(.white)
-                        .scaleEffect(progressScale)
-                } else {
-                    Text("Sign In")
-                        .font(.system(size: signInButtonFontSize, weight: .semibold))
+                ZStack {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(progressScale)
+                    } else {
+                        Text("Sign In")
+                            .font(.system(size: signInButtonFontSize, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
                 }
+                .frame(maxWidth: signInButtonMaxWidth)
+                .frame(height: signInButtonHeight)
+                .background(email.isEmpty || password.isEmpty ? Color.blue.opacity(0.5) : Color.blue)
+                .cornerRadius(signInButtonCornerRadius)
             }
-            .frame(maxWidth: signInButtonMaxWidth)
-            .frame(height: signInButtonHeight)
-            .background(email.isEmpty || password.isEmpty ? Color.blue.opacity(0.5) : Color.blue)
-            .foregroundStyle(.white)
-            .cornerRadius(signInButtonCornerRadius)
+            .buttonStyle(.plain)
             .disabled(email.isEmpty || password.isEmpty || viewModel.isLoading)
         }
         .padding(.horizontal, formHorizontalPadding)
