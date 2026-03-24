@@ -749,7 +749,9 @@ struct MusicTabView: View {
                                     .foregroundColor(.white)
                             }
                             .frame(maxWidth: .infinity)
+                            .frame(minHeight: 80)
                             .padding()
+                            .contentShape(Rectangle())
                             .background(
                                 LinearGradient(
                                     colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.2)],
@@ -778,7 +780,9 @@ struct MusicTabView: View {
                                     .foregroundColor(.white)
                             }
                             .frame(maxWidth: .infinity)
+                            .frame(minHeight: 80)
                             .padding()
+                            .contentShape(Rectangle())
                             .background(
                                 LinearGradient(
                                     colors: [Color.red.opacity(0.3), Color.red.opacity(0.2)],
@@ -1452,7 +1456,9 @@ struct PlaylistDetailView: View {
                                     .font(.caption)
                             }
                             .frame(maxWidth: .infinity)
+                            .frame(minHeight: 80)
                             .padding()
+                            .contentShape(Rectangle())
                             .background(Color.purple.opacity(0.1))
                             .cornerRadius(12)
                         }
@@ -1469,7 +1475,9 @@ struct PlaylistDetailView: View {
                                     .font(.caption)
                             }
                             .frame(maxWidth: .infinity)
+                            .frame(minHeight: 80)
                             .padding()
+                            .contentShape(Rectangle())
                             .background(Color.red.opacity(0.1))
                             .cornerRadius(12)
                         }
