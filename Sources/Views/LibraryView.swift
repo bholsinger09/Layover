@@ -961,7 +961,7 @@ struct MusicTabView: View {
         .sheet(isPresented: $showCreatePlaylist) {
             CreatePlaylistView(viewModel: viewModel)
         }
-        #if os(macOS)
+        #if !os(tvOS)
         .fileImporter(
             isPresented: $showFileImporter,
             allowedContentTypes: [.audio, .mp3],
@@ -994,7 +994,7 @@ struct MusicTabView: View {
         #endif
     }
     
-    #if os(macOS)
+    #if !os(tvOS)
     func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
@@ -1575,7 +1575,7 @@ struct PlaylistDetailView: View {
             } message: {
                 Text("This will permanently delete '\(currentPlaylist.name)' and cannot be undone.")
             }
-            #if os(macOS)
+            #if !os(tvOS)
             .fileImporter(
                 isPresented: $showFileImporter,
                 allowedContentTypes: [.audio, .mp3],
@@ -1612,7 +1612,7 @@ struct PlaylistDetailView: View {
         #endif
     }
     
-    #if os(macOS)
+    #if !os(tvOS)
     func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
