@@ -34,13 +34,29 @@ public struct MusicPlayerView: View {
                     Image(systemName: "music.note.list")
                         .font(.system(size: 60))
                         .foregroundColor(.secondary)
-                    Text("No Songs in Library")
+                    Text("No Music in Library")
                         .font(.title2)
                         .fontWeight(.semibold)
-                    Text("Import songs from your local music library")
+                    Text("Import songs to start listening")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
+                    
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    
+                    Text("Tip: Go to Library → Import Music to add songs")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                    
                     Spacer()
                 }
                 .padding()

@@ -68,6 +68,23 @@ public final class MusicPlayerViewModel {
         if let audioURL = song.audioURL {
             print("🎵 Attempting to play: \(song.title) from \(audioURL)")
             
+            // Check if file exists and is accessible before attempting to play
+            let fileManager = FileManager.default
+            if !fileManager.fileExists(atPath: audioURL.path) {
+                print("❌ Audio file does not exist at path: \(audioURL.path)")
+                errorMessage = "Audio file not found. Please re-import this song."
+                isPlaying = false
+                return
+            }
+            
+            // Check if file is readable
+            if !fileManager.isReadableFile(atPath: audioURL.path) {
+                print("❌ Audio file is not readable at path: \(audioURL.path)")
+                errorMessage = "Cannot access audio file. Please check permissions or re-import this song."
+                isPlaying = false
+                return
+            }
+            
             // Clean up existing observer first
             if let observer = timeObserver, let oldPlayer = audioPlayer {
                 oldPlayer.removeTimeObserver(observer)
@@ -93,6 +110,7 @@ public final class MusicPlayerViewModel {
         } else {
             isPlaying = true
             print("⚠️ No audio URL for: \(song.title) by \(song.artist)")
+            errorMessage = "This song has no audio file. Please import music to play."
         }
     }
     
@@ -154,9 +172,22 @@ public final class MusicPlayerViewModel {
                 print("❌ Player item failed to load: \(error)")
                 if let error = item.error {
                     print("❌ Error details: \(error)")
+                    
+                    // Check for common error codes
+                    let nsError = error as NSError
+                    if nsError.domain == "AVFoundationErrorDomain" {
+                        if nsError.code == -11800 {
+                            // General playback error - likely file access issue
+                            await MainActor.run {
+                                errorMessage = "Cannot play this audio file. It may have been moved or deleted. Try re-importing the song."
+                                isPlaying = false
+                            }
+                            return
+                        }
+                    }
                 }
                 await MainActor.run {
-                    errorMessage = "Failed to load audio: \(error)"
+                    errorMessage = "Failed to load audio. The file may be inaccessible or corrupted. Try re-importing the song."
                     isPlaying = false
                 }
                 return
@@ -224,22 +255,49 @@ public final class MusicPlayerViewModel {
             try databaseService.openDatabase()
             let tracks = try databaseService.getAllTracks()
             
-            // Convert LocalMusicTrack to SampleSong
-            songs = tracks.map { track in
-                SampleSong(
-                    title: track.title,
-                    artist: track.artist,
-                    genre: .all,
-                    duration: track.formattedDuration,
-                    colors: [.blue, .purple],
-                    audioURL: URL(fileURLWithPath: track.filePath)
-                )
+            // Convert LocalMusicTrack to SampleSong, filtering out inaccessible files
+            let fileManager = FileManager.default
+            var validSongs: [SampleSong] = []
+            var invalidCount = 0
+            
+            for track in tracks {
+                let fileURL = URL(fileURLWithPath: track.filePath)
+                
+                // Check if file exists and is readable
+                if fileManager.fileExists(atPath: track.filePath) && 
+                   fileManager.isReadableFile(atPath: track.filePath) {
+                    validSongs.append(SampleSong(
+                        title: track.title,
+                        artist: track.artist,
+                        genre: .all,
+                        duration: track.formattedDuration,
+                        colors: [.blue, .purple],
+                        audioURL: fileURL
+                    ))
+                } else {
+                    print("⚠️ Skipping inaccessible file: \(track.title) at \(track.filePath)")
+                    invalidCount += 1
+                }
             }
             
-            print("✅ Loaded \(songs.count) songs from database")
+            songs = validSongs
+            
+            if invalidCount > 0 {
+                print("⚠️ \(invalidCount) track(s) skipped due to inaccessible files")
+                print("✅ Loaded \(songs.count) valid songs from database")
+                
+                // Show a friendly message if we have some invalid files
+                if songs.isEmpty && tracks.count > 0 {
+                    errorMessage = "No accessible music files found. Please import music to get started."
+                } else if invalidCount > 0 {
+                    errorMessage = "\(invalidCount) song(s) could not be loaded. They may have been moved or deleted."
+                }
+            } else {
+                print("✅ Loaded \(songs.count) songs from database")
+            }
         } catch {
             print("❌ Failed to load songs from database: \(error)")
-            errorMessage = "Failed to load music library"
+            errorMessage = "Failed to load music library. Please import music to get started."
         }
     }
     
