@@ -18,19 +18,37 @@ public struct ContentView: View {
     @State var showingLibrary = false
     @State var showingProfile = false
     @State var showingSharePlaySession = false
+    @State var showingSignIn = false
+    
+    // Guest user for non-account-based access
+    private var guestUser: User {
+        User(username: "Guest", email: nil)
+    }
+    
+    // Current user (authenticated or guest)
+    private var currentUser: User {
+        authViewModel.currentUser ?? guestUser
+    }
+    
+    // Check if user is in guest mode
+    private var isGuestMode: Bool {
+        authViewModel.currentUser == nil
+    }
     
     public init() {}
     public var body: some View {
-        Group {
-            if authViewModel.isAuthenticated, let user = authViewModel.currentUser {
-                mainAppView(currentUser: user)
-            } else {
+        mainAppView(currentUser: currentUser)
+            .sheet(isPresented: $showingSignIn) {
                 PlatformSignInView(viewModel: authViewModel)
             }
-        }
-        .task {
-            await authViewModel.checkAuthenticationState()
-        }
+            .onChange(of: authViewModel.isAuthenticated) { _, isAuthenticated in
+                if isAuthenticated {
+                    showingSignIn = false
+                }
+            }
+            .task {
+                await authViewModel.checkAuthenticationState()
+            }
     }
 
     private func mainAppView(currentUser: User) -> some View {
@@ -114,6 +132,42 @@ public struct ContentView: View {
         }
         #else
         VStack(spacing: 40) {
+            // Guest mode banner
+            if isGuestMode {
+                HStack(spacing: 12) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(.blue)
+                    Text("Browsing as Guest · Sign in to access SharePlay and sync features")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Button {
+                        showingSignIn = true
+                    } label: {
+                        Text("Sign In")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 60)
+                .padding(.vertical, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.blue.opacity(0.2))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.blue.opacity(0.4), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 60)
+            }
+            
             Spacer()
             
             // App Title and Welcome
@@ -165,7 +219,11 @@ public struct ContentView: View {
             VStack(spacing: 24) {
                 // Connect to SharePlay Button with custom design
                 Button {
-                    showingSharePlaySession = true
+                    if isGuestMode {
+                        showingSignIn = true
+                    } else {
+                        showingSharePlaySession = true
+                    }
                 } label: {
                     HStack(spacing: 16) {
                         ZStack {
@@ -179,9 +237,15 @@ public struct ContentView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Join Live Session")
                                 .font(.system(size: 32, weight: .bold))
-                            Text("Real-time synchronized experience")
-                                .font(.system(size: 18))
-                                .opacity(0.9)
+                            if isGuestMode {
+                                Text("Sign in required")
+                                    .font(.system(size: 18))
+                                    .opacity(0.9)
+                            } else {
+                                Text("Real-time synchronized experience")
+                                    .font(.system(size: 18))
+                                    .opacity(0.9)
+                            }
                         }
                     }
                     .foregroundStyle(.white)
@@ -274,6 +338,31 @@ public struct ContentView: View {
     @ViewBuilder
     private func iOSHomeContent(currentUser: User) -> some View {
         VStack(spacing: 20) {
+            // Guest mode banner
+            if isGuestMode {
+                HStack(spacing: 8) {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(.blue)
+                    Text("Browsing as Guest")
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Button {
+                        showingSignIn = true
+                    } label: {
+                        Text("Sign In")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.blue)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal, 16)
+            }
+            
             // App Title and Welcome
             VStack(spacing: 12) {
                 Image(systemName: "airplane.departure")
@@ -325,7 +414,11 @@ public struct ContentView: View {
             VStack(spacing: 16) {
                 // Connect to SharePlay Button
                 Button {
-                    showingSharePlaySession = true
+                    if isGuestMode {
+                        showingSignIn = true
+                    } else {
+                        showingSharePlaySession = true
+                    }
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -339,9 +432,15 @@ public struct ContentView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Join Live Session")
                                 .font(.system(size: 18, weight: .bold))
-                            Text("Real-time synchronized experience")
-                                .font(.system(size: 12))
-                                .opacity(0.9)
+                            if isGuestMode {
+                                Text("Sign in required")
+                                    .font(.system(size: 12))
+                                    .opacity(0.9)
+                            } else {
+                                Text("Real-time synchronized experience")
+                                    .font(.system(size: 12))
+                                    .opacity(0.9)
+                            }
                         }
                         Spacer()
                     }
@@ -428,15 +527,19 @@ public struct ContentView: View {
     @ViewBuilder
     private func tvTopBar(currentUser: User) -> some View {
         HStack(spacing: 30) {
-            // Profile Button
+            // Profile or Sign In Button
             Button {
-                showingProfile = true
+                if isGuestMode {
+                    showingSignIn = true
+                } else {
+                    showingProfile = true
+                }
             } label: {
                 HStack(spacing: 12) {
-                    Image(systemName: "person.circle.fill")
+                    Image(systemName: isGuestMode ? "person.crop.circle.badge.plus" : "person.circle.fill")
                         .font(.system(size: 40))
                         .foregroundStyle(.white)
-                    Text(currentUser.username)
+                    Text(isGuestMode ? "Sign In" : currentUser.username)
                         .font(.system(size: 28, weight: .medium))
                         .foregroundStyle(.white)
                 }
@@ -476,15 +579,19 @@ public struct ContentView: View {
     @ViewBuilder
     private func macTopBar(currentUser: User) -> some View {
         HStack(spacing: 12) {
-            // Profile Button
+            // Profile or Sign In Button
             Button {
-                showingProfile = true
+                if isGuestMode {
+                    showingSignIn = true
+                } else {
+                    showingProfile = true
+                }
             } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "person.circle.fill")
+                    Image(systemName: isGuestMode ? "person.crop.circle.badge.plus" : "person.circle.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(.blue)
-                    Text(currentUser.username)
+                    Text(isGuestMode ? "Sign In" : currentUser.username)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.primary)
                 }
@@ -509,15 +616,19 @@ public struct ContentView: View {
     @ViewBuilder
     private func iOSTopBar(currentUser: User) -> some View {
         HStack(spacing: 12) {
-            // Profile Button
+            // Profile or Sign In Button
             Button {
-                showingProfile = true
+                if isGuestMode {
+                    showingSignIn = true
+                } else {
+                    showingProfile = true
+                }
             } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "person.circle.fill")
+                    Image(systemName: isGuestMode ? "person.crop.circle.badge.plus" : "person.circle.fill")
                         .font(.system(size: 24))
                         .foregroundStyle(.blue)
-                    Text(currentUser.username)
+                    Text(isGuestMode ? "Sign In" : currentUser.username)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.primary)
                 }
