@@ -145,6 +145,34 @@ public struct ChessPiece: Codable, Hashable, Sendable {
         case (.king, .black): return "♚"
         }
     }
+    
+    /// SF Symbol name for reliable cross-platform rendering
+    public var sfSymbolName: String {
+        let baseName: String
+        switch type {
+        case .pawn: baseName = "circle.fill"
+        case .knight: baseName = "chess.knight.fill" // Custom fallback below
+        case .bishop: baseName = "triangle.fill"
+        case .rook: baseName = "square.fill"
+        case .queen: baseName = "crown.fill"
+        case .king: baseName = "crown.fill"
+        }
+        return baseName
+    }
+    
+    /// Simple text representation for chess pieces
+    public var textSymbol: String {
+        let pieceInitial: String
+        switch type {
+        case .pawn: pieceInitial = ""
+        case .knight: pieceInitial = "N"
+        case .bishop: pieceInitial = "B"
+        case .rook: pieceInitial = "R"
+        case .queen: pieceInitial = "Q"
+        case .king: pieceInitial = "K"
+        }
+        return pieceInitial
+    }
 }
 
 /// Chess move record

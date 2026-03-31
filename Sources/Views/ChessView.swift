@@ -557,8 +557,22 @@ public struct ChessView: View {
                     
                     HStack(spacing: 4) {
                         ForEach(game.capturedPieces.indices, id: \.self) { index in
-                            Text(game.capturedPieces[index].symbol)
-                                .font(.system(size: 20))
+                            let piece = game.capturedPieces[index]
+                            VStack(spacing: 0) {
+                                if !piece.textSymbol.isEmpty {
+                                    Text(piece.textSymbol)
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(piece.color == .white ? .white : .black)
+                                }
+                                Text(getPieceEmoji(piece))
+                                    .font(.system(size: 12))
+                            }
+                            .padding(4)
+                            .background(
+                                Circle()
+                                    .fill(piece.color == .white ? Color.red.opacity(0.9) : Color.gray.opacity(0.85))
+                                    .frame(width: 24, height: 24)
+                            )
                         }
                     }
                     .padding(8)
@@ -694,23 +708,24 @@ public struct ChessView: View {
                     .fill(isSelected ? Color.yellow : (isLight ? Color.white : Color.gray.opacity(0.6)))
                 
                 if let piece = game.board[row][col] {
-                    if piece.color == .white {
-                        // White pieces with red background and white fill
-                        Text(piece.symbol)
-                            .font(.system(size: size * 0.6))
-                            .foregroundColor(.white)
-                            .padding(4)
-                            .background(
-                                Circle()
-                                    .fill(Color.red)
-                                    .frame(width: size * 0.7, height: size * 0.7)
-                            )
-                    } else {
-                        // Black pieces
-                        Text(piece.symbol)
-                            .font(.system(size: size * 0.6))
-                            .foregroundColor(.black)
+                    // Use a combination of color background and text label
+                    VStack(spacing: 2) {
+                        if !piece.textSymbol.isEmpty {
+                            Text(piece.textSymbol)
+                                .font(.system(size: size * 0.35, weight: .bold))
+                                .foregroundColor(piece.color == .white ? .white : .black)
+                        }
+                        
+                        // Piece type indicator
+                        Text(getPieceEmoji(piece))
+                            .font(.system(size: size * 0.4))
                     }
+                    .padding(3)
+                    .background(
+                        Circle()
+                            .fill(piece.color == .white ? Color.red : Color.gray.opacity(0.85))
+                            .frame(width: size * 0.75, height: size * 0.75)
+                    )
                 }
             }
             .frame(width: size, height: size)
@@ -731,6 +746,18 @@ public struct ChessView: View {
             return "Draw"
         case .resigned:
             return "Game Over - Player Resigned"
+        }
+    }
+    
+    /// Get a simple emoji representation for chess pieces
+    private func getPieceEmoji(_ piece: ChessPiece) -> String {
+        switch piece.type {
+        case .pawn: return "●"  // Circle for pawn
+        case .knight: return "★"  // Star for knight  
+        case .bishop: return "▲"  // Triangle for bishop
+        case .rook: return "■"  // Square for rook
+        case .queen: return "◆"  // Diamond for queen
+        case .king: return "♕"  // Crown for king
         }
     }
 }
