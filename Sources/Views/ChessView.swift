@@ -558,21 +558,16 @@ public struct ChessView: View {
                     HStack(spacing: 4) {
                         ForEach(game.capturedPieces.indices, id: \.self) { index in
                             let piece = game.capturedPieces[index]
-                            VStack(spacing: 0) {
-                                if !piece.textSymbol.isEmpty {
-                                    Text(piece.textSymbol)
-                                        .font(.system(size: 8, weight: .bold))
-                                        .foregroundColor(piece.color == .white ? .white : .black)
-                                }
-                                Text(getPieceEmoji(piece))
-                                    .font(.system(size: 12))
-                            }
-                            .padding(4)
-                            .background(
-                                Circle()
-                                    .fill(piece.color == .white ? Color.red.opacity(0.9) : Color.gray.opacity(0.85))
-                                    .frame(width: 24, height: 24)
-                            )
+                            Text(piece.symbol)
+                                .font(.system(size: 18, design: .default))
+                                .fontWeight(.regular)
+                                .foregroundColor(piece.color == .white ? .white : .black)
+                                .padding(4)
+                                .background(
+                                    Circle()
+                                        .fill(piece.color == .white ? Color.red.opacity(0.9) : Color.clear)
+                                        .frame(width: 26, height: 26)
+                                )
                         }
                     }
                     .padding(8)
@@ -708,24 +703,18 @@ public struct ChessView: View {
                     .fill(isSelected ? Color.yellow : (isLight ? Color.white : Color.gray.opacity(0.6)))
                 
                 if let piece = game.board[row][col] {
-                    // Use a combination of color background and text label
-                    VStack(spacing: 2) {
-                        if !piece.textSymbol.isEmpty {
-                            Text(piece.textSymbol)
-                                .font(.system(size: size * 0.35, weight: .bold))
-                                .foregroundColor(piece.color == .white ? .white : .black)
-                        }
-                        
-                        // Piece type indicator
-                        Text(getPieceEmoji(piece))
-                            .font(.system(size: size * 0.4))
-                    }
-                    .padding(3)
-                    .background(
-                        Circle()
-                            .fill(piece.color == .white ? Color.red : Color.gray.opacity(0.85))
-                            .frame(width: size * 0.75, height: size * 0.75)
-                    )
+                    // Use actual Unicode chess symbols with Apple's symbol-rendering font
+                    Text(piece.symbol)
+                        .font(.system(size: size * 0.7, design: .default))
+                        .fontWeight(.regular)
+                        .foregroundColor(piece.color == .white ? .white : .black)
+                        .padding(2)
+                        .background(
+                            Circle()
+                                .fill(piece.color == .white ? Color.red : Color.clear)
+                                .frame(width: size * 0.8, height: size * 0.8)
+                        )
+                        .minimumScaleFactor(0.5)
                 }
             }
             .frame(width: size, height: size)
@@ -746,18 +735,6 @@ public struct ChessView: View {
             return "Draw"
         case .resigned:
             return "Game Over - Player Resigned"
-        }
-    }
-    
-    /// Get a simple emoji representation for chess pieces
-    private func getPieceEmoji(_ piece: ChessPiece) -> String {
-        switch piece.type {
-        case .pawn: return "●"  // Circle for pawn
-        case .knight: return "★"  // Star for knight  
-        case .bishop: return "▲"  // Triangle for bishop
-        case .rook: return "■"  // Square for rook
-        case .queen: return "◆"  // Diamond for queen
-        case .king: return "♕"  // Crown for king
         }
     }
 }
