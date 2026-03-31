@@ -44,6 +44,24 @@ public struct ChessView: View {
         self._viewModel = State(initialValue: ChessViewModel(gameService: ChessService()))
     }
     
+    /// Get SF Symbol name for chess piece
+    func getPieceSFSymbol(_ piece: ChessPiece) -> String {
+        switch piece.type {
+        case .pawn:
+            return "circle.fill"
+        case .knight:
+            return "star.fill"
+        case .bishop:
+            return "triangle.fill"
+        case .rook:
+            return "square.fill"
+        case .queen:
+            return "diamond.fill"
+        case .king:
+            return "crown.fill"
+        }
+    }
+    
     public var body: some View {
         ZStack {
             // Dark gradient background
@@ -743,24 +761,6 @@ public struct ChessView: View {
         case .checkmate:
             return "Checkmate"
         case .stalemate:
-    
-    /// Get SF Symbol name for chess piece
-    func getPieceSFSymbol(_ piece: ChessPiece) -> String {
-        switch piece.type {
-        case .pawn:
-            return "circle.fill"
-        case .knight:
-            return "star.fill"
-        case .bishop:
-            return "triangle.fill"
-        case .rook:
-            return "square.fill"
-        case .queen:
-            return "diamond.fill"
-        case .king:
-            return "crown.fill"
-        }
-    }
             return "Stalemate"
         case .draw:
             return "Draw"
