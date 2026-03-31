@@ -745,7 +745,7 @@ public struct ChessView: View {
         case .stalemate:
     
     /// Get SF Symbol name for chess piece
-    private func getPieceSFSymbol(_ piece: ChessPiece) -> String {
+    func getPieceSFSymbol(_ piece: ChessPiece) -> String {
         switch piece.type {
         case .pawn:
             return "circle.fill"
