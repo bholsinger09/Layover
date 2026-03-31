@@ -559,7 +559,7 @@ public struct ChessView: View {
                         ForEach(game.capturedPieces.indices, id: \.self) { index in
                             let piece = game.capturedPieces[index]
                             Text(piece.symbol)
-                                .font(.system(size: 16))
+                                .font(.system(size: 16, design: .monospaced))
                                 .foregroundColor(piece.color == .white ? .white : .black)
                                 .padding(4)
                                 .background(
@@ -702,9 +702,9 @@ public struct ChessView: View {
                     .fill(isSelected ? Color.yellow : (isLight ? Color.white : Color.gray.opacity(0.6)))
                 
                 if let piece = game.board[row][col] {
-                    // Use Unicode chess symbols
+                    // Use Unicode chess symbols with monospaced design for better Unicode support
                     Text(piece.symbol)
-                        .font(.system(size: size * 0.6))
+                        .font(.system(size: size * 0.6, design: .monospaced))
                         .foregroundColor(piece.color == .white ? .white : .black)
                         .padding(4)
                         .background(
