@@ -621,28 +621,26 @@ public struct ContentView: View {
     @ViewBuilder
     private func macTopBar(currentUser: User) -> some View {
         HStack(spacing: 12) {
-            // Profile or Sign In Button
-            Button {
-                if isGuestMode {
-                    showingSignIn = true
-                } else {
+            // Profile Button (only shown when authenticated)
+            if !isGuestMode {
+                Button {
                     showingProfile = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.blue)
+                        Text(currentUser.username)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.blue.opacity(0.15))
+                    .cornerRadius(8)
                 }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: isGuestMode ? "person.crop.circle.badge.plus" : "person.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(.blue)
-                    Text(isGuestMode ? "Sign In" : currentUser.username)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.primary)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.blue.opacity(0.15))
-                .cornerRadius(8)
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
             
             Spacer()
         }
@@ -658,26 +656,24 @@ public struct ContentView: View {
     @ViewBuilder
     private func iOSTopBar(currentUser: User) -> some View {
         HStack(spacing: 12) {
-            // Profile or Sign In Button
-            Button {
-                if isGuestMode {
-                    showingSignIn = true
-                } else {
+            // Profile Button (only shown when authenticated)
+            if !isGuestMode {
+                Button {
                     showingProfile = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.blue)
+                        Text(currentUser.username)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.blue.opacity(0.15))
+                    .cornerRadius(10)
                 }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: isGuestMode ? "person.crop.circle.badge.plus" : "person.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(.blue)
-                    Text(isGuestMode ? "Sign In" : currentUser.username)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.primary)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.blue.opacity(0.15))
-                .cornerRadius(10)
             }
             
             Spacer()
