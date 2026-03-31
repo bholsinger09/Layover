@@ -131,47 +131,21 @@ public struct ChessPiece: Codable, Hashable, Sendable {
     
     public var symbol: String {
         switch (type, color) {
+        // White pieces (filled/outlined symbols)
         case (.pawn, .white): return "♙"
-        case (.pawn, .black): return "♟"
         case (.knight, .white): return "♘"
-        case (.knight, .black): return "♞"
         case (.bishop, .white): return "♗"
-        case (.bishop, .black): return "♝"
         case (.rook, .white): return "♖"
-        case (.rook, .black): return "♜"
         case (.queen, .white): return "♕"
-        case (.queen, .black): return "♛"
         case (.king, .white): return "♔"
+        // Black pieces (filled/solid symbols)
+        case (.pawn, .black): return "♟"
+        case (.knight, .black): return "♞"
+        case (.bishop, .black): return "♝"
+        case (.rook, .black): return "♜"
+        case (.queen, .black): return "♛"
         case (.king, .black): return "♚"
         }
-    }
-    
-    /// SF Symbol name for reliable cross-platform rendering
-    public var sfSymbolName: String {
-        let baseName: String
-        switch type {
-        case .pawn: baseName = "circle.fill"
-        case .knight: baseName = "chess.knight.fill" // Custom fallback below
-        case .bishop: baseName = "triangle.fill"
-        case .rook: baseName = "square.fill"
-        case .queen: baseName = "crown.fill"
-        case .king: baseName = "crown.fill"
-        }
-        return baseName
-    }
-    
-    /// Simple text representation for chess pieces
-    public var textSymbol: String {
-        let pieceInitial: String
-        switch type {
-        case .pawn: pieceInitial = ""
-        case .knight: pieceInitial = "N"
-        case .bishop: pieceInitial = "B"
-        case .rook: pieceInitial = "R"
-        case .queen: pieceInitial = "Q"
-        case .king: pieceInitial = "K"
-        }
-        return pieceInitial
     }
 }
 

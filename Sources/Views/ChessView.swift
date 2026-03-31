@@ -44,24 +44,6 @@ public struct ChessView: View {
         self._viewModel = State(initialValue: ChessViewModel(gameService: ChessService()))
     }
     
-    /// Get SF Symbol name for chess piece
-    func getPieceSFSymbol(_ piece: ChessPiece) -> String {
-        switch piece.type {
-        case .pawn:
-            return "circle.fill"
-        case .knight:
-            return "star.fill"
-        case .bishop:
-            return "triangle.fill"
-        case .rook:
-            return "square.fill"
-        case .queen:
-            return "diamond.fill"
-        case .king:
-            return "crown.fill"
-        }
-    }
-    
     public var body: some View {
         ZStack {
             // Dark gradient background
@@ -576,23 +558,15 @@ public struct ChessView: View {
                     HStack(spacing: 4) {
                         ForEach(game.capturedPieces.indices, id: \.self) { index in
                             let piece = game.capturedPieces[index]
-                            ZStack {
-                                Circle()
-                                    .fill(piece.color == .white ? Color.red.opacity(0.9) : Color.gray.opacity(0.7))
-                                    .frame(width: 24, height: 24)
-                                
-                                VStack(spacing: 0) {
-                                    Image(systemName: getPieceSFSymbol(piece))
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(piece.color == .white ? .white : .black)
-                                    
-                                    if piece.type != .pawn {
-                                        Text(piece.textSymbol)
-                                            .font(.system(size: 6, weight: .bold))
-                                            .foregroundColor(piece.color == .white ? .white : .black)
-                                    }
-                                }
-                            }
+                            Text(piece.symbol)
+                                .font(.system(size: 16))
+                                .foregroundColor(piece.color == .white ? .white : .black)
+                                .padding(4)
+                                .background(
+                                    Circle()
+                                        .fill(piece.color == .white ? Color.red.opacity(0.9) : Color.clear)
+                                        .frame(width: 24, height: 24)
+                                )
                         }
                     }
                     .padding(8)
@@ -728,24 +702,16 @@ public struct ChessView: View {
                     .fill(isSelected ? Color.yellow : (isLight ? Color.white : Color.gray.opacity(0.6)))
                 
                 if let piece = game.board[row][col] {
-                    // Use SF Symbols for reliable rendering
-                    ZStack {
-                        Circle()
-                            .fill(piece.color == .white ? Color.red : Color.gray.opacity(0.7))
-                            .frame(width: size * 0.75, height: size * 0.75)
-                        
-                        VStack(spacing: 1) {
-                            Image(systemName: getPieceSFSymbol(piece))
-                                .font(.system(size: size * 0.4, weight: .bold))
-                                .foregroundColor(piece.color == .white ? .white : .black)
-                            
-                            if piece.type != .pawn {
-                                Text(piece.textSymbol)
-                                    .font(.system(size: size * 0.18, weight: .bold))
-                                    .foregroundColor(piece.color == .white ? .white : .black)
-                            }
-                        }
-                    }
+                    // Use Unicode chess symbols
+                    Text(piece.symbol)
+                        .font(.system(size: size * 0.6))
+                        .foregroundColor(piece.color == .white ? .white : .black)
+                        .padding(4)
+                        .background(
+                            Circle()
+                                .fill(piece.color == .white ? Color.red : Color.clear)
+                                .frame(width: size * 0.75, height: size * 0.75)
+                        )
                 }
             }
             .frame(width: size, height: size)
