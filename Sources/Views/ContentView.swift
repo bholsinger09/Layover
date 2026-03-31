@@ -138,7 +138,7 @@ public struct ContentView: View {
                     Image(systemName: "info.circle.fill")
                         .font(.system(size: 24))
                         .foregroundStyle(.blue)
-                    Text("Browsing as Guest · Sign in to access SharePlay and sync features")
+                    Text("Guest Mode · Sign in to access SharePlay and sync features")
                         .font(.system(size: 20))
                         .foregroundStyle(.white)
                     Spacer()
@@ -219,34 +219,27 @@ public struct ContentView: View {
             VStack(spacing: 24) {
                 // Connect to SharePlay Button with custom design
                 Button {
-                    if isGuestMode {
-                        showingSignIn = true
-                    } else {
-                        showingSharePlaySession = true
-                    }
+                    // Allow all users (including guests) to access ChessView
+                    // Sign-in will be prompted only if they select SharePlay mode
+                    showingSharePlaySession = true
                 } label: {
                     HStack(spacing: 16) {
                         ZStack {
                             Circle()
                                 .fill(Color.white.opacity(0.2))
                                 .frame(width: 60, height: 60)
-                            Image(systemName: "shareplay")
+                            Image(systemName: "chess.board.fill")
                                 .font(.system(size: 32))
                                 .foregroundStyle(.white)
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Join Live Session")
+                            Text("Play Chess")
                                 .font(.system(size: 32, weight: .bold))
-                            if isGuestMode {
-                                Text("Sign in required")
-                                    .font(.system(size: 18))
-                                    .opacity(0.9)
-                            } else {
-                                Text("Real-time synchronized experience")
-                                    .font(.system(size: 18))
-                                    .opacity(0.9)
-                            }
+                            Text("Single player or multiplayer with SharePlay")
+                                .font(.system(size: 18))
+                                .opacity(0.9)
                         }
+                        Spacer()
                     }
                     .foregroundStyle(.white)
                     .frame(maxWidth: 700)
@@ -343,7 +336,7 @@ public struct ContentView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(.blue)
-                    Text("Browsing as Guest")
+                    Text("Guest Mode")
                         .font(.subheadline)
                         .foregroundStyle(.primary)
                     Spacer()
@@ -414,6 +407,8 @@ public struct ContentView: View {
             VStack(spacing: 16) {
                 // Connect to SharePlay Button
                 Button {
+                    // For guests, prompt sign-in for SharePlay-specific features
+                    // Single-player features are available via the "Play Chess" button below
                     if isGuestMode {
                         showingSignIn = true
                     } else {
@@ -430,10 +425,10 @@ public struct ContentView: View {
                                 .foregroundStyle(.white)
                         }
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Join Live Session")
+                            Text("SharePlay Session")
                                 .font(.system(size: 18, weight: .bold))
                             if isGuestMode {
-                                Text("Sign in required")
+                                Text("Account required")
                                     .font(.system(size: 12))
                                     .opacity(0.9)
                             } else {
@@ -512,6 +507,53 @@ public struct ContentView: View {
                                 .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
                         }
                         .shadow(color: .purple.opacity(0.6), radius: 15, x: 0, y: 8)
+                    )
+                }
+                .buttonStyle(.plain)
+                
+                // Play Chess Button (Single Player - No Sign In Required)
+                Button {
+                    showingSharePlaySession = true
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "chess.board.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Play Chess")
+                                .font(.system(size: 18, weight: .bold))
+                            Text("Single player or SharePlay modes")
+                                .font(.system(size: 12))
+                                .opacity(0.9)
+                        }
+                        Spacer()
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(red: 0.8, green: 0.3, blue: 0.3),
+                                            Color(red: 0.9, green: 0.5, blue: 0.2)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
+                        }
+                        .shadow(color: .orange.opacity(0.6), radius: 15, x: 0, y: 8)
                     )
                 }
                 .buttonStyle(.plain)
@@ -798,6 +840,7 @@ public struct TVProfileView: View {
 public struct PlatformSignInView: View {
     @ObservedObject var viewModel: AuthenticationViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
     @State private var showManualSignIn = false
     @State private var showRegistration = false
     
@@ -940,6 +983,23 @@ public struct PlatformSignInView: View {
                 }
                 .buttonStyle(.plain)
                 
+                // Continue as Guest Button
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Continue as Guest")
+                        .font(.system(size: buttonFontSize, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                        .frame(maxWidth: buttonMaxWidth)
+                        .frame(height: buttonHeight)
+                        .background(Color.clear)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: buttonCornerRadius)
+                                .stroke(Color.white.opacity(0.4), lineWidth: guestButtonBorderWidth)
+                        )
+                }
+                .buttonStyle(.plain)
+                
                 if viewModel.isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle())
@@ -982,6 +1042,7 @@ public struct PlatformSignInView: View {
     private var buttonFontSize: CGFloat { 36 }
     private var buttonSpacing: CGFloat { 40 }
     private var buttonBorderWidth: CGFloat { 4 }
+    private var guestButtonBorderWidth: CGFloat { 3 }
     private var progressScale: CGFloat { 2 }
     private var errorFontSize: CGFloat { 28 }
     private var finalBottomPadding: CGFloat { 120 }
@@ -999,6 +1060,7 @@ public struct PlatformSignInView: View {
     private var buttonFontSize: CGFloat { 16 }
     private var buttonSpacing: CGFloat { 16 }
     private var buttonBorderWidth: CGFloat { 2 }
+    private var guestButtonBorderWidth: CGFloat { 2 }
     private var progressScale: CGFloat { 1 }
     private var errorFontSize: CGFloat { 14 }
     private var finalBottomPadding: CGFloat { 40 }
@@ -1016,6 +1078,7 @@ public struct PlatformSignInView: View {
     private var buttonFontSize: CGFloat { 18 }
     private var buttonSpacing: CGFloat { 20 }
     private var buttonBorderWidth: CGFloat { 2 }
+    private var guestButtonBorderWidth: CGFloat { 1.5 }
     private var progressScale: CGFloat { 1 }
     private var errorFontSize: CGFloat { 14 }
     private var finalBottomPadding: CGFloat { 60 }

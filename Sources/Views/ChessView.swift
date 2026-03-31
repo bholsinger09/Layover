@@ -9,7 +9,13 @@ public struct ChessView: View {
     @State private var selectedColor: ChessGame.PieceColor = .white
     @State private var gameMode: GameMode = .sharePlay
     @State private var selectedDifficulty: AIDifficulty = .medium
+    @State private var showSignInAlert = false
     @Environment(\.dismiss) private var dismiss
+    
+    // Check if user is in guest mode
+    private var isGuestMode: Bool {
+        currentUser.email == nil && currentUser.username == "Guest"
+    }
     
     enum GameMode {
         case sharePlay
@@ -74,8 +80,19 @@ public struct ChessView: View {
                 Text(error)
             }
         }
+        .alert("Account Required", isPresented: $showSignInAlert) {
+            Button("OK") {
+                showSignInAlert = false
+            }
+        } message: {
+            Text("SharePlay features require an account. Please sign in to play with friends in real-time. Single player mode is available without an account.")
+        }
         .onAppear {
             viewModel.setupSharePlayCallbacks()
+            // Default to single-player mode for guest users
+            if isGuestMode {
+                gameMode = .vsComputer
+            }
         }
     }
     
@@ -239,7 +256,11 @@ public struct ChessView: View {
                 VStack(spacing: 16) {
                     // SharePlay Mode
                     Button {
-                        gameMode = .sharePlay
+                        if isGuestMode {
+                            showSignInAlert = true
+                        } else {
+                            gameMode = .sharePlay
+                        }
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: "shareplay")
@@ -247,25 +268,35 @@ public struct ChessView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Play with SharePlay")
                                     .font(.headline)
-                                Text("Multiplayer with friends")
-                                    .font(.caption)
-                                    .opacity(0.8)
+                                if isGuestMode {
+                                    Text("Account required")
+                                        .font(.caption)
+                                        .foregroundStyle(.orange)
+                                } else {
+                                    Text("Multiplayer with friends")
+                                        .font(.caption)
+                                        .opacity(0.8)
+                                }
                             }
                             Spacer()
-                            if gameMode == .sharePlay {
+                            if gameMode == .sharePlay && !isGuestMode {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.title2)
                                     .foregroundStyle(.green)
+                            } else if isGuestMode {
+                                Image(systemName: "lock.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.orange.opacity(0.8))
                             }
                         }
                         .foregroundStyle(.white)
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(gameMode == .sharePlay ? Color.blue.opacity(0.3) : Color.white.opacity(0.1))
+                                .fill(gameMode == .sharePlay && !isGuestMode ? Color.blue.opacity(0.3) : Color.white.opacity(0.1))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .stroke(gameMode == .sharePlay ? Color.blue : Color.white.opacity(0.3), lineWidth: 2)
+                                        .stroke(gameMode == .sharePlay && !isGuestMode ? Color.blue : Color.white.opacity(0.3), lineWidth: 2)
                                 )
                         )
                     }
