@@ -1,16 +1,5 @@
 import Foundation
 
-/// Board position struct
-public struct BoardPosition: Codable, Hashable, Sendable {
-    public let row: Int
-    public let col: Int
-    
-    public init(row: Int, col: Int) {
-        self.row = row
-        self.col = col
-    }
-}
-
 /// Connect Four game state
 public struct ConnectFourGame: LayoverModel {
     public let id: UUID
