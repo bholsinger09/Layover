@@ -18,6 +18,7 @@ public struct ContentView: View {
     @State var showingLibrary = false
     @State var showingProfile = false
     @State var showingSharePlaySession = false
+    @State var showingGamesLauncher = false
     @State var showingSignIn = false
     
     // Guest user for non-account-based access
@@ -106,6 +107,9 @@ public struct ContentView: View {
                     currentUser: currentUser
                 )
             }
+            .fullScreenCover(isPresented: $showingGamesLauncher) {
+                GamesLauncherView(currentUser: currentUser)
+            }
             #else
             .sheet(isPresented: $showingSharePlaySession) {
                 ChessView(
@@ -119,6 +123,9 @@ public struct ContentView: View {
                     ),
                     currentUser: currentUser
                 )
+            }
+            .sheet(isPresented: $showingGamesLauncher) {
+                GamesLauncherView(currentUser: currentUser)
             }
             #endif
         }
@@ -219,23 +226,23 @@ public struct ContentView: View {
             VStack(spacing: 24) {
                 // Connect to SharePlay Button with custom design
                 Button {
-                    // Allow all users (including guests) to access ChessView
+                    // Allow all users (including guests) to access games
                     // Sign-in will be prompted only if they select SharePlay mode
-                    showingSharePlaySession = true
+                    showingGamesLauncher = true
                 } label: {
                     HStack(spacing: 16) {
                         ZStack {
                             Circle()
                                 .fill(Color.white.opacity(0.2))
                                 .frame(width: 60, height: 60)
-                            Image(systemName: "chess.board.fill")
+                            Image(systemName: "gamecontroller.fill")
                                 .font(.system(size: 32))
                                 .foregroundStyle(.white)
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Play Chess")
+                            Text("Play Games")
                                 .font(.system(size: 32, weight: .bold))
-                            Text("Single player or multiplayer with SharePlay")
+                            Text("Chess, Checkers & Connect Four")
                                 .font(.system(size: 18))
                                 .opacity(0.9)
                         }
@@ -511,23 +518,23 @@ public struct ContentView: View {
                 }
                 .buttonStyle(.plain)
                 
-                // Play Chess Button (Single Player - No Sign In Required)
+                // Play Games Button (Single Player - No Sign In Required)
                 Button {
-                    showingSharePlaySession = true
+                    showingGamesLauncher = true
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
                             Circle()
                                 .fill(Color.white.opacity(0.2))
                                 .frame(width: 44, height: 44)
-                            Image(systemName: "chess.board.fill")
+                            Image(systemName: "gamecontroller.fill")
                                 .font(.system(size: 22))
                                 .foregroundStyle(.white)
                         }
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Play Chess")
+                            Text("Play Games")
                                 .font(.system(size: 18, weight: .bold))
-                            Text("Single player or SharePlay modes")
+                            Text("Chess, Checkers & Connect Four")
                                 .font(.system(size: 12))
                                 .opacity(0.9)
                         }
