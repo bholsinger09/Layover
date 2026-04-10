@@ -93,7 +93,7 @@ public final class CheckersAIService {
         }
         
         // Prefer center positions
-        let centerDistance = abs(toRow - 3.5) + abs(toCol - 3.5)
+        let centerDistance = abs(Double(toRow) - 3.5) + abs(Double(toCol) - 3.5)
         score += (7.0 - centerDistance) * 0.5
         
         // Kings are more valuable

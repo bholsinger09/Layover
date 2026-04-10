@@ -218,7 +218,7 @@ public struct CheckersView: View {
                     .font(.title2.bold())
                     .foregroundStyle(game.currentTurn == .red ? .red : .white)
                 
-                if let mustCapture = game.mustContinueCapture {
+                if game.mustContinueCapture != nil {
                     Text("Continue capturing!")
                         .font(.subheadline)
                         .foregroundStyle(.yellow)
