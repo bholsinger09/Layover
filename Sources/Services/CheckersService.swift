@@ -3,7 +3,7 @@ import Foundation
 public protocol CheckersServiceProtocol: LayoverService {
     func createGame(roomID: UUID, players: [CheckersPlayer]) async throws -> CheckersGame
     func makeMove(game: CheckersGame, fromRow: Int, fromCol: Int, toRow: Int, toCol: Int) async throws -> CheckersGame
-    func getValidMoves(game: CheckersGame, row: Int, col: Int) -> [(row: Int, col: Int)]
+    func getValidMoves(game: CheckersGame, row: Int, col: Int) -> [BoardPosition]
     func checkGameOver(game: CheckersGame) -> (isOver: Bool, winner: CheckersGame.PieceColor?)
 }
 
@@ -101,7 +101,7 @@ public final class CheckersService: CheckersServiceProtocol {
         return updatedGame
     }
     
-    public func getValidMoves(game: CheckersGame, row: Int, col: Int) -> [(row: Int, col: Int)] {
+    public func getValidMoves(game: CheckersGame, row: Int, col: Int) -> [BoardPosition] {
         guard let piece = game.board[row][col] else { return [] }
         
         // If there's a forced capture in progress, only that piece can move
@@ -123,9 +123,9 @@ public final class CheckersService: CheckersServiceProtocol {
         return getRegularMoves(game: game, row: row, col: col)
     }
     
-    private func getRegularMoves(game: CheckersGame, row: Int, col: Int) -> [(row: Int, col: Int)] {
+    private func getRegularMoves(game: CheckersGame, row: Int, col: Int) -> [BoardPosition] {
         guard let piece = game.board[row][col] else { return [] }
-        var moves: [(row: Int, col: Int)] = []
+        var moves: [BoardPosition] = []
         
         let directions: [(Int, Int)] = piece.isKing ?
             [(-1, -1), (-1, 1), (1, -1), (1, 1)] :  // Kings move all directions
@@ -138,16 +138,16 @@ public final class CheckersService: CheckersServiceProtocol {
             let newCol = col + dCol
             
             if isValidPosition(row: newRow, col: newCol) && game.board[newRow][newCol] == nil {
-                moves.append((newRow, newCol))
+                moves.append(BoardPosition(row: newRow, col: newCol))
             }
         }
         
         return moves
     }
     
-    private func getCaptureMoves(game: CheckersGame, row: Int, col: Int) -> [(row: Int, col: Int)] {
+    private func getCaptureMoves(game: CheckersGame, row: Int, col: Int) -> [BoardPosition] {
         guard let piece = game.board[row][col] else { return [] }
-        var captures: [(row: Int, col: Int)] = []
+        var captures: [BoardPosition] = []
         
         let directions: [(Int, Int)] = piece.isKing ?
             [(-1, -1), (-1, 1), (1, -1), (1, 1)] :
@@ -166,15 +166,15 @@ public final class CheckersService: CheckersServiceProtocol {
                let jumpedPiece = game.board[jumpRow][jumpCol],
                jumpedPiece.color != piece.color,
                game.board[landRow][landCol] == nil {
-                captures.append((landRow, landCol))
+                captures.append(BoardPosition(row: landRow, col: landCol))
             }
         }
         
         return captures
     }
     
-    private func getAllCaptureMoves(game: CheckersGame, color: CheckersGame.PieceColor) -> [(row: Int, col: Int)] {
-        var allCaptures: [(row: Int, col: Int)] = []
+    private func getAllCaptureMoves(game: CheckersGame, color: CheckersGame.PieceColor) -> [BoardPosition] {
+        var allCaptures: [BoardPosition] = []
         
         for row in 0..<8 {
             for col in 0..<8 {

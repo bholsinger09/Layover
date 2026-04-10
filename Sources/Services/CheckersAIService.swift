@@ -28,7 +28,7 @@ public final class CheckersAIService {
         try? await Task.sleep(nanoseconds: UInt64(Double.random(in: 0.3...0.8) * 1_000_000_000))
         
         // Find all possible moves for AI's color
-        var allMoves: [(from: (row: Int, col: Int), to: (row: Int, col: Int), score: Double)] = []
+        var allMoves: [(from: BoardPosition, to: BoardPosition, score: Double)] = []
         let service = CheckersService()
         
         for row in 0..<8 {
@@ -37,7 +37,7 @@ public final class CheckersAIService {
                     let validMoves = service.getValidMoves(game: game, row: row, col: col)
                     for move in validMoves {
                         let score = evaluateMove(game: game, fromRow: row, fromCol: col, toRow: move.row, toCol: move.col)
-                        allMoves.append((from: (row, col), to: move, score: score))
+                        allMoves.append((from: BoardPosition(row: row, col: col), to: move, score: score))
                     }
                 }
             }
