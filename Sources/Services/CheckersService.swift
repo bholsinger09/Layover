@@ -37,14 +37,14 @@ public final class CheckersService: CheckersServiceProtocol {
         // Check if this is a capture move
         let rowDiff = abs(toRow - fromRow)
         var capturedPiece: CheckersPiece?
-        var capturedPosition: (row: Int, col: Int)?
+        var capturedPosition: BoardPosition?
         
         if rowDiff == 2 {
             // Capture move
             let capturedRow = (fromRow + toRow) / 2
             let capturedCol = (fromCol + toCol) / 2
             capturedPiece = updatedGame.board[capturedRow][capturedCol]
-            capturedPosition = (capturedRow, capturedCol)
+            capturedPosition = BoardPosition(row: capturedRow, col: capturedCol)
             updatedGame.board[capturedRow][capturedCol] = nil
         }
         
@@ -77,7 +77,7 @@ public final class CheckersService: CheckersServiceProtocol {
         if capturedPiece != nil && !becameKing {
             let additionalCaptures = getCaptureMoves(game: updatedGame, row: toRow, col: toCol)
             if !additionalCaptures.isEmpty {
-                updatedGame.mustContinueCapture = (toRow, toCol)
+                updatedGame.mustContinueCapture = BoardPosition(row: toRow, col: toCol)
                 return updatedGame  // Don't switch turns yet
             }
         }

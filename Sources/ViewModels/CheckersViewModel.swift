@@ -20,8 +20,8 @@ public final class CheckersViewModel: LayoverViewModel {
     public var localPlayerColor: CheckersGame.PieceColor?
     
     // Selected square for moves
-    public private(set) var selectedSquare: (row: Int, col: Int)?
-    public private(set) var validMoves: [(row: Int, col: Int)] = []
+    public private(set) var selectedSquare: BoardPosition?
+    public private(set) var validMoves: [BoardPosition] = []
     
     public var board: [[CheckersPiece?]] {
         currentGame?.board ?? CheckersGame.createInitialBoard()
@@ -79,7 +79,7 @@ public final class CheckersViewModel: LayoverViewModel {
         // If there's a forced capture, only allow selecting that piece
         if let mustCapture = game.mustContinueCapture {
             if mustCapture.row == row && mustCapture.col == col {
-                selectedSquare = (row, col)
+                selectedSquare = BoardPosition(row: row, col: col)
                 validMoves = gameService.getValidMoves(game: game, row: row, col: col)
                 return
             } else {
@@ -90,7 +90,7 @@ public final class CheckersViewModel: LayoverViewModel {
         
         // Check if clicking on a piece of current player's color
         if let piece = game.board[row][col], piece.color == game.currentTurn {
-            selectedSquare = (row, col)
+            selectedSquare = BoardPosition(row: row, col: col)
             validMoves = gameService.getValidMoves(game: game, row: row, col: col)
         }
         // Check if clicking on a valid move destination

@@ -1,5 +1,16 @@
 import Foundation
 
+/// Board position struct
+public struct BoardPosition: Codable, Hashable, Sendable {
+    public let row: Int
+    public let col: Int
+    
+    public init(row: Int, col: Int) {
+        self.row = row
+        self.col = col
+    }
+}
+
 /// Connect Four game state
 public struct ConnectFourGame: LayoverModel {
     public let id: UUID
@@ -10,7 +21,7 @@ public struct ConnectFourGame: LayoverModel {
     public var moveHistory: [ConnectFourMove]
     public var gameState: GameState
     public var winnerID: UUID?
-    public var winningLine: [(row: Int, col: Int)]?  // Highlight winning connection
+    public var winningLine: [BoardPosition]?  // Highlight winning connection
     
     public enum GameState: String, Codable, Sendable {
         case active
@@ -33,7 +44,7 @@ public struct ConnectFourGame: LayoverModel {
         moveHistory: [ConnectFourMove] = [],
         gameState: GameState = .active,
         winnerID: UUID? = nil,
-        winningLine: [(row: Int, col: Int)]? = nil
+        winningLine: [BoardPosition]? = nil
     ) {
         self.id = id
         self.roomID = roomID

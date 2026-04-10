@@ -1,5 +1,16 @@
 import Foundation
 
+/// Board position struct
+public struct BoardPosition: Codable, Hashable, Sendable {
+    public let row: Int
+    public let col: Int
+    
+    public init(row: Int, col: Int) {
+        self.row = row
+        self.col = col
+    }
+}
+
 /// Checkers game state
 public struct CheckersGame: LayoverModel {
     public let id: UUID
@@ -10,7 +21,7 @@ public struct CheckersGame: LayoverModel {
     public var moveHistory: [CheckersMove]
     public var gameState: GameState
     public var winnerID: UUID?
-    public var mustContinueCapture: (row: Int, col: Int)?  // For forced multi-jumps
+    public var mustContinueCapture: BoardPosition?  // For forced multi-jumps
     
     public enum GameState: String, Codable, Sendable {
         case active
@@ -33,7 +44,7 @@ public struct CheckersGame: LayoverModel {
         moveHistory: [CheckersMove] = [],
         gameState: GameState = .active,
         winnerID: UUID? = nil,
-        mustContinueCapture: (row: Int, col: Int)? = nil
+        mustContinueCapture: BoardPosition? = nil
     ) {
         self.id = id
         self.roomID = roomID
@@ -125,7 +136,7 @@ public struct CheckersMove: Codable, Hashable, Sendable {
     public let toRow: Int
     public let toCol: Int
     public let capturedPiece: CheckersPiece?
-    public let capturedPosition: (row: Int, col: Int)?
+    public let capturedPosition: BoardPosition?
     public let becameKing: Bool
     public let timestamp: Date
     
@@ -136,7 +147,7 @@ public struct CheckersMove: Codable, Hashable, Sendable {
         toRow: Int,
         toCol: Int,
         capturedPiece: CheckersPiece? = nil,
-        capturedPosition: (row: Int, col: Int)? = nil,
+        capturedPosition: BoardPosition? = nil,
         becameKing: Bool = false,
         timestamp: Date = Date()
     ) {

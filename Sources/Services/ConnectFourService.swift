@@ -88,7 +88,7 @@ public final class ConnectFourService: ConnectFourServiceProtocol {
     }
     
     /// Check if there are 4 in a row from the last placed piece
-    private func checkForWin(board: [[ConnectFourPiece?]], lastRow: Int, lastCol: Int, color: ConnectFourGame.PieceColor) -> [(row: Int, col: Int)]? {
+    private func checkForWin(board: [[ConnectFourPiece?]], lastRow: Int, lastCol: Int, color: ConnectFourGame.PieceColor) -> [BoardPosition]? {
         // Check horizontal
         if let line = checkDirection(board: board, row: lastRow, col: lastCol, color: color, dRow: 0, dCol: 1) {
             return line
@@ -112,8 +112,8 @@ public final class ConnectFourService: ConnectFourServiceProtocol {
         return nil
     }
     
-    private func checkDirection(board: [[ConnectFourPiece?]], row: Int, col: Int, color: ConnectFourGame.PieceColor, dRow: Int, dCol: Int) -> [(row: Int, col: Int)]? {
-        var positions: [(row: Int, col: Int)] = [(row, col)]
+    private func checkDirection(board: [[ConnectFourPiece?]], row: Int, col: Int, color: ConnectFourGame.PieceColor, dRow: Int, dCol: Int) -> [BoardPosition]? {
+        var positions: [BoardPosition] = [BoardPosition(row: row, col: col)]
         
         // Check in positive direction
         var r = row + dRow
@@ -121,7 +121,7 @@ public final class ConnectFourService: ConnectFourServiceProtocol {
         while r >= 0 && r < 6 && c >= 0 && c < 7,
               let piece = board[r][c],
               piece.color == color {
-            positions.append((r, c))
+            positions.append(BoardPosition(row: r, col: c))
             r += dRow
             c += dCol
         }
@@ -132,7 +132,7 @@ public final class ConnectFourService: ConnectFourServiceProtocol {
         while r >= 0 && r < 6 && c >= 0 && c < 7,
               let piece = board[r][c],
               piece.color == color {
-            positions.insert((r, c), at: 0)
+            positions.insert(BoardPosition(row: r, col: c), at: 0)
             r -= dRow
             c -= dCol
         }
