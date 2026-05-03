@@ -98,12 +98,47 @@ struct RoomTests {
         var room = Room(
             name: "Test Room",
             hostID: hostID,
-            activityType: .chess
+            activityType: .appleMusic
         )
         
         room.promoteToSubHost(userID)
         
         #expect(!room.isSubHost(userID: userID))
+    }
+    
+    @Test("Room with global directory properties")
+    func testRoomWithGlobalDirectoryProperties() {
+        let room = Room(
+            name: "Global Room",
+            hostID: UUID(),
+            activityType: .chess,
+            primaryLanguage: "en",
+            supportedLanguages: ["es", "fr"],
+            region: "US",
+            timezone: "America/New_York",
+            tags: ["chess", "beginners"],
+            isGloballyVisible: true
+        )
+        
+        #expect(room.primaryLanguage == "en")
+        #expect(room.supportedLanguages.count == 2)
+        #expect(room.region == "US")
+        #expect(room.timezone == "America/New_York")
+        #expect(room.tags.count == 2)
+        #expect(room.isGloballyVisible == true)
+    }
+    
+    @Test("Room cultural event linking")
+    func testRoomCulturalEventLinking() {
+        let eventId = UUID()
+        let room = Room(
+            name: "Event Room",
+            hostID: UUID(),
+            activityType: .appleTVPlus,
+            culturalEventId: eventId
+        )
+        
+        #expect(room.culturalEventId == eventId)
     }
     
     @Test("Room conforms to Codable")

@@ -164,6 +164,9 @@ struct AppleTVViewModelSharePlayTests {
             tvService: tvService,
             sharePlayService: sharePlayService
         )
+        
+        // Setup callbacks (simulates view lifecycle)
+        viewModel.setupSharePlayCallbacks()
 
         let content = MediaContent(
             title: "Shared Movie",
@@ -174,12 +177,15 @@ struct AppleTVViewModelSharePlayTests {
 
         // Simulate content received from another participant
         await sharePlayService.simulateContentReceived(content)
+        
+        // Give the async callback task time to complete
+        try await Task.sleep(for: .milliseconds(100))
 
-        // The view should set up the callback, so we need to simulate it
-        await sharePlayService.onContentReceived?(content)
-
-        // Verify callback was set (in real app, view sets this in onAppear)
+        // Verify callback was set
         #expect(sharePlayService.onContentReceived != nil)
+        
+        // Verify content was loaded
+        #expect(viewModel.currentContent?.contentID == content.contentID)
     }
 
     // MARK: - Playback Control Tests

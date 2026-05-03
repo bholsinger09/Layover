@@ -28,6 +28,15 @@ public struct Room: LayoverModel {
     public var createdAt: Date
     public var metadata: [String: String]
     public var activeGameID: UUID? // Track active game
+    
+    // Global directory features
+    public var primaryLanguage: String? // ISO 639-1 language code
+    public var supportedLanguages: [String] // Additional languages
+    public var region: String? // ISO 3166-1 alpha-2 region code
+    public var timezone: String? // IANA timezone identifier
+    public var culturalEventId: UUID? // Link to cultural event
+    public var tags: [String] // Searchable tags
+    public var isGloballyVisible: Bool // Show in global directory
 
     public init(
         id: UUID = UUID(),
@@ -41,7 +50,14 @@ public struct Room: LayoverModel {
         isPrivate: Bool = false,
         createdAt: Date = Date(),
         metadata: [String: String] = [:],
-        activeGameID: UUID? = nil
+        activeGameID: UUID? = nil,
+        primaryLanguage: String? = nil,
+        supportedLanguages: [String] = [],
+        region: String? = nil,
+        timezone: String? = nil,
+        culturalEventId: UUID? = nil,
+        tags: [String] = [],
+        isGloballyVisible: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -55,6 +71,13 @@ public struct Room: LayoverModel {
         self.createdAt = createdAt
         self.metadata = metadata
         self.activeGameID = activeGameID
+        self.primaryLanguage = primaryLanguage
+        self.supportedLanguages = supportedLanguages
+        self.region = region
+        self.timezone = timezone
+        self.culturalEventId = culturalEventId
+        self.tags = tags
+        self.isGloballyVisible = isGloballyVisible
     }
 
     public var isHost: Bool {

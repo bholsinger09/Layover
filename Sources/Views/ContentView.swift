@@ -20,6 +20,7 @@ public struct ContentView: View {
     @State var showingSharePlaySession = false
     @State var showingGamesLauncher = false
     @State var showingSignIn = false
+    @State var showingGlobalFeatures = false
     
     // Guest user for non-account-based access
     private var guestUser: User {
@@ -92,6 +93,9 @@ public struct ContentView: View {
                     currentUser: currentUser,
                     authViewModel: authViewModel
                 )
+            }
+            .sheet(isPresented: $showingGlobalFeatures) {
+                GlobalFeaturesHubView()
             }
             #if os(tvOS)
             .fullScreenCover(isPresented: $showingSharePlaySession) {
@@ -319,6 +323,65 @@ public struct ContentView: View {
                                 .stroke(Color.white.opacity(0.3), lineWidth: 2)
                         }
                         .shadow(color: .purple.opacity(0.6), radius: 25, x: 0, y: 12)
+                    )
+                }
+                #if os(tvOS)
+                .buttonStyle(.card)
+                #else
+                .buttonStyle(.plain)
+                #endif
+                
+                // Global Features Button with custom design
+                Button {
+                    showingGlobalFeatures = true
+                } label: {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 60, height: 60)
+                            Image(systemName: "globe.americas.fill")
+                                .font(.system(size: 32))
+                                .foregroundStyle(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 8) {
+                                Text("Global Features")
+                                    .font(.system(size: 32, weight: .bold))
+                                Text("NEW")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundStyle(.yellow)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.yellow.opacity(0.2))
+                                    .cornerRadius(6)
+                            }
+                            Text("World-wide rooms, events & scheduling")
+                                .font(.system(size: 18))
+                                .opacity(0.9)
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: 700)
+                    .padding(.vertical, 28)
+                    .padding(.horizontal, 40)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(red: 0.1, green: 0.6, blue: 0.4),
+                                            Color(red: 0.2, green: 0.7, blue: 0.6)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                        }
+                        .shadow(color: .green.opacity(0.6), radius: 25, x: 0, y: 12)
                     )
                 }
                 #if os(tvOS)
@@ -561,6 +624,62 @@ public struct ContentView: View {
                                 .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
                         }
                         .shadow(color: .orange.opacity(0.6), radius: 15, x: 0, y: 8)
+                    )
+                }
+                .buttonStyle(.plain)
+                
+                // Global Features Button
+                Button {
+                    showingGlobalFeatures = true
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "globe.americas.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(.white)
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 6) {
+                                Text("Global Features")
+                                    .font(.system(size: 18, weight: .bold))
+                                Text("NEW")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.black)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.yellow)
+                                    .cornerRadius(4)
+                            }
+                            Text("Worldwide rooms, events & scheduling")
+                                .font(.system(size: 12))
+                                .opacity(0.9)
+                        }
+                        Spacer()
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 16)
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color(red: 0.1, green: 0.6, blue: 0.4),
+                                            Color(red: 0.2, green: 0.7, blue: 0.6)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
+                        }
+                        .shadow(color: .green.opacity(0.6), radius: 15, x: 0, y: 8)
                     )
                 }
                 .buttonStyle(.plain)
