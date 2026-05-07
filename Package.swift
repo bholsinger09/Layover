@@ -23,7 +23,10 @@ let package = Package(
             dependencies: [],
             path: "Sources",
             exclude: ["LayoverApp.swift"],
-            resources: [.process("../Resources/Music")]
+            resources: [
+                .process("../Resources/Music"),
+                .process("../Resources/translations.db")
+            ]
         ),
         .testTarget(
             name: "LayoverTests",

@@ -1,135 +1,142 @@
 import Foundation
+import SQLite3
 
-/// Dictionary-based translation database with lazy loading to avoid compiler timeout
+/// SQLite-based translation database for Language Exchange feature
 public class TranslationDatabase {
+    private static let shared = TranslationDatabase()
+    private static let queue = DispatchQueue(label: "com.layover.translationdb", attributes: .concurrent)
+    
+    private var db: OpaquePointer?
+    private var isInitialized = false
+    
+    private init() {
+        openDatabase()
+    }
+    
+    deinit {
+        if let db = db {
+            sqlite3_close(db)
+        }
+    }
+    
+    /// Open and initialize the database
+    private func openDatabase() {
+        // Try to open from bundle resources first
+        if let dbPath = Bundle.main.path(forResource: "translations", ofType: "db") {
+            if sqlite3_open(dbPath, &db) == SQLITE_OK {
+                isInitialized = true
+                return
+            }
+        }
+        
+        // Fallback: create in-memory database
+        if sqlite3_open(":memory:", &db) == SQLITE_OK {
+            createInMemoryDatabase()
+        }
+    }
+    
+    /// Create in-memory database as fallback
+    private func createInMemoryDatabase() {
+        guard let db = db else { return }
+        
+        // Create table
+        let createTableSQL = """
+        CREATE TABLE IF NOT EXISTS translations (
+            source_lang TEXT NOT NULL,
+            target_lang TEXT NOT NULL,
+            source_word TEXT NOT NULL,
+            translation TEXT NOT NULL,
+            PRIMARY KEY (source_lang, target_lang, source_word)
+        );
+        CREATE INDEX IF NOT EXISTS idx_lookup ON translations(source_lang, target_lang, source_word);
+        """
+        
+        var errMsg: UnsafeMutablePointer<CChar>?
+        guard sqlite3_exec(db, createTableSQL, nil, nil, &errMsg) == SQLITE_OK else {
+            if let errMsg = errMsg {
+                print("TranslationDatabase: Error creating table: \(String(cString: errMsg))")
+                sqlite3_free(errMsg)
+            }
+            return
+        }
+        
+        // Populate with translations
+        populateTranslations(db: db)
+        isInitialized = true
+    }
+    
+    /// Populate database with translations (fallback when no database file found)
+    private func populateTranslations(db: OpaquePointer) {
+        let insertSQL = "INSERT OR IGNORE INTO translations (source_lang, target_lang, source_word, translation) VALUES (?, ?, ?, ?)"
+        var statement: OpaquePointer?
+        
+        guard sqlite3_prepare_v2(db, insertSQL, -1, &statement, nil) == SQLITE_OK else {
+            return
+        }
+        
+        defer { sqlite3_finalize(statement) }
+        
+        sqlite3_exec(db, "BEGIN TRANSACTION", nil, nil, nil)
+        
+        // Add common English-Spanish translations
+        let enEs = [
+            "hello": "hola", "goodbye": "adiós", "please": "por favor", "thank you": "gracias",
+            "yes": "sí", "no": "no", "good": "bueno", "bad": "malo",
+            "test": "prueba", "me": "yo", "you": "tú", "message": "mensaje"
+        ]
+        
+        for (source, target) in enEs {
+            insertTranslation(statement: statement, from: "en", to: "es", source: source, translation: target)
+        }
+        
+        // Add reverse
+        for (target, source) in enEs {
+            insertTranslation(statement: statement, from: "es", to: "en", source: source, translation: target)
+        }
+        
+        sqlite3_exec(db, "COMMIT", nil, nil, nil)
+    }
+    
+    /// Insert a single translation
+    private func insertTranslation(statement: OpaquePointer?, from: String, to: String, source: String, translation: String) {
+        guard let statement = statement else { return }
+        sqlite3_bind_text(statement, 1, (from as NSString).utf8String, -1, nil)
+        sqlite3_bind_text(statement, 2, (to as NSString).utf8String, -1, nil)
+        sqlite3_bind_text(statement, 3, (source as NSString).utf8String, -1, nil)
+        sqlite3_bind_text(statement, 4, (translation as NSString).utf8String, -1, nil)
+        sqlite3_step(statement)
+        sqlite3_reset(statement)
+    }
     
     /// Get translation for a word
     public static func translate(word: String, from: String, to: String) -> String? {
-        let key = "\(from)-\(to)"
-        guard let dict = dictionaries[key] else { return nil }
-        return dict[word.lowercased()]
+        return queue.sync {
+            guard shared.isInitialized, let db = shared.db else { return nil }
+            return shared.lookup(word: word.lowercased(), from: from, to: to, db: db)
+        }
     }
     
-    // Split into multiple small dictionaries to avoid WMO timeout
-    // Each dictionary is loaded lazily only when accessed
-    
-    private static let enEs: [String: String] = [
-        "hello": "hola", "goodbye": "adiós", "please": "por favor", "thank you": "gracias",
-        "yes": "sí", "no": "no", "good": "bueno", "bad": "malo", "big": "grande",
-        "small": "pequeño", "hot": "caliente", "cold": "frío", "new": "nuevo",
-        "old": "viejo", "young": "joven", "good morning": "buenos días",
-        "good night": "buenas noches", "how are you": "cómo estás", "my name is": "me llamo",
-        "nice to meet you": "mucho gusto", "excuse me": "perdón", "i'm sorry": "lo siento",
-        "help": "ayuda", "water": "agua", "food": "comida", "house": "casa",
-        "car": "coche", "book": "libro", "table": "mesa", "chair": "silla"
-    ]
-    
-    private static let esEn: [String: String] = [
-        "hola": "hello", "adiós": "goodbye", "por favor": "please", "gracias": "thank you",
-        "sí": "yes", "no": "no", "bueno": "good", "malo": "bad", "grande": "big",
-        "pequeño": "small", "caliente": "hot", "frío": "cold", "nuevo": "new",
-        "viejo": "old", "joven": "young", "buenos días": "good morning",
-        "buenas noches": "good night", "cómo estás": "how are you", "me llamo": "my name is",
-        "mucho gusto": "nice to meet you", "perdón": "excuse me", "lo siento": "i'm sorry",
-        "ayuda": "help", "agua": "water", "comida": "food", "casa": "house",
-        "coche": "car", "libro": "book", "mesa": "table", "silla": "chair"
-    ]
-    
-    private static let enFr: [String: String] = [
-        "hello": "bonjour", "goodbye": "au revoir", "please": "s'il vous plaît",
-        "thank you": "merci", "yes": "oui", "no": "non", "good": "bon",
-        "bad": "mauvais", "big": "grand", "small": "petit", "hot": "chaud",
-        "cold": "froid", "new": "nouveau", "old": "vieux", "young": "jeune"
-    ]
-    
-    private static let frEn: [String: String] = [
-        "bonjour": "hello", "au revoir": "goodbye", "s'il vous plaît": "please",
-        "merci": "thank you", "oui": "yes", "non": "no", "bon": "good",
-        "mauvais": "bad", "grand": "big", "petit": "small"
-    ]
-    
-    private static let enDe: [String: String] = [
-        "hello": "hallo", "goodbye": "auf wiedersehen", "please": "bitte",
-        "thank you": "danke", "yes": "ja", "no": "nein", "good": "gut",
-        "bad": "schlecht", "big": "groß", "small": "klein"
-    ]
-    
-    private static let deEn: [String: String] = [
-        "hallo": "hello", "auf wiedersehen": "goodbye", "bitte": "please",
-        "danke": "thank you", "ja": "yes", "nein": "no", "gut": "good",
-        "schlecht": "bad", "groß": "big", "klein": "small"
-    ]
-    
-    private static let enJa: [String: String] = [
-        "hello": "こんにちは", "goodbye": "さようなら", "please": "お願いします",
-        "thank you": "ありがとう", "yes": "はい", "no": "いいえ"
-    ]
-    
-    private static let jaEn: [String: String] = [
-        "こんにちは": "hello", "さようなら": "goodbye", "お願いします": "please",
-        "ありがとう": "thank you", "はい": "yes", "いいえ": "no"
-    ]
-    
-    private static let enZh: [String: String] = [
-        "hello": "你好", "goodbye": "再见", "please": "请", "thank you": "谢谢",
-        "yes": "是", "no": "不"
-    ]
-    
-    private static let zhEn: [String: String] = [
-        "你好": "hello", "再见": "goodbye", "请": "please", "谢谢": "thank you",
-        "是": "yes", "不": "no"
-    ]
-    
-    private static let enPt: [String: String] = [
-        "hello": "olá", "goodbye": "adeus", "please": "por favor",
-        "thank you": "obrigado", "yes": "sim", "no": "não"
-    ]
-    
-    private static let ptEn: [String: String] = [
-        "olá": "hello", "adeus": "goodbye", "por favor": "please",
-        "obrigado": "thank you", "sim": "yes", "não": "no"
-    ]
-    
-    private static let enHi: [String: String] = [
-        "hello": "नमस्ते", "goodbye": "अलविदा", "please": "कृपया",
-        "thank you": "धन्यवाद", "yes": "हाँ", "no": "नहीं"
-    ]
-    
-    private static let hiEn: [String: String] = [
-        "नमस्ते": "hello", "अलविदा": "goodbye", "कृपया": "please",
-        "धन्यवाद": "thank you", "हाँ": "yes", "नहीं": "no"
-    ]
-    
-    private static let enKo: [String: String] = [
-        "hello": "안녕하세요", "goodbye": "안녕히 가세요", "please": "부탁합니다",
-        "thank you": "감사합니다", "yes": "네", "no": "아니오"
-    ]
-    
-    private static let koEn: [String: String] = [
-        "안녕하세요": "hello", "안녕히 가세요": "goodbye", "부탁합니다": "please",
-        "감사합니다": "thank you", "네": "yes", "아니오": "no"
-    ]
-    
-    private static let enAr: [String: String] = [
-        "hello": "مرحبا", "goodbye": "وداعا", "please": "من فضلك",
-        "thank you": "شكرا", "yes": "نعم", "no": "لا"
-    ]
-    
-    private static let arEn: [String: String] = [
-        "مرحبا": "hello", "وداعا": "goodbye", "من فضلك": "please",
-        "شكرا": "thank you", "نعم": "yes", "لا": "no"
-    ]
-    
-    // Lazy dictionary lookup
-    private static let dictionaries: [String: [String: String]] = [
-        "en-es": enEs, "es-en": esEn,
-        "en-fr": enFr, "fr-en": frEn,
-        "en-de": enDe, "de-en": deEn,
-        "en-ja": enJa, "ja-en": jaEn,
-        "en-zh": enZh, "zh-en": zhEn,
-        "en-pt": enPt, "pt-en": ptEn,
-        "en-hi": enHi, "hi-en": hiEn,
-        "en-ko": enKo, "ko-en": koEn,
-        "en-ar": enAr, "ar-en": arEn
-    ]
+    /// Perform database lookup
+    private func lookup(word: String, from: String, to: String, db: OpaquePointer) -> String? {
+        let querySQL = "SELECT translation FROM translations WHERE source_lang = ? AND target_lang = ? AND source_word = ?"
+        var statement: OpaquePointer?
+        
+        guard sqlite3_prepare_v2(db, querySQL, -1, &statement, nil) == SQLITE_OK else {
+            return nil
+        }
+        
+        defer { sqlite3_finalize(statement) }
+        
+        sqlite3_bind_text(statement, 1, (from as NSString).utf8String, -1, nil)
+        sqlite3_bind_text(statement, 2, (to as NSString).utf8String, -1, nil)
+        sqlite3_bind_text(statement, 3, (word as NSString).utf8String, -1, nil)
+        
+        if sqlite3_step(statement) == SQLITE_ROW {
+            if let cString = sqlite3_column_text(statement, 0) {
+                return String(cString: cString)
+            }
+        }
+        
+        return nil
+    }
 }
