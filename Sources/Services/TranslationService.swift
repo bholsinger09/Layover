@@ -28,12 +28,10 @@ public class TranslationService {
     
     /// Translate text to a single target language
     private func translateText(_ text: String, from sourceLanguage: String, to targetLanguage: String) async throws -> String {
-        // Use comprehensive dictionary-based translation
-        let translationKey = "\(sourceLanguage)-\(targetLanguage)"
+        // Use SQLite database for translation
         
         // Check if we have a direct translation
-        if let dictionary = TranslationDictionaries.dictionary(from: sourceLanguage, to: targetLanguage),
-           let translation = dictionary[text.lowercased()] {
+        if let translation = TranslationDatabase.translate(word: text, from: sourceLanguage, to: targetLanguage) {
             // Preserve original capitalization pattern
             return preserveCapitalization(original: text, translation: translation)
         }
@@ -44,8 +42,7 @@ public class TranslationService {
         
         for word in words {
             let cleanWord = word.trimmingCharacters(in: .punctuationCharacters)
-            if let dictionary = TranslationDictionaries.dictionary(from: sourceLanguage, to: targetLanguage),
-               let translation = dictionary[cleanWord.lowercased()] {
+            if let translation = TranslationDatabase.translate(word: cleanWord, from: sourceLanguage, to: targetLanguage) {
                 translatedWords.append(preserveCapitalization(original: cleanWord, translation: translation))
                 // Add back punctuation if it existed
                 if word != cleanWord {
