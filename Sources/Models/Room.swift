@@ -37,6 +37,10 @@ public struct Room: LayoverModel {
     public var culturalEventId: UUID? // Link to cultural event
     public var tags: [String] // Searchable tags
     public var isGloballyVisible: Bool // Show in global directory
+    
+    // Language Exchange features
+    public var languageExchangeEnabled: Bool // Enable language exchange mode
+    public var activeExchangeSessionID: UUID? // Track active language exchange session
 
     public init(
         id: UUID = UUID(),
@@ -57,7 +61,9 @@ public struct Room: LayoverModel {
         timezone: String? = nil,
         culturalEventId: UUID? = nil,
         tags: [String] = [],
-        isGloballyVisible: Bool = false
+        isGloballyVisible: Bool = false,
+        languageExchangeEnabled: Bool = false,
+        activeExchangeSessionID: UUID? = nil
     ) {
         self.id = id
         self.name = name
@@ -78,6 +84,8 @@ public struct Room: LayoverModel {
         self.culturalEventId = culturalEventId
         self.tags = tags
         self.isGloballyVisible = isGloballyVisible
+        self.languageExchangeEnabled = languageExchangeEnabled
+        self.activeExchangeSessionID = activeExchangeSessionID
     }
 
     public var isHost: Bool {

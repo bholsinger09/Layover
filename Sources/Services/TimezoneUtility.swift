@@ -178,14 +178,20 @@ public struct TimezoneUtility {
         let calendar = Calendar.current
         let now = Date()
         
+        // Start from the next hour
+        let startDate = calendar.date(byAdding: .hour, value: 1, to: now) ?? now
+        
         // Try each hour in the next 7 days
         for day in 0..<7 {
             for hour in 0..<24 {
                 guard let testDate = calendar.date(
                     byAdding: .hour,
                     value: day * 24 + hour,
-                    to: calendar.startOfDay(for: now)
+                    to: calendar.startOfDay(for: startDate)
                 ) else { continue }
+                
+                // Skip times in the past
+                guard testDate > now else { continue }
                 
                 // Check if this time falls within preferred range for all timezones
                 let allGood = timezones.allSatisfy { timezone in

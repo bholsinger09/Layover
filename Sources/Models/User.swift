@@ -9,6 +9,9 @@ public struct User: LayoverModel {
     public var avatarURL: URL?
     public var isHost: Bool
     public var isSubHost: Bool
+    
+    // Language Exchange
+    public var languageLearningProfileID: UUID?
 
     public init(
         id: UUID = UUID(),
@@ -17,7 +20,8 @@ public struct User: LayoverModel {
         email: String? = nil,
         avatarURL: URL? = nil,
         isHost: Bool = false,
-        isSubHost: Bool = false
+        isSubHost: Bool = false,
+        languageLearningProfileID: UUID? = nil
     ) {
         self.id = id
         self.appleUserID = appleUserID
@@ -26,5 +30,6 @@ public struct User: LayoverModel {
         self.avatarURL = avatarURL
         self.isHost = isHost
         self.isSubHost = isSubHost
+        self.languageLearningProfileID = languageLearningProfileID
     }
 }
