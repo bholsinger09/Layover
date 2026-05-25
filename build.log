@@ -1,61 +1,6 @@
 Command line invocation:
-    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project Layover/Layover.xcodeproj -scheme LayoverAppleTv -destination generic/platform=tvOS -allowProvisioningUpdates clean build
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
 
-Resolve Package Graph
+2026-05-25 08:45:43.098 xcodebuild[34643:15955498] Writing error result bundle to /var/folders/tl/3k7rhf4s6fn5p4lhv6tg7nmm0000gn/T/ResultBundle_2026-25-05_08-45-0043.xcresult
+xcodebuild: error: The directory /Users/benh/Documents/Layover does not contain an Xcode project.
 
-
-Resolved source packages:
-  Layover: /Users/benh/Documents/Layover @ local
-
-2026-01-02 13:15:29.690 xcodebuild[27483:437364] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
-CreateBuildRequest
-
-SendProjectDescription
-
-CreateBuildOperation
-
-** CLEAN SUCCEEDED **
-
-ComputePackagePrebuildTargetDependencyGraph
-
-Prepare packages
-
-CreateBuildRequest
-
-SendProjectDescription
-
-CreateBuildOperation
-
-ComputeTargetDependencyGraph
-note: Building targets in dependency order
-note: Target dependency graph (3 targets)
-    Target 'LayoverAppleTv' in project 'Layover'
-        ➜ Explicit dependency on target 'LayoverKit' in project 'Layover'
-    Target 'LayoverKit' in project 'Layover'
-        ➜ Explicit dependency on target 'LayoverKit' in project 'Layover'
-    Target 'LayoverKit' in project 'Layover' (no dependencies)
-
-GatherProvisioningInputs
-
-CreateBuildDescription
-
-ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS26.1.sdk -x c -c /dev/null
-
-ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/benh/Documents/Layover/Layover/LayoverAppleTv/Assets.xcassets
-
-ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
-
-ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
-
-ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
-
-Build description signature: 48025675de9bccefbda8930c8acd339f
-Build description path: /Users/benh/Library/Developer/Xcode/DerivedData/Layover-btszlyrbfmjlpybyzualsynbjbcd/Build/Intermediates.noindex/XCBuildData/48025675de9bccefbda8930c8acd339f.xcbuilddata
-/Users/benh/Documents/Layover/Layover/Layover.xcodeproj: error: Communication with Apple failed: Your team has no devices from which to generate a provisioning profile. Connect a device to use or manually add device IDs in Certificates, Identifiers & Profiles. https://developer.apple.com/account/ (in target 'LayoverAppleTv' from project 'Layover' at path '/Users/benh/Documents/Layover/Layover/Layover.xcodeproj')
-/Users/benh/Documents/Layover/Layover/Layover.xcodeproj: error: No profiles for 'com.Ben.LayoverAppleTv' were found: Xcode couldn't find any tvOS App Development provisioning profiles matching 'com.Ben.LayoverAppleTv'. (in target 'LayoverAppleTv' from project 'Layover' at path '/Users/benh/Documents/Layover/Layover/Layover.xcodeproj')
-** BUILD FAILED **
-
-
-The following build commands failed:
-	Building project Layover with scheme LayoverAppleTv
-(1 failure)
