@@ -8,7 +8,6 @@ public struct GamesLauncherView: View {
     @State private var showingChess = false
     @State private var showingCheckers = false
     @State private var showingConnectFour = false
-    @State private var showingJacks = false
     
     public init(currentUser: User) {
         self.currentUser = currentUser
@@ -87,16 +86,6 @@ public struct GamesLauncherView: View {
                             ) {
                                 showingConnectFour = true
                             }
-
-                            GameCardButton(
-                                title: "Jacks",
-                                icon: "sparkles",
-                                description: "Bounce the ball and pick up the jacks before time runs out.",
-                                gradients: [Color(red: 0.9, green: 0.5, blue: 0.1), Color(red: 0.95, green: 0.3, blue: 0.2)],
-                                shadowColor: .orange
-                            ) {
-                                showingJacks = true
-                            }
                         }
                         .padding(.horizontal, 20)
                     }
@@ -154,19 +143,6 @@ public struct GamesLauncherView: View {
                     room: Room(
                         id: UUID(uuidString: "00000000-0000-0000-0000-000000000003") ?? UUID(),
                         name: "Connect Four",
-                        hostID: currentUser.id,
-                        activityType: .chess,
-                        maxParticipants: 2,
-                        isPrivate: false
-                    ),
-                    currentUser: currentUser
-                )
-            }
-            .sheet(isPresented: $showingJacks) {
-                JacksView(
-                    room: Room(
-                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000004") ?? UUID(),
-                        name: "Jacks",
                         hostID: currentUser.id,
                         activityType: .chess,
                         maxParticipants: 2,
