@@ -107,26 +107,26 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
     }
 
     private func setupFloor() {
-        let floorGeometry = SCNBox(width: 12, height: 0.15, length: 12, chamferRadius: 0)
+        let floorGeometry = SCNFloor()
         let woodMaterial = SCNMaterial()
         woodMaterial.diffuse.contents = platformColor(r: 0.55, g: 0.35, b: 0.18)
         woodMaterial.roughness.contents = 0.7
         woodMaterial.metalness.contents = 0.0
         woodMaterial.normal.intensity = 0.4
         woodMaterial.specular.contents = platformColor(r: 0.3, g: 0.2, b: 0.1)
-
-        let plankOverlay = SCNMaterial()
-        plankOverlay.diffuse.contents = platformColor(r: 0.50, g: 0.32, b: 0.16)
-        plankOverlay.roughness.contents = 0.8
-
-        floorGeometry.materials = [woodMaterial, woodMaterial, plankOverlay, plankOverlay, woodMaterial, woodMaterial]
+        floorGeometry.reflectivity = 0.05
+        floorGeometry.materials = [woodMaterial]
 
         floorNode = SCNNode(geometry: floorGeometry)
-        floorNode.position = SCNVector3(0, -0.075, 0)
-        floorNode.physicsBody = SCNPhysicsBody.static()
-        floorNode.physicsBody?.restitution = 0.7
-        floorNode.physicsBody?.friction = 0.6
-        floorNode.physicsBody?.categoryBitMask = 1
+        floorNode.position = SCNVector3(0, 0, 0)
+
+        let floorShape = SCNPhysicsShape(geometry: floorGeometry, options: nil)
+        let floorBody = SCNPhysicsBody(type: .static, shape: floorShape)
+        floorBody.restitution = 0.7
+        floorBody.friction = 0.6
+        floorBody.categoryBitMask = 1
+        floorBody.collisionBitMask = 2 | 4
+        floorNode.physicsBody = floorBody
         floorNode.name = "floor"
         scene.rootNode.addChildNode(floorNode)
 
@@ -149,7 +149,8 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
     // MARK: - Ball
 
     private func setupBall() {
-        let ballGeometry = SCNSphere(radius: 0.15)
+        let ballRadius: CGFloat = 0.15
+        let ballGeometry = SCNSphere(radius: ballRadius)
         let ballMaterial = SCNMaterial()
         ballMaterial.diffuse.contents = platformColor(r: 0.85, g: 0.15, b: 0.15)
         ballMaterial.specular.contents = platformColor(r: 1.0, g: 1.0, b: 1.0)
@@ -162,14 +163,16 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
         ballNode.position = SCNVector3(0, ballRestY, 0)
         ballNode.name = "ball"
 
-        let ballBody = SCNPhysicsBody.dynamic()
-        ballBody.mass = 0.05
+        let ballShape = SCNPhysicsShape(geometry: SCNSphere(radius: ballRadius), options: nil)
+        let ballBody = SCNPhysicsBody(type: .dynamic, shape: ballShape)
+        ballBody.mass = 0.15
         ballBody.restitution = 0.85
-        ballBody.friction = 0.3
+        ballBody.friction = 0.4
         ballBody.rollingFriction = 0.1
-        ballBody.damping = 0.05
+        ballBody.damping = 0.08
         ballBody.angularDamping = 0.1
         ballBody.categoryBitMask = 2
+        ballBody.collisionBitMask = 1
         ballBody.contactTestBitMask = 1
         ballBody.isAffectedByGravity = false
         ballNode.physicsBody = ballBody
@@ -201,14 +204,10 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
             let jackNode = createJackNode(index: i)
             jackNode.position = SCNVector3(pos.x, 0.12, pos.y)
             jackNode.eulerAngles = SCNVector3(
+                Float.random(in: -0.3...0.3),
                 Float.random(in: 0...(2 * .pi)),
-                Float.random(in: 0...(2 * .pi)),
-                Float.random(in: 0...(2 * .pi))
+                Float.random(in: -0.3...0.3)
             )
-
-            let jackBody = SCNPhysicsBody.static()
-            jackBody.categoryBitMask = 4
-            jackNode.physicsBody = jackBody
 
             scene.rootNode.addChildNode(jackNode)
             jackNodes.append(jackNode)
@@ -271,6 +270,15 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
             jackRoot.addChildNode(tipNode)
         }
 
+        let hitSphere = SCNSphere(radius: 0.18)
+        let hitMaterial = SCNMaterial()
+        hitMaterial.diffuse.contents = platformColor(r: 1, g: 1, b: 1)
+        hitMaterial.transparency = 0.001
+        hitSphere.materials = [hitMaterial]
+        let hitNode = SCNNode(geometry: hitSphere)
+        hitNode.name = "jack_hit_\(index)"
+        jackRoot.addChildNode(hitNode)
+
         return jackRoot
     }
 
@@ -288,14 +296,18 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
         canCollect = false
         isBallResting = false
 
-        ballNode.physicsBody?.isAffectedByGravity = true
+        ballNode.physicsBody?.clearAllForces()
         ballNode.physicsBody?.velocity = SCNVector3Zero
-        ballNode.position = SCNVector3(0, ballDropHeight, 0)
-        ballNode.physicsBody?.velocity = SCNVector3(0, 0, 0)
+        ballNode.physicsBody?.angularVelocity = SCNVector4Zero
+        ballNode.physicsBody?.isAffectedByGravity = false
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.phase = .ballBouncing
-            self?.startBounceMonitor()
+        ballNode.position = SCNVector3(0, ballDropHeight, 0)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            guard let self = self else { return }
+            self.ballNode.physicsBody?.isAffectedByGravity = true
+            self.phase = .ballBouncing
+            self.startBounceMonitor()
         }
     }
 
@@ -456,9 +468,15 @@ struct JacksSceneView: UIViewRepresentable {
         private func findJackIndex(for node: SCNNode) -> Int? {
             var current: SCNNode? = node
             while let n = current {
-                if let name = n.name, name.hasPrefix("jack_"),
-                   let idx = Int(name.replacingOccurrences(of: "jack_", with: "")) {
-                    return idx
+                if let name = n.name {
+                    if name.hasPrefix("jack_hit_"),
+                       let idx = Int(name.replacingOccurrences(of: "jack_hit_", with: "")) {
+                        return idx
+                    }
+                    if name.hasPrefix("jack_"),
+                       let idx = Int(name.replacingOccurrences(of: "jack_", with: "")) {
+                        return idx
+                    }
                 }
                 current = n.parent
             }
@@ -515,9 +533,15 @@ struct JacksSceneView: NSViewRepresentable {
         private func findJackIndex(for node: SCNNode) -> Int? {
             var current: SCNNode? = node
             while let n = current {
-                if let name = n.name, name.hasPrefix("jack_"),
-                   let idx = Int(name.replacingOccurrences(of: "jack_", with: "")) {
-                    return idx
+                if let name = n.name {
+                    if name.hasPrefix("jack_hit_"),
+                       let idx = Int(name.replacingOccurrences(of: "jack_hit_", with: "")) {
+                        return idx
+                    }
+                    if name.hasPrefix("jack_"),
+                       let idx = Int(name.replacingOccurrences(of: "jack_", with: "")) {
+                        return idx
+                    }
                 }
                 current = n.parent
             }
