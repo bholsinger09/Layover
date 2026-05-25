@@ -20,7 +20,7 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
     private var ambientLightNode: SCNNode!
     private let totalJacks = 10
     private var ballRestY: Float = 0.15
-    private var ballDropHeight: Float = 2.5
+    private var ballDropHeight: Float = 8.0
     private var isBallResting = false
 
     public override init() {
@@ -434,6 +434,9 @@ struct JacksSceneView: UIViewRepresentable {
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(SceneViewCoordinator.handleTap(_:)))
         scnView.addGestureRecognizer(tapGesture)
 
+        let panGesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(SceneViewCoordinator.handlePan(_:)))
+        scnView.addGestureRecognizer(panGesture)
+
         return scnView
     }
 
@@ -445,6 +448,8 @@ struct JacksSceneView: UIViewRepresentable {
 
     class SceneViewCoordinator: NSObject {
         var onTapJack: ((Int) -> Void)?
+        private var collectedDuringSwipe: Set<Int> = []
+
         init(onTapJack: ((Int) -> Void)?) {
             self.onTapJack = onTapJack
         }
@@ -452,17 +457,46 @@ struct JacksSceneView: UIViewRepresentable {
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let scnView = gesture.view as? SCNView else { return }
             let location = gesture.location(in: scnView)
+            if let jackIndex = hitTestForJack(in: scnView, at: location) {
+                onTapJack?(jackIndex)
+            }
+        }
+
+        @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
+            guard let scnView = gesture.view as? SCNView else { return }
+            let location = gesture.location(in: scnView)
+
+            switch gesture.state {
+            case .began:
+                collectedDuringSwipe.removeAll()
+                if let jackIndex = hitTestForJack(in: scnView, at: location) {
+                    collectedDuringSwipe.insert(jackIndex)
+                    onTapJack?(jackIndex)
+                }
+            case .changed:
+                if let jackIndex = hitTestForJack(in: scnView, at: location),
+                   !collectedDuringSwipe.contains(jackIndex) {
+                    collectedDuringSwipe.insert(jackIndex)
+                    onTapJack?(jackIndex)
+                }
+            case .ended, .cancelled:
+                collectedDuringSwipe.removeAll()
+            default:
+                break
+            }
+        }
+
+        private func hitTestForJack(in scnView: SCNView, at location: CGPoint) -> Int? {
             let hitResults = scnView.hitTest(location, options: [
                 .searchMode: SCNHitTestSearchMode.all.rawValue,
                 .boundingBoxOnly: false
             ])
-
             for result in hitResults {
                 if let jackIndex = findJackIndex(for: result.node) {
-                    onTapJack?(jackIndex)
-                    return
+                    return jackIndex
                 }
             }
+            return nil
         }
 
         private func findJackIndex(for node: SCNNode) -> Int? {
@@ -510,6 +544,8 @@ struct JacksSceneView: NSViewRepresentable {
 
     class SceneViewCoordinator: NSObject {
         var onTapJack: ((Int) -> Void)?
+        private var collectedDuringDrag: Set<Int> = []
+
         init(onTapJack: ((Int) -> Void)?) {
             self.onTapJack = onTapJack
         }
@@ -517,17 +553,22 @@ struct JacksSceneView: NSViewRepresentable {
         @objc func handleClick(_ gesture: NSClickGestureRecognizer) {
             guard let scnView = gesture.view as? SCNView else { return }
             let location = gesture.location(in: scnView)
+            if let jackIndex = hitTestForJack(in: scnView, at: location) {
+                onTapJack?(jackIndex)
+            }
+        }
+
+        private func hitTestForJack(in scnView: SCNView, at location: CGPoint) -> Int? {
             let hitResults = scnView.hitTest(location, options: [
                 .searchMode: SCNHitTestSearchMode.all.rawValue,
                 .boundingBoxOnly: false
             ])
-
             for result in hitResults {
                 if let jackIndex = findJackIndex(for: result.node) {
-                    onTapJack?(jackIndex)
-                    return
+                    return jackIndex
                 }
             }
+            return nil
         }
 
         private func findJackIndex(for node: SCNNode) -> Int? {
