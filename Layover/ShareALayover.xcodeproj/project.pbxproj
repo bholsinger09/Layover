@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		365D21BA2F0856D900EA2AC0 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 365D21B92F0856D900EA2AC0 /* LayoverKit */; };
 		365D21BC2F0856E500EA2AC0 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 365D21BB2F0856E500EA2AC0 /* LayoverKit */; };
-		366016F52F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */; };
 		366016F72F0D59F5002669AE /* Sister hazel - Change your mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */; };
 		366016F92F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */; };
 		366016FB2F0D5A37002669AE /* Poppies.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FA2F0D5A37002669AE /* Poppies.mp3 */; };
@@ -32,8 +31,6 @@
 		36626AE22F1042670028AF8F /* Poppies.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FA2F0D5A37002669AE /* Poppies.mp3 */; };
 		36626AE32F10426C0028AF8F /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */; };
 		36626AE42F1042710028AF8F /* Sister hazel - Change your mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */; };
-		36626AE52F1042760028AF8F /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */; };
-		36626AE62F10427B0028AF8F /* Ob-La-Di, Ob-La-Da.mp3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 367AF9FA2F0C6A5F00E39266 /* Ob-La-Di, Ob-La-Da.mp3.mp3 */; };
 		366848032F0EC0DF00BC0838 /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 3660170A2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 */; };
 		366848042F0EC0E400BC0838 /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017062F0D5ADC002669AE /* Britney Spears - Oops!...I Did It Again (Official HD Video).mp3 */; };
 		366848052F0EC0E900BC0838 /* David Bowie  Space Oddity (Official Video).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366017022F0D5A9F002669AE /* David Bowie  Space Oddity (Official Video).mp3 */; };
@@ -45,7 +42,6 @@
 		3668480B2F0EC11300BC0838 /* Poppies.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016FA2F0D5A37002669AE /* Poppies.mp3 */; };
 		3668480C2F0EC11800BC0838 /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */; };
 		3668480D2F0EC11D00BC0838 /* Sister hazel - Change your mind.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */; };
-		3668480E2F0EC12400BC0838 /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */; };
 		36DE17CF2EF83F7100A7D8A4 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 36DE17CE2EF83F7100A7D8A4 /* LayoverKit */; };
 		36DE18022EF86C1600A7D8A4 /* LayoverKit in Frameworks */ = {isa = PBXBuildFile; productRef = 36DE18012EF86C1600A7D8A4 /* LayoverKit */; };
 /* End PBXBuildFile section */
@@ -99,7 +95,6 @@
 		365D218E2F084F9E00EA2AC0 /* ShareALayoverAppleTv.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShareALayoverAppleTv.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		365D219A2F084F9F00EA2AC0 /* ShareALayoverAppleTvTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShareALayoverAppleTvTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		365D21A42F084F9F00EA2AC0 /* ShareALayoverAppleTvUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShareALayoverAppleTvUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Ob-La-Di, Ob-La-Da (Remastered 2009).mp3"; sourceTree = "<group>"; };
 		366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Sister hazel - Change your mind.mp3"; sourceTree = "<group>"; };
 		366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Savage Garden - To The Moon & Back (Extended Version).mp3"; sourceTree = "<group>"; };
 		366016FA2F0D5A37002669AE /* Poppies.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Poppies.mp3; sourceTree = "<group>"; };
@@ -113,22 +108,19 @@
 		3660170A2F0D5B09002669AE /* Backstreet Boys - I Want It That Way (Official HD Video).mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Backstreet Boys - I Want It That Way (Official HD Video).mp3"; sourceTree = "<group>"; };
 		36705E262F0C581000D829E7 /* 02 Livin' On Love.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "02 Livin' On Love.m4p"; sourceTree = "<group>"; };
 		36705E282F0C582200D829E7 /* 03 As Long as You Love Me.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "03 As Long as You Love Me.m4p"; sourceTree = "<group>"; };
-		36705E2A2F0C583600D829E7 /* 2-03 Ob-La-Di, Ob-La-Da.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "2-03 Ob-La-Di, Ob-La-Da.m4p"; sourceTree = "<group>"; };
 		36705E2C2F0C584C00D829E7 /* 12 Anthem.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "12 Anthem.m4p"; sourceTree = "<group>"; };
 		36705E2E2F0C586300D829E7 /* 1-01 Genie in a Bottle.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "1-01 Genie in a Bottle.m4p"; sourceTree = "<group>"; };
 		36705E302F0C587800D829E7 /* 02 One, Two, I Love You.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "02 One, Two, I Love You.m4p"; sourceTree = "<group>"; };
 		36705E322F0C588D00D829E7 /* 06 One Boy, One Girl.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "06 One Boy, One Girl.m4p"; sourceTree = "<group>"; };
 		36705E342F0C589D00D829E7 /* 06 Father Of Mine.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "06 Father Of Mine.m4p"; sourceTree = "<group>"; };
-		36705E362F0C58AD00D829E7 /* 01 Ob-La-Di, Ob-La-Da.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "01 Ob-La-Di, Ob-La-Da.m4p"; sourceTree = "<group>"; };
 		36705E382F0C58C800D829E7 /* 11 Iris.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "11 Iris.m4p"; sourceTree = "<group>"; };
 		36705E3A2F0C58DB00D829E7 /* 1-03 Let Her Cry.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "1-03 Let Her Cry.m4p"; sourceTree = "<group>"; };
 		36705E3C2F0C58EB00D829E7 /* 07 McDonald's Girl.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "07 McDonald's Girl.m4p"; sourceTree = "<group>"; };
 		36705E3E2F0C590000D829E7 /* 10 Dog and His Master.m4p */ = {isa = PBXFileReference; lastKnownFileType = file; path = "10 Dog and His Master.m4p"; sourceTree = "<group>"; };
-		367AF9FA2F0C6A5F00E39266 /* Ob-La-Di, Ob-La-Da.mp3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Ob-La-Di, Ob-La-Da.mp3.mp3"; sourceTree = "<group>"; };
 		36DE17A32EF83E0A00A7D8A4 /* ShareALayover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShareALayover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		36DE17B02EF83E0B00A7D8A4 /* ShareALayoverTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShareALayoverTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		36DE17BA2EF83E0B00A7D8A4 /* ShareALayoverUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShareALayoverUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		36DE17D52EF855C600A7D8A4 /* ShareALayoverMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShareALayoverMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		36DE17D52EF855C600A7D8A4 /* ShareALayover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShareALayover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		36DE17E12EF855C700A7D8A4 /* ShareALayoverMacTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShareALayoverMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		36DE17EB2EF855C700A7D8A4 /* ShareALayoverMacUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ShareALayoverMacUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -286,19 +278,15 @@
 				366016FA2F0D5A37002669AE /* Poppies.mp3 */,
 				366016F82F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 */,
 				366016F62F0D59F5002669AE /* Sister hazel - Change your mind.mp3 */,
-				366016F42F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 */,
-				367AF9FA2F0C6A5F00E39266 /* Ob-La-Di, Ob-La-Da.mp3.mp3 */,
 				36705E3E2F0C590000D829E7 /* 10 Dog and His Master.m4p */,
 				36705E3C2F0C58EB00D829E7 /* 07 McDonald's Girl.m4p */,
 				36705E3A2F0C58DB00D829E7 /* 1-03 Let Her Cry.m4p */,
 				36705E382F0C58C800D829E7 /* 11 Iris.m4p */,
-				36705E362F0C58AD00D829E7 /* 01 Ob-La-Di, Ob-La-Da.m4p */,
 				36705E342F0C589D00D829E7 /* 06 Father Of Mine.m4p */,
 				36705E322F0C588D00D829E7 /* 06 One Boy, One Girl.m4p */,
 				36705E302F0C587800D829E7 /* 02 One, Two, I Love You.m4p */,
 				36705E2E2F0C586300D829E7 /* 1-01 Genie in a Bottle.m4p */,
 				36705E2C2F0C584C00D829E7 /* 12 Anthem.m4p */,
-				36705E2A2F0C583600D829E7 /* 2-03 Ob-La-Di, Ob-La-Da.m4p */,
 				36705E282F0C582200D829E7 /* 03 As Long as You Love Me.m4p */,
 				36705E262F0C581000D829E7 /* 02 Livin' On Love.m4p */,
 				36DE17A52EF83E0A00A7D8A4 /* Layover */,
@@ -321,7 +309,7 @@
 				36DE17A32EF83E0A00A7D8A4 /* ShareALayover.app */,
 				36DE17B02EF83E0B00A7D8A4 /* ShareALayoverTests.xctest */,
 				36DE17BA2EF83E0B00A7D8A4 /* ShareALayoverUITests.xctest */,
-				36DE17D52EF855C600A7D8A4 /* ShareALayoverMac.app */,
+				36DE17D52EF855C600A7D8A4 /* ShareALayover.app */,
 				36DE17E12EF855C700A7D8A4 /* ShareALayoverMacTests.xctest */,
 				36DE17EB2EF855C700A7D8A4 /* ShareALayoverMacUITests.xctest */,
 				365D218E2F084F9E00EA2AC0 /* ShareALayoverAppleTv.app */,
@@ -493,7 +481,7 @@
 				36DE18012EF86C1600A7D8A4 /* LayoverKit */,
 			);
 			productName = LayoverMac;
-			productReference = 36DE17D52EF855C600A7D8A4 /* ShareALayoverMac.app */;
+			productReference = 36DE17D52EF855C600A7D8A4 /* ShareALayover.app */;
 			productType = "com.apple.product-type.application";
 		};
 		36DE17E02EF855C700A7D8A4 /* ShareALayoverMacTests */ = {
@@ -633,7 +621,6 @@
 				366016FB2F0D5A37002669AE /* Poppies.mp3 in Resources */,
 				366016F92F0D5A0E002669AE /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */,
 				366016F72F0D59F5002669AE /* Sister hazel - Change your mind.mp3 in Resources */,
-				366016F52F0D53D7002669AE /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -655,8 +642,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				36626AE62F10427B0028AF8F /* Ob-La-Di, Ob-La-Da.mp3.mp3 in Resources */,
-				36626AE52F1042760028AF8F /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */,
 				36626AE42F1042710028AF8F /* Sister hazel - Change your mind.mp3 in Resources */,
 				36626AE32F10426C0028AF8F /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */,
 				36626AE22F1042670028AF8F /* Poppies.mp3 in Resources */,
@@ -689,7 +674,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3668480E2F0EC12400BC0838 /* Ob-La-Di, Ob-La-Da (Remastered 2009).mp3 in Resources */,
 				3668480D2F0EC11D00BC0838 /* Sister hazel - Change your mind.mp3 in Resources */,
 				3668480C2F0EC11800BC0838 /* Savage Garden - To The Moon & Back (Extended Version).mp3 in Resources */,
 				3668480B2F0EC11300BC0838 /* Poppies.mp3 in Resources */,
@@ -1102,7 +1086,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Layover/Layover.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = PL58734CZ4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1119,7 +1103,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.0;
+				MARKETING_VERSION = 7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bholsinger.ShareALayover;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1139,7 +1123,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Layover/Layover.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = PL58734CZ4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1156,7 +1140,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 5.0;
+				MARKETING_VERSION = 7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bholsinger.ShareALayover;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

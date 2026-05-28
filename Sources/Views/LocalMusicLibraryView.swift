@@ -108,6 +108,10 @@ public struct LocalMusicLibraryView: View {
     
     private var tracksListView: some View {
         List {
+            LocalAudioNoticeView()
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+
             ForEach(viewModel.tracks) { track in
                 #if os(tvOS)
                 Button(action: {
@@ -318,6 +322,30 @@ public struct LocalMusicLibraryView: View {
 }
 
 // MARK: - Track Row View
+
+private struct LocalAudioNoticeView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Audio Notice", systemImage: "info.circle")
+                .font(.headline)
+                .foregroundColor(.white)
+
+            Text("These recordings are presented as publicly available archival/reference audio from third-party sources. They are not official releases and are not provided for public streaming, downloading, resale, or official artist distribution.")
+
+            Text("For official music, releases, and artist-supported listening, please use Apple Music or the artist's official website.")
+        }
+        .font(.caption)
+        .foregroundColor(.white.opacity(0.72))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color.white.opacity(0.08))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.white.opacity(0.14), lineWidth: 1)
+        )
+        .cornerRadius(12)
+    }
+}
 
 struct TrackRowView: View {
     let track: LocalMusicTrack

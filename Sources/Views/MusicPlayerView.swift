@@ -63,6 +63,8 @@ public struct MusicPlayerView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 12) {
+                        AudioNoticeView()
+
                         ForEach(filteredSongs) { song in
                             SongRow(
                                 song: song,
@@ -117,6 +119,25 @@ public struct MusicPlayerView: View {
         viewModel.songs.filter { song in
             selectedGenre == .all || song.genre == selectedGenre
         }
+    }
+}
+
+struct AudioNoticeView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Audio Notice", systemImage: "info.circle")
+                .font(.headline)
+
+            Text("These recordings are presented as publicly available archival/reference audio from third-party sources. They are not official releases and are not provided for public streaming, downloading, resale, or official artist distribution.")
+
+            Text("For official music, releases, and artist-supported listening, please use Apple Music or the artist's official website.")
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color.secondary.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
