@@ -97,7 +97,7 @@ public struct TVProfileView: View {
         VStack(spacing: 12) {
             // Profile Picture with Tap-to-Edit
             PhotosPicker(selection: $photosPickerItem, matching: .images) {
-                ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 8) {
                     // Profile Picture
                     if let selectedProfileImage {
                         Image(uiImage: selectedProfileImage)
@@ -120,15 +120,14 @@ public struct TVProfileView: View {
                             }
                     }
                     
-                    // Edit Badge
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.blue)
-                        .overlay(
-                            Circle()
-                                .stroke(.white, lineWidth: 1.5)
-                                .frame(width: 36, height: 36)
-                        )
+                    // Edit Badge Below Picture
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("Change")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(.blue)
                 }
             }
             .onChange(of: photosPickerItem) { _, newItem in
