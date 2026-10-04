@@ -47,18 +47,10 @@ public struct ChessView: View {
     public var body: some View {
         ZStack {
             // Dark gradient background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.black.opacity(0.95),
-                    Color(red: 0.05, green: 0.1, blue: 0.2),
-                    Color(red: 0.1, green: 0.15, blue: 0.25)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            ChessUIStyle.backgroundGradient
+                .ignoresSafeArea()
             
-            VStack(spacing: 20) {
+            VStack(spacing: ChessUILayout.componentSpacing) {
                 if viewModel.isLoading {
                     ProgressView("Loading...")
                         .tint(.white)
