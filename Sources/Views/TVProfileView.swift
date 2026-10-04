@@ -136,6 +136,11 @@ public struct TVProfileView: View {
                        let uiImage = UIImage(data: data) {
                         print("✅ Photo selected successfully")
                         selectedProfileImage = uiImage
+                        // Save to UserDefaults
+                        if let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
+                            UserDefaults.standard.set(jpegData, forKey: "profilePictureData")
+                            print("💾 Profile picture saved to UserDefaults")
+                        }
                     }
                 }
             }
@@ -159,7 +164,13 @@ public struct TVProfileView: View {
                 .foregroundStyle(.secondary)
         }
         .onAppear {
-            print("🎨 TVProfileView appeared - username: \(currentUser.username), hasImage: \(selectedProfileImage != nil)")
+            print("🎨 TVProfileView appeared - username: \(currentUser.username)")
+            // Load saved profile picture from UserDefaults
+            if let imageData = UserDefaults.standard.data(forKey: "profilePictureData"),
+               let uiImage = UIImage(data: imageData) {
+                print("📸 Loaded profile picture from UserDefaults")
+                selectedProfileImage = uiImage
+            }
         }
     }
 

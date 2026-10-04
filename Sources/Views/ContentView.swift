@@ -16,6 +16,7 @@ public struct ContentView: View {
     @StateObject var authViewModel = AuthenticationViewModel(authService: AuthenticationService())
     @State var libraryService = LibraryService()
     @StateObject private var navigationCoordinator = AppNavigationCoordinator()
+    @State private var profileImage: UIImage?
     
     // Guest user for non-account-based access
     private var guestUser: User {
@@ -46,6 +47,23 @@ public struct ContentView: View {
             .task {
                 await authViewModel.checkAuthenticationState()
             }
+            .onAppear {
+                loadProfileImage()
+            }
+            .onChange(of: navigationCoordinator.presentedSheet) { _, newSheet in
+                // Reload profile image when returning from profile sheet
+                if newSheet == nil {
+                    loadProfileImage()
+                }
+            }
+    }
+    
+    private func loadProfileImage() {
+        if let imageData = UserDefaults.standard.data(forKey: "profilePictureData"),
+           let uiImage = UIImage(data: imageData) {
+            print("📸 Loaded profile picture from UserDefaults in ContentView")
+            profileImage = uiImage
+        }
     }
     
     @ViewBuilder
@@ -399,9 +417,17 @@ public struct ContentView: View {
                 }
             } label: {
                 HStack(spacing: 12) {
-                    Image(systemName: isGuestMode ? "person.crop.circle.badge.plus" : "person.circle.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.white)
+                    if !isGuestMode, let profileImage {
+                        Image(uiImage: profileImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                    } else {
+                        Image(systemName: isGuestMode ? "person.crop.circle.badge.plus" : "person.circle.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.white)
+                    }
                     Text(isGuestMode ? "Sign In" : currentUser.username)
                         .font(.system(size: 28, weight: .medium))
                         .foregroundStyle(.white)
@@ -448,9 +474,17 @@ public struct ContentView: View {
                     navigationCoordinator.present(.profile)
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(.blue)
+                        if let profileImage {
+                            Image(uiImage: profileImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 20, height: 20)
+                                .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(.blue)
+                        }
                         Text(currentUser.username)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(.primary)
@@ -483,9 +517,17 @@ public struct ContentView: View {
                     navigationCoordinator.present(.profile)
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundStyle(.blue)
+                        if let profileImage {
+                            Image(uiImage: profileImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 24, height: 24)
+                                .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.blue)
+                        }
                         Text(currentUser.username)
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(.primary)
