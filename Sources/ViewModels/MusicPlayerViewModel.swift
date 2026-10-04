@@ -280,24 +280,33 @@ public final class MusicPlayerViewModel {
                 }
             }
             
-            songs = validSongs
-            
-            if invalidCount > 0 {
-                print("⚠️ \(invalidCount) track(s) skipped due to inaccessible files")
-                print("✅ Loaded \(songs.count) valid songs from database")
-                
-                // Show a friendly message if we have some invalid files
-                if songs.isEmpty && tracks.count > 0 {
-                    errorMessage = "No accessible music files found. Please import music to get started."
-                } else if invalidCount > 0 {
-                    errorMessage = "\(invalidCount) song(s) could not be loaded. They may have been moved or deleted."
-                }
+            // Fallback to sample songs if database is empty
+            if validSongs.isEmpty && tracks.isEmpty {
+                print("📚 Database is empty, loading sample songs...")
+                songs = SampleSong.samples
+                print("✅ Loaded \(songs.count) sample songs")
             } else {
-                print("✅ Loaded \(songs.count) songs from database")
+                songs = validSongs
+                
+                if invalidCount > 0 {
+                    print("⚠️ \(invalidCount) track(s) skipped due to inaccessible files")
+                    print("✅ Loaded \(songs.count) valid songs from database")
+                    
+                    // Show a friendly message if we have some invalid files
+                    if songs.isEmpty && tracks.count > 0 {
+                        errorMessage = "No accessible music files found. Please import music to get started."
+                    } else if invalidCount > 0 {
+                        errorMessage = "\(invalidCount) song(s) could not be loaded. They may have been moved or deleted."
+                    }
+                } else {
+                    print("✅ Loaded \(songs.count) songs from database")
+                }
             }
         } catch {
             print("❌ Failed to load songs from database: \(error)")
-            errorMessage = "Failed to load music library. Please import music to get started."
+            print("📚 Loading sample songs as fallback...")
+            songs = SampleSong.samples
+            errorMessage = "Failed to load music library. Showing sample songs instead."
         }
     }
     
