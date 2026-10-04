@@ -255,22 +255,13 @@ public final class ChessService: ChessServiceProtocol {
     }
     
     public func resign(playerID: UUID) async throws {
-        print("🔴 ChessService.resign() called with playerID: \(playerID)")
-        
         guard var game = currentGame else {
-            print("🔴 ChessService error: No active game")
             throw ChessError.noActiveGame
         }
         
-        print("🔴 Current game state: \(game.gameState.rawValue), players: \(game.players.count)")
-        
         guard let playerIndex = game.players.firstIndex(where: { $0.userID == playerID }) else {
-            print("🔴 ChessService error: Player not found with ID \(playerID)")
-            print("🔴 Available player IDs: \(game.players.map { $0.userID })")
             throw ChessError.playerNotFound
         }
-        
-        print("🔴 Found player at index: \(playerIndex)")
         
         game.players[playerIndex].hasResigned = true
         game.gameState = .resigned
@@ -279,11 +270,7 @@ public final class ChessService: ChessServiceProtocol {
         let otherPlayerIndex = playerIndex == 0 ? 1 : 0
         game.winnerID = game.players[otherPlayerIndex].userID
         
-        print("🔴 Updated game state to resigned, winner: \(game.winnerID ?? UUID())")
-        
         currentGame = game
-        
-        print("🟢 ChessService.resign() completed successfully")
     }
     
     public func endGame() async {

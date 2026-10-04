@@ -283,26 +283,13 @@ public final class ChessViewModel: LayoverViewModel {
     
     public func resign(playerID: UUID) async {
         do {
-            print("🔴 ChessViewModel.resign() called with playerID: \(playerID)")
-            print("🔴 Current game before resign: \(currentGame?.gameState.rawValue ?? "nil")")
-            
             try await gameService.resign(playerID: playerID)
-            
-            print("🔴 gameService.resign() completed successfully")
-            print("🔴 gameService.currentGame after resign: \(gameService.currentGame?.gameState.rawValue ?? "nil")")
-            
             currentGame = gameService.currentGame
             
-            print("🔴 viewModel.currentGame after resign: \(currentGame?.gameState.rawValue ?? "nil")")
-            
             if sharePlayService.isActive {
-                print("🔴 SharePlay is active, sending resign message")
                 await sharePlayService.sendMessage(.playerResign(playerID: playerID))
             }
-            
-            print("🟢 Resign operation completed successfully")
         } catch {
-            print("🔴 Resign error: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
     }
