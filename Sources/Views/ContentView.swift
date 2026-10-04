@@ -15,13 +15,7 @@ import UIKit
 public struct ContentView: View {
     @StateObject var authViewModel = AuthenticationViewModel(authService: AuthenticationService())
     @State var libraryService = LibraryService()
-    @State var showingLibrary = false
-    @State var showingProfile = false
-    @State var showingSharePlaySession = false
-    @State var showingGamesLauncher = false
-    @State var showingSignIn = false
-    @State var showingGlobalFeatures = false
-    @State var showingLanguageExchange = false
+    @State private var navigationCoordinator = AppNavigationCoordinator()
     
     // Guest user for non-account-based access
     private var guestUser: User {
@@ -41,17 +35,68 @@ public struct ContentView: View {
     public init() {}
     public var body: some View {
         mainAppView(currentUser: currentUser)
-            .sheet(isPresented: $showingSignIn) {
-                PlatformSignInView(viewModel: authViewModel)
+            .sheet(item: $navigationCoordinator.presentedSheet) { sheet in
+                sheetView(for: sheet)
             }
             .onChange(of: authViewModel.isAuthenticated) { _, isAuthenticated in
                 if isAuthenticated {
-                    showingSignIn = false
+                    navigationCoordinator.dismissSheet()
                 }
             }
             .task {
                 await authViewModel.checkAuthenticationState()
             }
+    }
+    
+    @ViewBuilder
+    private func sheetView(for sheet: AppSheet) -> some View {
+        switch sheet {
+        case .signIn:
+            PlatformSignInView(viewModel: authViewModel)
+        case .library:
+            LibraryView(libraryService: libraryService)
+        case .profile:
+            TVProfileView(
+                currentUser: currentUser,
+                authViewModel: authViewModel
+            )
+        case .globalFeatures:
+            GlobalFeaturesHubView()
+        case .languageExchange:
+            LanguageExchangeView(
+                room: Room(
+                    id: UUID(),
+                    name: "Language Practice Room",
+                    hostID: currentUser.id,
+                    participants: [currentUser],
+                    activityType: .appleMusic,
+                    maxParticipants: 10,
+                    isPrivate: false,
+                    languageExchangeEnabled: true
+                ),
+                currentUser: currentUser
+            )
+        case .shareSession:
+            ChessView(
+                room: Room(
+                    id: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID(),
+                    name: "Chess",
+                    hostID: currentUser.id,
+                    activityType: .chess,
+                    maxParticipants: 2,
+                    isPrivate: false
+                ),
+                currentUser: currentUser
+            )
+        case .gameSetup:
+            GamesLauncherView(currentUser: currentUser)
+        case .settings:
+            Text("Settings View")  // Placeholder
+        case .manualSignIn:
+            TVManualSignInView(viewModel: authViewModel)
+        case .registration:
+            TVRegistrationView(viewModel: authViewModel)
+        }
     }
 
     private func mainAppView(currentUser: User) -> some View {
@@ -86,67 +131,8 @@ public struct ContentView: View {
                 }
             }
             #endif
-            .sheet(isPresented: $showingLibrary) {
-                LibraryView(libraryService: libraryService)
-            }
-            .sheet(isPresented: $showingProfile) {
-                TVProfileView(
-                    currentUser: currentUser,
-                    authViewModel: authViewModel
-                )
-            }
-            .sheet(isPresented: $showingGlobalFeatures) {
-                GlobalFeaturesHubView()
-            }
-            .sheet(isPresented: $showingLanguageExchange) {
-                LanguageExchangeView(
-                    room: Room(
-                        id: UUID(),
-                        name: "Language Practice Room",
-                        hostID: currentUser.id,
-                        participants: [currentUser],
-                        activityType: .appleMusic,
-                        maxParticipants: 10,
-                        isPrivate: false,
-                        languageExchangeEnabled: true
-                    ),
-                    currentUser: currentUser
-                )
-            }
             #if os(tvOS)
-            .fullScreenCover(isPresented: $showingSharePlaySession) {
-                ChessView(
-                    room: Room(
-                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID(),
-                        name: "Chess",
-                        hostID: currentUser.id,
-                        activityType: .chess,
-                        maxParticipants: 2,
-                        isPrivate: false
-                    ),
-                    currentUser: currentUser
-                )
-            }
-            .fullScreenCover(isPresented: $showingGamesLauncher) {
-                GamesLauncherView(currentUser: currentUser)
-            }
             #else
-            .sheet(isPresented: $showingSharePlaySession) {
-                ChessView(
-                    room: Room(
-                        id: UUID(uuidString: "00000000-0000-0000-0000-000000000001") ?? UUID(),
-                        name: "Chess",
-                        hostID: currentUser.id,
-                        activityType: .chess,
-                        maxParticipants: 2,
-                        isPrivate: false
-                    ),
-                    currentUser: currentUser
-                )
-            }
-            .sheet(isPresented: $showingGamesLauncher) {
-                GamesLauncherView(currentUser: currentUser)
-            }
             #endif
         }
     }
@@ -170,7 +156,7 @@ public struct ContentView: View {
                         .foregroundStyle(.white)
                     Spacer()
                     Button {
-                        showingSignIn = true
+                        navigationCoordinator.present(.signIn)
                     } label: {
                         Text("Sign In")
                             .font(.system(size: 20, weight: .semibold))
@@ -248,7 +234,7 @@ public struct ContentView: View {
                 Button {
                     // Allow all users (including guests) to access games
                     // Sign-in will be prompted only if they select SharePlay mode
-                    showingGamesLauncher = true
+                    navigationCoordinator.present(.gameSetup)
                 } label: {
                     HStack(spacing: 16) {
                         ZStack {
@@ -299,7 +285,7 @@ public struct ContentView: View {
                 
                 // Browse Library Button with custom design
                 Button {
-                    showingLibrary = true
+                    navigationCoordinator.present(.library)
                 } label: {
                     HStack(spacing: 16) {
                         ZStack {
@@ -349,7 +335,7 @@ public struct ContentView: View {
                 
                 // Global Features Button with custom design
                 Button {
-                    showingGlobalFeatures = true
+                    navigationCoordinator.present(.globalFeatures)
                 } label: {
                     HStack(spacing: 16) {
                         ZStack {
@@ -408,7 +394,7 @@ public struct ContentView: View {
                 
                 // Language Exchange Button with custom design
                 Button {
-                    showingLanguageExchange = true
+                    navigationCoordinator.present(.languageExchange)
                 } label: {
                     HStack(spacing: 16) {
                         ZStack {
@@ -486,7 +472,7 @@ public struct ContentView: View {
                         .foregroundStyle(.primary)
                     Spacer()
                     Button {
-                        showingSignIn = true
+                        navigationCoordinator.present(.signIn)
                     } label: {
                         Text("Sign In")
                             .font(.subheadline)
@@ -555,9 +541,9 @@ public struct ContentView: View {
                     // For guests, prompt sign-in for SharePlay-specific features
                     // Single-player features are available via the "Play Chess" button below
                     if isGuestMode {
-                        showingSignIn = true
+                        navigationCoordinator.present(.signIn)
                     } else {
-                        showingSharePlaySession = true
+                        navigationCoordinator.present(.shareSession)
                     }
                 } label: {
                     HStack(spacing: 12) {
@@ -611,7 +597,7 @@ public struct ContentView: View {
                 
                 // Browse Library Button
                 Button {
-                    showingLibrary = true
+                    navigationCoordinator.present(.library)
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -658,7 +644,7 @@ public struct ContentView: View {
                 
                 // Play Games Button (Single Player - No Sign In Required)
                 Button {
-                    showingGamesLauncher = true
+                    navigationCoordinator.present(.gameSetup)
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -705,7 +691,7 @@ public struct ContentView: View {
                 
                 // Global Features Button
                 Button {
-                    showingGlobalFeatures = true
+                    navigationCoordinator.present(.globalFeatures)
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -761,7 +747,7 @@ public struct ContentView: View {
                 
                 // Language Exchange Button
                 Button {
-                    showingLanguageExchange = true
+                    navigationCoordinator.present(.languageExchange)
                 } label: {
                     HStack(spacing: 12) {
                         ZStack {
@@ -829,9 +815,9 @@ public struct ContentView: View {
             // Profile or Sign In Button
             Button {
                 if isGuestMode {
-                    showingSignIn = true
+                    navigationCoordinator.present(.signIn)
                 } else {
-                    showingProfile = true
+                    navigationCoordinator.present(.profile)
                 }
             } label: {
                 HStack(spacing: 12) {
@@ -881,7 +867,7 @@ public struct ContentView: View {
             // Profile Button (only shown when authenticated)
             if !isGuestMode {
                 Button {
-                    showingProfile = true
+                    navigationCoordinator.present(.profile)
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "person.circle.fill")
@@ -916,7 +902,7 @@ public struct ContentView: View {
             // Profile Button (only shown when authenticated)
             if !isGuestMode {
                 Button {
-                    showingProfile = true
+                    navigationCoordinator.present(.profile)
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "person.circle.fill")

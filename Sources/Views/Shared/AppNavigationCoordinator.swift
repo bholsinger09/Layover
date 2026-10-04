@@ -18,6 +18,11 @@ public enum AppSheet: Identifiable {
     case gameSetup
     case shareSession
     case signIn
+    case library
+    case globalFeatures
+    case languageExchange
+    case manualSignIn
+    case registration
 
     public var id: Self { self }
 }
