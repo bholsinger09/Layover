@@ -57,6 +57,7 @@ public struct ChessView: View {
                         .foregroundStyle(.white)
                 } else if let game = viewModel.currentGame {
                     gameView(game)
+                        .id(game.gameState.rawValue + game.id.uuidString)
                 } else {
                     setupView
                 }
