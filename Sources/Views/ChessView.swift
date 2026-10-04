@@ -571,7 +571,9 @@ public struct ChessView: View {
             HStack(spacing: 20) {
                 Button {
                     Task {
+                        print("🚨 Resign button pressed")
                         await viewModel.resign(playerID: currentUser.id)
+                        print("✅ Resign completed. CurrentGame state: \(viewModel.currentGame?.gameState.rawValue ?? "nil")")
                     }
                 } label: {
                     Text("Resign")
