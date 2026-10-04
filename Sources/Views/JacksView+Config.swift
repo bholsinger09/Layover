@@ -1,4 +1,55 @@
+import SwiftUI
 import SceneKit
+
+// MARK: - UI Layout Constants
+
+struct JacksUILayout {
+    // Spacing
+    static let horizontalPadding: CGFloat = 16
+    static let verticalPaddingLarge: CGFloat = 14
+    static let verticalPaddingSmall: CGFloat = 10
+    static let componentSpacing: CGFloat = 12
+    static let elementSpacing: CGFloat = 20
+    static let tightSpacing: CGFloat = 8
+
+    // Sizing
+    static let cornerRadius: CGFloat = 14
+    static let overlayCornerRadius: CGFloat = 24
+    static let indicatorSize: CGFloat = 8
+    static let statusCircleSize: CGFloat = 8
+
+    // Button
+    static let buttonHorizontalPadding: CGFloat = 24
+    static let buttonVerticalPadding: CGFloat = 12
+}
+
+struct JacksUIStyle {
+    // Opacity values
+    static let primaryOpacity: Double = 0.7
+    static let secondaryOpacity: Double = 0.6
+    static let highlightOpacity: Double = 0.8
+    static let overlayOpacity: Double = 0.9
+    static let shadowOpacity: Double = 0.5
+
+    // Font sizes
+    static let headerFont = Font.headline
+    static let captionFont = Font.caption
+    static let titleFont = Font.system(size: 32, weight: .bold)
+    static let scoreFont = Font.system(size: 48, weight: .bold)
+    static let subheadlineFont = Font.subheadline
+
+    // Gradients
+    static let controlPanelGradient = LinearGradient(
+        colors: [Color(white: 0.12), Color(white: 0.08)],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    // Shadows
+    static let buttonShadowRadius: CGFloat = 8
+    static let buttonShadowYOffset: CGFloat = 4
+    static let overlayBoxShadowRadius: CGFloat = 20
+}
 
 // MARK: - Game Configuration
 
