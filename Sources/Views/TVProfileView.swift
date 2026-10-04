@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 public struct TVProfileView: View {
     let currentUser: User
@@ -11,6 +12,8 @@ public struct TVProfileView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var showingDeleteConfirmation = false
+    @State private var selectedProfileImage: UIImage?
+    @State private var photosPickerItem: PhotosPickerItem?
 
     public var body: some View {
         NavigationStack {
@@ -33,24 +36,9 @@ public struct TVProfileView: View {
                 // Main content
                 ScrollView {
                     VStack(spacing: profileSpacing) {
-                        // Profile picture
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: profileIconSize))
-                            .foregroundStyle(.orange)
-
-                        // User info
-                        VStack(spacing: 4) {
-                            Text(currentUser.username)
-                                .font(profileNameFont)
-                                .fontWeight(.bold)
-                            
-                            if let email = currentUser.email {
-                                Text(email)
-                                    .font(profileEmailFont)
-                                    .foregroundStyle(.gray)
-                            }
-                        }
-
+                        // Profile card with photo picker
+                        profileCardSection
+                        
                         Divider()
                             .padding(.vertical, 20)
 
@@ -101,6 +89,81 @@ public struct TVProfileView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+    
+    // MARK: - Profile Card Section
+    
+    private var profileCardSection: some View {
+        VStack(spacing: 12) {
+            // Profile Picture with Tap-to-Edit
+            PhotosPicker(selection: $photosPickerItem, matching: .images) {
+                ZStack(alignment: .bottomTrailing) {
+                    // Profile Picture
+                    if let selectedProfileImage {
+                        Image(uiImage: selectedProfileImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: profileIconSize, height: profileIconSize)
+                            .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(LinearGradient(
+                                gradient: Gradient(colors: [.orange, .yellow]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: profileIconSize, height: profileIconSize)
+                            .overlay {
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: profileIconSize * 0.5))
+                                    .foregroundStyle(.white)
+                            }
+                    }
+                    
+                    // Edit Badge
+                    VStack(spacing: 2) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("CHANGE")
+                            .font(.system(size: 9, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: 50, height: 50)
+                    .background(Circle().fill(.blue.opacity(0.8)))
+                    .overlay(Circle().stroke(.white, lineWidth: 2))
+                }
+            }
+            .onChange(of: photosPickerItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        print("✅ Photo selected successfully")
+                        selectedProfileImage = uiImage
+                    }
+                }
+            }
+            
+            // User info
+            VStack(spacing: 4) {
+                Text(currentUser.username)
+                    .font(profileNameFont)
+                    .fontWeight(.bold)
+                
+                if let email = currentUser.email {
+                    Text(email)
+                        .font(profileEmailFont)
+                        .foregroundStyle(.gray)
+                }
+            }
+            
+            // Hint text
+            Text("Tap photo to change")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .onAppear {
+            print("🎨 TVProfileView appeared - username: \(currentUser.username), hasImage: \(selectedProfileImage != nil)")
+        }
     }
 
     private var deleteAccountMessage: String {
