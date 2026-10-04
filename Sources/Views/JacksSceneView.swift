@@ -60,18 +60,30 @@ struct JacksSceneView: UIViewRepresentable {
     var onTapJack: ((Int) -> Void)?
 
     func makeUIView(context: Context) -> SCNView {
+        print("🟢 JacksSceneView.makeUIView() called")
+        print("🟢 coordinator.scene: \(coordinator.scene)")
+        print("🟢 coordinator.scene.rootNode.childNodes.count: \(coordinator.scene.rootNode.childNodes.count)")
+        
         let scnView = SCNView()
         scnView.scene = coordinator.scene
+        print("🟢 Scene assigned to SCNView")
+        print("🟢 SCNView.scene: \(scnView.scene)")
+        print("🟢 SCNView.scene?.rootNode.childNodes.count: \(scnView.scene?.rootNode.childNodes.count ?? -1)")
+        
         scnView.allowsCameraControl = false
         scnView.antialiasingMode = .multisampling4X
         scnView.backgroundColor = .clear
         scnView.isPlaying = true
+        
+        print("🟢 SCNView configuration complete")
 
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(IOSSceneViewCoordinator.handleTap(_:)))
         scnView.addGestureRecognizer(tapGesture)
 
         let panGesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(IOSSceneViewCoordinator.handlePan(_:)))
         scnView.addGestureRecognizer(panGesture)
+        
+        print("🟢 JacksSceneView.makeUIView() completed, returning SCNView")
 
         return scnView
     }

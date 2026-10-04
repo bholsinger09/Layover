@@ -25,7 +25,12 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
     public override init() {
         scene = SCNScene()
         super.init()
+        print("🟢 JacksSceneCoordinator.init() called")
+        print("🟢 Scene created: \(scene)")
+        print("🟢 Scene rootNode: \(scene.rootNode)")
         setupScene()
+        print("🟢 setupScene() completed")
+        print("🟢 Scene now has \(scene.rootNode.childNodes.count) child nodes")
     }
 
     deinit {
@@ -35,15 +40,22 @@ public final class JacksSceneCoordinator: NSObject, ObservableObject, SCNPhysics
     // MARK: - Scene Setup
 
     private func setupScene() {
+        print("🟢 setupScene() starting")
         scene.background.contents = JacksColorPalette.skyColor
+        print("🟢 Background set to: \(String(describing: JacksColorPalette.skyColor))")
         scene.physicsWorld.gravity = SCNVector3(0, -9.8, 0)
         scene.physicsWorld.contactDelegate = self
 
         setupCamera()
+        print("🟢 Camera setup complete")
         setupLighting()
+        print("🟢 Lighting setup complete")
         setupFloor()
+        print("🟢 Floor setup complete, floor node: \(floorNode as Any)")
         setupBall()
+        print("🟢 Ball setup complete, ball node: \(ballNode as Any)")
         scatterJacks()
+        print("🟢 Jacks scattered, count: \(jackNodes.count)")
     }
 
     private func setupCamera() {
