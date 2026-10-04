@@ -121,16 +121,14 @@ public struct TVProfileView: View {
                     }
                     
                     // Edit Badge
-                    VStack(spacing: 2) {
-                        Image(systemName: "pencil")
-                            .font(.system(size: 12, weight: .semibold))
-                        Text("CHANGE")
-                            .font(.system(size: 9, weight: .semibold))
-                    }
-                    .foregroundStyle(.white)
-                    .frame(width: 50, height: 50)
-                    .background(Circle().fill(.blue.opacity(0.8)))
-                    .overlay(Circle().stroke(.white, lineWidth: 2))
+                    Image(systemName: "pencil.circle.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.blue)
+                        .overlay(
+                            Circle()
+                                .stroke(.white, lineWidth: 1.5)
+                                .frame(width: 36, height: 36)
+                        )
                 }
             }
             .onChange(of: photosPickerItem) { _, newItem in
