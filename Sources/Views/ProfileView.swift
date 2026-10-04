@@ -18,11 +18,40 @@ struct ProfileView: View {
     
     var body: some View {
         NavigationStack {
-            List {
-                profileSection
-                accountSection
-                aboutSection
-                signOutSection
+            VStack(spacing: 0) {
+                // Profile Card (outside list, at top)
+                VStack {
+                    UserProfileCard(
+                        username: currentUsername,
+                        selectedImage: selectedProfileImage,
+                        onImageSelected: { image in
+                            selectedProfileImage = image
+                        }
+                    )
+                    
+                    // Edit Username Button
+                    Button {
+                        showingUsernameEdit = true
+                    } label: {
+                        Label("Edit Username", systemImage: "pencil")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(.blue.opacity(0.1))
+                            .foregroundStyle(.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                            .padding(.bottom)
+                    }
+                }
+                .background(.ultraThinMaterial)
+                .padding(.bottom, 8)
+                
+                // Settings List
+                List {
+                    accountSection
+                    aboutSection
+                    signOutSection
+                }
             }
             .navigationTitle("Profile")
 #if os(iOS)

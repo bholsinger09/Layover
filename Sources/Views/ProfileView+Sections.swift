@@ -4,24 +4,6 @@ import SwiftUI
 
 extension ProfileView {
     
-    var profileSection: some View {
-        Section {
-            UserProfileCard(
-                username: currentUsername,
-                selectedImage: selectedProfileImage,
-                onImageSelected: { image in
-                    selectedProfileImage = image
-                }
-            )
-            
-            Button {
-                showingUsernameEdit = true
-            } label: {
-                Label("Edit Username", systemImage: "pencil")
-            }
-        }
-    }
-    
     var accountSection: some View {
         Section("Account") {
             NavigationLink {
