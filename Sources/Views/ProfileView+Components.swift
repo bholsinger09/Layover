@@ -6,53 +6,55 @@ import PhotosUI
 struct UserProfileCard: View {
     let username: String
     @State var selectedImage: UIImage?
-    @State private var showingPhotoPicker = false
     @State private var photosPickerItem: PhotosPickerItem?
     let onImageSelected: (UIImage?) -> Void
     
     var body: some View {
         VStack(spacing: 16) {
-            // Profile Picture with Picker
-            ZStack(alignment: .bottomTrailing) {
-                if let selectedImage {
-                    Image(uiImage: selectedImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 100, height: 100)
-                        .clipShape(Circle())
-                } else {
-                    Circle()
-                        .fill(LinearGradient(
-                            gradient: Gradient(colors: [.orange, .yellow]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                        .frame(width: 100, height: 100)
-                        .overlay {
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 40))
-                                .foregroundStyle(.white)
-                        }
+            // Profile Picture with Tap-to-Edit
+            PhotosPicker(selection: $photosPickerItem, matching: .images) {
+                ZStack(alignment: .bottomTrailing) {
+                    // Profile Picture
+                    if let selectedImage {
+                        Image(uiImage: selectedImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(LinearGradient(
+                                gradient: Gradient(colors: [.orange, .yellow]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 120, height: 120)
+                            .overlay {
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundStyle(.white)
+                            }
+                    }
+                    
+                    // Edit Badge
+                    VStack(spacing: 2) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("CHANGE")
+                            .font(.system(size: 9, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: 50, height: 50)
+                    .background(Circle().fill(.blue.opacity(0.8)))
+                    .overlay(Circle().stroke(.white, lineWidth: 2))
                 }
-                
-                // Edit button
-                PhotosPicker(selection: $photosPickerItem, matching: .images) {
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundStyle(.blue)
-                        .background(
-                            Circle()
-                                .fill(.white)
-                                .frame(width: 36, height: 36)
-                        )
-                }
-                .onChange(of: photosPickerItem) { _, newItem in
-                    Task {
-                        if let data = try? await newItem?.loadTransferable(type: Data.self),
-                           let uiImage = UIImage(data: data) {
-                            selectedImage = uiImage
-                            onImageSelected(uiImage)
-                        }
+            }
+            .onChange(of: photosPickerItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        selectedImage = uiImage
+                        onImageSelected(uiImage)
                     }
                 }
             }
@@ -67,6 +69,11 @@ struct UserProfileCard: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
+            
+            // Hint text
+            Text("Tap photo to change")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding()
