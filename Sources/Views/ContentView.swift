@@ -15,7 +15,7 @@ import UIKit
 public struct ContentView: View {
     @StateObject var authViewModel = AuthenticationViewModel(authService: AuthenticationService())
     @State var libraryService = LibraryService()
-    @State private var navigationCoordinator = AppNavigationCoordinator()
+    @StateObject private var navigationCoordinator = AppNavigationCoordinator()
     
     // Guest user for non-account-based access
     private var guestUser: User {
@@ -227,229 +227,34 @@ public struct ContentView: View {
                     )
             )
             .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
-            
-            // Connection Options with unique styling
+
+            // Home Screen Buttons
             VStack(spacing: 24) {
-                // Connect to SharePlay Button with custom design
-                Button {
-                    // Allow all users (including guests) to access games
-                    // Sign-in will be prompted only if they select SharePlay mode
-                    navigationCoordinator.present(.gameSetup)
-                } label: {
-                    HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                            Image(systemName: "gamecontroller.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Play Games")
-                                .font(.system(size: 32, weight: .bold))
-                            Text("Chess, Checkers & Connect Four")
-                                .font(.system(size: 18))
-                                .opacity(0.9)
-                        }
-                        Spacer()
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: 700)
-                    .padding(.vertical, 28)
-                    .padding(.horizontal, 40)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.2, green: 0.4, blue: 0.9),
-                                            Color(red: 0.1, green: 0.6, blue: 0.8)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                        }
-                        .shadow(color: .cyan.opacity(0.6), radius: 25, x: 0, y: 12)
-                    )
-                }
-                #if os(tvOS)
-                .buttonStyle(.card)
-                #else
-                .buttonStyle(.plain)
-                #endif
-                
-                // Browse Library Button with custom design
-                Button {
-                    navigationCoordinator.present(.library)
-                } label: {
-                    HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                            Image(systemName: "books.vertical.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("My Media Library")
-                                .font(.system(size: 32, weight: .bold))
-                            Text("Curated collection ready to share")
-                                .font(.system(size: 18))
-                                .opacity(0.9)
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: 700)
-                    .padding(.vertical, 28)
-                    .padding(.horizontal, 40)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.5, green: 0.2, blue: 0.8),
-                                            Color(red: 0.7, green: 0.3, blue: 0.9)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                        }
-                        .shadow(color: .purple.opacity(0.6), radius: 25, x: 0, y: 12)
-                    )
-                }
-                #if os(tvOS)
-                .buttonStyle(.card)
-                #else
-                .buttonStyle(.plain)
-                #endif
-                
-                // Global Features Button with custom design
-                Button {
-                    navigationCoordinator.present(.globalFeatures)
-                } label: {
-                    HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                            Image(systemName: "globe.americas.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 8) {
-                                Text("Global Features")
-                                    .font(.system(size: 32, weight: .bold))
-                                Text("NEW")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(.yellow)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.yellow.opacity(0.2))
-                                    .cornerRadius(6)
-                            }
-                            Text("World-wide rooms, events & scheduling")
-                                .font(.system(size: 18))
-                                .opacity(0.9)
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: 700)
-                    .padding(.vertical, 28)
-                    .padding(.horizontal, 40)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.1, green: 0.6, blue: 0.4),
-                                            Color(red: 0.2, green: 0.7, blue: 0.6)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                        }
-                        .shadow(color: .green.opacity(0.6), radius: 25, x: 0, y: 12)
-                    )
-                }
-                #if os(tvOS)
-                .buttonStyle(.card)
-                #else
-                .buttonStyle(.plain)
-                #endif
-                
-                // Language Exchange Button with custom design
-                Button {
-                    navigationCoordinator.present(.languageExchange)
-                } label: {
-                    HStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 60, height: 60)
-                            Image(systemName: "message.badge.waveform.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 8) {
-                                Text("Language Exchange")
-                                    .font(.system(size: 32, weight: .bold))
-                                Text("NEW")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundStyle(.yellow)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.yellow.opacity(0.2))
-                                    .cornerRadius(6)
-                            }
-                            Text("Practice languages with real-time translation")
-                                .font(.system(size: 18))
-                                .opacity(0.9)
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: 700)
-                    .padding(.vertical, 28)
-                    .padding(.horizontal, 40)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.9, green: 0.3, blue: 0.5),
-                                            Color(red: 0.7, green: 0.2, blue: 0.7)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                        }
-                        .shadow(color: .pink.opacity(0.6), radius: 25, x: 0, y: 12)
-                    )
-                }
-                #if os(tvOS)
-                .buttonStyle(.card)
-                #else
-                .buttonStyle(.plain)
-                #endif
+                HomeButtonView.largeBlueButton(
+                    title: "Play Games",
+                    subtitle: "Chess, Checkers & Connect Four",
+                    action: { navigationCoordinator.present(.gameSetup) }
+                )
+
+                HomeButtonView.purpleButton(
+                    title: "My Media Library",
+                    subtitle: "Curated collection ready to share",
+                    action: { navigationCoordinator.present(.library) }
+                )
+
+                HomeButtonView.greenButton(
+                    title: "Global Features",
+                    subtitle: "Worldwide rooms, events & scheduling",
+                    badge: "NEW",
+                    action: { navigationCoordinator.present(.globalFeatures) }
+                )
+
+                HomeButtonView.magentaButton(
+                    title: "Language Exchange",
+                    subtitle: "Practice with real-time translation",
+                    badge: "NEW",
+                    action: { navigationCoordinator.present(.languageExchange) }
+                )
             }
             
             Spacer()
@@ -536,270 +341,43 @@ public struct ContentView: View {
             
             // Connection Options
             VStack(spacing: 16) {
-                // Connect to SharePlay Button
-                Button {
-                    // For guests, prompt sign-in for SharePlay-specific features
-                    // Single-player features are available via the "Play Chess" button below
-                    if isGuestMode {
-                        navigationCoordinator.present(.signIn)
-                    } else {
-                        navigationCoordinator.present(.shareSession)
+                HomeButtonView.cyanButton(
+                    title: "SharePlay Session",
+                    subtitle: isGuestMode ? "Account required" : "Real-time synchronized experience",
+                    action: {
+                        if isGuestMode {
+                            navigationCoordinator.present(.signIn)
+                        } else {
+                            navigationCoordinator.present(.shareSession)
+                        }
                     }
-                } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "shareplay")
-                                .font(.system(size: 22))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("SharePlay Session")
-                                .font(.system(size: 18, weight: .bold))
-                            if isGuestMode {
-                                Text("Account required")
-                                    .font(.system(size: 12))
-                                    .opacity(0.9)
-                            } else {
-                                Text("Real-time synchronized experience")
-                                    .font(.system(size: 12))
-                                    .opacity(0.9)
-                            }
-                        }
-                        Spacer()
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 16)
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.2, green: 0.4, blue: 0.9),
-                                            Color(red: 0.1, green: 0.6, blue: 0.8)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
-                        }
-                        .shadow(color: .cyan.opacity(0.6), radius: 15, x: 0, y: 8)
-                    )
-                }
-                .buttonStyle(.plain)
-                
-                // Browse Library Button
-                Button {
-                    navigationCoordinator.present(.library)
-                } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "books.vertical.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("My Media Library")
-                                .font(.system(size: 18, weight: .bold))
-                            Text("Curated collection ready to share")
-                                .font(.system(size: 12))
-                                .opacity(0.9)
-                        }
-                        Spacer()
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 16)
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.5, green: 0.2, blue: 0.8),
-                                            Color(red: 0.7, green: 0.3, blue: 0.9)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
-                        }
-                        .shadow(color: .purple.opacity(0.6), radius: 15, x: 0, y: 8)
-                    )
-                }
-                .buttonStyle(.plain)
-                
-                // Play Games Button (Single Player - No Sign In Required)
-                Button {
-                    navigationCoordinator.present(.gameSetup)
-                } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "gamecontroller.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Play Games")
-                                .font(.system(size: 18, weight: .bold))
-                            Text("Chess, Checkers & Connect Four")
-                                .font(.system(size: 12))
-                                .opacity(0.9)
-                        }
-                        Spacer()
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 16)
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.8, green: 0.3, blue: 0.3),
-                                            Color(red: 0.9, green: 0.5, blue: 0.2)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
-                        }
-                        .shadow(color: .orange.opacity(0.6), radius: 15, x: 0, y: 8)
-                    )
-                }
-                .buttonStyle(.plain)
-                
-                // Global Features Button
-                Button {
-                    navigationCoordinator.present(.globalFeatures)
-                } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "globe.americas.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 6) {
-                                Text("Global Features")
-                                    .font(.system(size: 18, weight: .bold))
-                                Text("NEW")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(.black)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.yellow)
-                                    .cornerRadius(4)
-                            }
-                            Text("Worldwide rooms, events & scheduling")
-                                .font(.system(size: 12))
-                                .opacity(0.9)
-                        }
-                        Spacer()
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 16)
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.1, green: 0.6, blue: 0.4),
-                                            Color(red: 0.2, green: 0.7, blue: 0.6)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
-                        }
-                        .shadow(color: .green.opacity(0.6), radius: 15, x: 0, y: 8)
-                    )
-                }
-                .buttonStyle(.plain)
-                
-                // Language Exchange Button
-                Button {
-                    navigationCoordinator.present(.languageExchange)
-                } label: {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "message.badge.waveform.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(.white)
-                        }
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 6) {
-                                Text("Language Exchange")
-                                    .font(.system(size: 18, weight: .bold))
-                                Text("NEW")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(.black)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.yellow)
-                                    .cornerRadius(4)
-                            }
-                            Text("Practice with real-time translation")
-                                .font(.system(size: 12))
-                                .opacity(0.9)
-                        }
-                        Spacer()
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 16)
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [
-                                            Color(red: 0.9, green: 0.3, blue: 0.5),
-                                            Color(red: 0.7, green: 0.2, blue: 0.7)
-                                        ]),
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
-                        }
-                        .shadow(color: .pink.opacity(0.6), radius: 15, x: 0, y: 8)
-                    )
-                }
-                .buttonStyle(.plain)
+                )
+
+                HomeButtonView.purpleButton(
+                    title: "My Media Library",
+                    subtitle: "Curated collection ready to share",
+                    action: { navigationCoordinator.present(.library) }
+                )
+
+                HomeButtonView.orangeButton(
+                    title: "Play Games",
+                    subtitle: "Chess, Checkers & Connect Four",
+                    action: { navigationCoordinator.present(.gameSetup) }
+                )
+
+                HomeButtonView.greenButton(
+                    title: "Global Features",
+                    subtitle: "Worldwide rooms, events & scheduling",
+                    badge: "NEW",
+                    action: { navigationCoordinator.present(.globalFeatures) }
+                )
+
+                HomeButtonView.magentaButton(
+                    title: "Language Exchange",
+                    subtitle: "Practice with real-time translation",
+                    badge: "NEW",
+                    action: { navigationCoordinator.present(.languageExchange) }
+                )
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 20)
