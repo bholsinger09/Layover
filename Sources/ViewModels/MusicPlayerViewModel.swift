@@ -280,10 +280,15 @@ public final class MusicPlayerViewModel {
                 }
             }
             
-            // Fallback to sample songs if database is empty
-            if validSongs.isEmpty && tracks.isEmpty {
-                print("📚 Database is empty, loading sample songs...")
+            // Fallback to sample songs if database is empty or all tracks are inaccessible
+            if validSongs.isEmpty {
+                if tracks.isEmpty {
+                    print("📚 Database is empty, loading sample songs...")
+                } else {
+                    print("📚 All database tracks are inaccessible, loading sample songs...")
+                }
                 songs = SampleSong.samples
+                errorMessage = nil  // Clear any error messages
                 print("✅ Loaded \(songs.count) sample songs")
             } else {
                 songs = validSongs
@@ -291,22 +296,18 @@ public final class MusicPlayerViewModel {
                 if invalidCount > 0 {
                     print("⚠️ \(invalidCount) track(s) skipped due to inaccessible files")
                     print("✅ Loaded \(songs.count) valid songs from database")
-                    
-                    // Show a friendly message if we have some invalid files
-                    if songs.isEmpty && tracks.count > 0 {
-                        errorMessage = "No accessible music files found. Please import music to get started."
-                    } else if invalidCount > 0 {
-                        errorMessage = "\(invalidCount) song(s) could not be loaded. They may have been moved or deleted."
-                    }
+                    errorMessage = "\(invalidCount) song(s) could not be loaded. They may have been moved or deleted."
                 } else {
                     print("✅ Loaded \(songs.count) songs from database")
+                    errorMessage = nil  // Clear any previous error messages
                 }
             }
         } catch {
             print("❌ Failed to load songs from database: \(error)")
             print("📚 Loading sample songs as fallback...")
             songs = SampleSong.samples
-            errorMessage = "Failed to load music library. Showing sample songs instead."
+            errorMessage = nil  // Clear error and show samples
+            print("✅ Loaded \(songs.count) sample songs")
         }
     }
     
