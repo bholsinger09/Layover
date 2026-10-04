@@ -53,8 +53,11 @@ struct UserProfileCard: View {
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),
                        let uiImage = UIImage(data: data) {
+                        print("✅ Photo selected successfully")
                         selectedImage = uiImage
                         onImageSelected(uiImage)
+                    } else {
+                        print("❌ Failed to load photo")
                     }
                 }
             }
@@ -77,6 +80,9 @@ struct UserProfileCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
+        .onAppear {
+            print("🎨 UserProfileCard appeared - username: \(username), hasImage: \(selectedImage != nil)")
+        }
     }
 }
 

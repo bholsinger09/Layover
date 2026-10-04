@@ -25,12 +25,14 @@ struct ProfileView: View {
                         username: currentUsername,
                         selectedImage: selectedProfileImage,
                         onImageSelected: { image in
+                            print("📸 Profile image selected: \(image != nil)")
                             selectedProfileImage = image
                         }
                     )
                     
                     // Edit Username Button
                     Button {
+                        print("✏️ Edit username pressed")
                         showingUsernameEdit = true
                     } label: {
                         Label("Edit Username", systemImage: "pencil")
@@ -43,7 +45,7 @@ struct ProfileView: View {
                             .padding(.bottom)
                     }
                 }
-                .background(.ultraThinMaterial)
+                .background(.red.opacity(0.2))  // DEBUG: Red background to see this section
                 .padding(.bottom, 8)
                 
                 // Settings List
@@ -74,6 +76,10 @@ struct ProfileView: View {
                 }
             } message: {
                 Text("Enter your new username")
+            }
+            .onAppear {
+                print("🎯 ProfileView appeared - currentUsername: \(currentUsername)")
+                print("📸 selectedProfileImage is nil: \(selectedProfileImage == nil)")
             }
         }
         #if os(macOS)
